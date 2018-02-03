@@ -1,0 +1,1317 @@
+Archive member included because of file (symbol)
+
+contiki-cc13xx.a(contiki-main.o)
+                              obj_cc13xx/startup_gcc.o (main)
+contiki-cc13xx.a(board.o)     contiki-cc13xx.a(contiki-main.o) (board_init)
+contiki-cc13xx.a(clock.o)     contiki-cc13xx.a(contiki-main.o) (clock_init)
+contiki-cc13xx.a(rtimer-arch.o)
+                              contiki-cc13xx.a(contiki-main.o) (rtimer_arch_now)
+contiki-cc13xx.a(soc-rtc.o)   contiki-cc13xx.a(contiki-main.o) (soc_rtc_init)
+contiki-cc13xx.a(contiki-watchdo)
+                              contiki-cc13xx.a(contiki-main.o) (watchdog_init)
+contiki-cc13xx.a(putchar.o)   radio-uart.co (puts)
+contiki-cc13xx.a(cc26xx-uart.o)
+                              contiki-cc13xx.a(putchar.o) (cc26xx_uart_write_byte)
+contiki-cc13xx.a(lpm.o)       contiki-cc13xx.a(board.o) (lpm_register_module)
+contiki-cc13xx.a(oscillators.o)
+                              contiki-cc13xx.a(contiki-main.o) (oscillators_select_lf_xosc)
+contiki-cc13xx.a(autostart.o)
+                              contiki-cc13xx.a(contiki-main.o) (autostart_start)
+contiki-cc13xx.a(energest.o)  contiki-cc13xx.a(contiki-main.o) (energest_init)
+contiki-cc13xx.a(ctimer.o)    contiki-cc13xx.a(contiki-main.o) (ctimer_init)
+contiki-cc13xx.a(etimer.o)    contiki-cc13xx.a(clock.o) (etimer_request_poll)
+contiki-cc13xx.a(process.o)   contiki-cc13xx.a(autostart.o) (process_exit)
+contiki-cc13xx.a(rtimer.o)    contiki-cc13xx.a(contiki-main.o) (rtimer_init)
+contiki-cc13xx.a(timer.o)     contiki-cc13xx.a(etimer.o) (timer_set)
+contiki-cc13xx.a(serial-line.o)
+                              contiki-cc13xx.a(contiki-main.o) (serial_line_input_byte)
+contiki-cc13xx.a(list.o)      contiki-cc13xx.a(lpm.o) (list_init)
+contiki-cc13xx.a(ringbuf.o)   contiki-cc13xx.a(serial-line.o) (ringbuf_init)
+contiki-cc13xx.a(setup.o)     obj_cc13xx/startup_gcc.o (trimDevice)
+contiki-cc13xx.a(sys_ctrl.o)  contiki-cc13xx.a(lpm.o) (SysCtrlSetRechargeBeforePowerDown)
+contiki-cc13xx.a(chipinfo.o)  contiki-cc13xx.a(setup.o) (ThisCodeIsBuiltForCC13xxHwRev20AndLater_HaltIfViolated)
+contiki-cc13xx.a(cpu.o)       contiki-cc13xx.a(contiki-main.o) (NOROM_CPUcpsid)
+contiki-cc13xx.a(pwr_ctrl.o)  contiki-cc13xx.a(sys_ctrl.o) (NOROM_PowerCtrlStateSet)
+contiki-cc13xx.a(aon_batmon.o)
+                              contiki-cc13xx.a(sys_ctrl.o) (AONBatMonTemperatureGetDegC)
+contiki-cc13xx.a(aon_rtc.o)   contiki-cc13xx.a(rtimer-arch.o) (NOROM_AONRTCCurrentCompareValueGet)
+contiki-cc13xx.a(osc.o)       contiki-cc13xx.a(oscillators.o) (NOROM_OSCClockSourceSet)
+contiki-cc13xx.a(dbg-printf.o)
+                              contiki-cc13xx.a(serial-line.o) (printf)
+contiki-cc13xx.a(strformat.o)
+                              contiki-cc13xx.a(dbg-printf.o) (format_str_v)
+/media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+                              contiki-cc13xx.a(strformat.o) (__aeabi_uldivmod)
+/media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+                              /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o) (__gnu_uldivmod_helper)
+/media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+                              /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o) (__aeabi_ldiv0)
+/media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+                              /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o) (__divdi3)
+/media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+                              /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o) (__udivdi3)
+/media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+                              contiki-cc13xx.a(putchar.o) (strlen)
+
+Allocating common symbols
+Common symbol       size              file
+
+energest_total_time
+                    0x30              contiki-cc13xx.a(energest.o)
+energest_total_count
+                    0x4               contiki-cc13xx.a(energest.o)
+energest_current_mode
+                    0xc               contiki-cc13xx.a(energest.o)
+energest_current_time
+                    0x30              contiki-cc13xx.a(energest.o)
+serial_line_event_message
+                    0x1               contiki-cc13xx.a(serial-line.o)
+
+Discarded input sections
+
+ .text          0x00000000        0x0 obj_cc13xx/fault-handlers.o
+ .data          0x00000000        0x0 obj_cc13xx/fault-handlers.o
+ .bss           0x00000000        0x0 obj_cc13xx/fault-handlers.o
+ .text          0x00000000        0x0 obj_cc13xx/ccfg.o
+ .data          0x00000000        0x0 obj_cc13xx/ccfg.o
+ .bss           0x00000000        0x0 obj_cc13xx/ccfg.o
+ .text          0x00000000        0x0 obj_cc13xx/startup_gcc.o
+ .data          0x00000000        0x0 obj_cc13xx/startup_gcc.o
+ .bss           0x00000000        0x0 obj_cc13xx/startup_gcc.o
+ .text.FaultISRHandler
+                0x00000000        0x4 obj_cc13xx/startup_gcc.o
+ .text          0x00000000        0x0 radio-uart.co
+ .data          0x00000000        0x0 radio-uart.co
+ .bss           0x00000000        0x0 radio-uart.co
+ .text          0x00000000        0x0 contiki-cc13xx.a(contiki-main.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(contiki-main.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(contiki-main.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(board.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(board.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(board.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(clock.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(clock.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(clock.o)
+ .text.clock_seconds
+                0x00000000       0x18 contiki-cc13xx.a(clock.o)
+ .text.clock_wait
+                0x00000000       0x58 contiki-cc13xx.a(clock.o)
+ .text.clock_delay_usec
+                0x00000000       0x84 contiki-cc13xx.a(clock.o)
+ .text.clock_delay
+                0x00000000        0x8 contiki-cc13xx.a(clock.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(rtimer-arch.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(rtimer-arch.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(rtimer-arch.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(soc-rtc.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(soc-rtc.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(soc-rtc.o)
+ .text.soc_rtc_get_next_trigger
+                0x00000000       0x28 contiki-cc13xx.a(soc-rtc.o)
+ .text.soc_rtc_last_isr_time
+                0x00000000        0xc contiki-cc13xx.a(soc-rtc.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(contiki-watchdo)
+ .data          0x00000000        0x0 contiki-cc13xx.a(contiki-watchdo)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(contiki-watchdo)
+ .text.watchdog_stop
+                0x00000000       0x18 contiki-cc13xx.a(contiki-watchdo)
+ .text.watchdog_reboot
+                0x00000000        0x8 contiki-cc13xx.a(contiki-watchdo)
+ .text          0x00000000        0x0 contiki-cc13xx.a(putchar.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(putchar.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(putchar.o)
+ .text.putchar  0x00000000       0x10 contiki-cc13xx.a(putchar.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(cc26xx-uart.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(cc26xx-uart.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(cc26xx-uart.o)
+ .text.cc26xx_uart_init
+                0x00000000       0x28 contiki-cc13xx.a(cc26xx-uart.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(lpm.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(lpm.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(lpm.o)
+ .text.lpm_shutdown
+                0x00000000      0x1b8 contiki-cc13xx.a(lpm.o)
+ .text.lpm_sleep
+                0x00000000       0x88 contiki-cc13xx.a(lpm.o)
+ .text.lpm_drop
+                0x00000000      0x264 contiki-cc13xx.a(lpm.o)
+ .text.lpm_unregister_module
+                0x00000000        0xc contiki-cc13xx.a(lpm.o)
+ .bss.irq_energest
+                0x00000000        0x4 contiki-cc13xx.a(lpm.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(oscillators.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(oscillators.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(oscillators.o)
+ .text.oscillators_select_lf_rcosc
+                0x00000000       0x30 contiki-cc13xx.a(oscillators.o)
+ .text.oscillators_request_hf_xosc
+                0x00000000       0x24 contiki-cc13xx.a(oscillators.o)
+ .text.oscillators_switch_to_hf_xosc
+                0x00000000       0x28 contiki-cc13xx.a(oscillators.o)
+ .text.oscillators_switch_to_hf_rc
+                0x00000000       0x2c contiki-cc13xx.a(oscillators.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(autostart.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(autostart.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(autostart.o)
+ .text.autostart_exit
+                0x00000000       0x18 contiki-cc13xx.a(autostart.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(energest.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(energest.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(energest.o)
+ .text.energest_type_time
+                0x00000000       0x3c contiki-cc13xx.a(energest.o)
+ .text.energest_leveldevice_leveltime
+                0x00000000        0x4 contiki-cc13xx.a(energest.o)
+ .text.energest_type_set
+                0x00000000        0xc contiki-cc13xx.a(energest.o)
+ .text.energest_flush
+                0x00000000       0x50 contiki-cc13xx.a(energest.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(ctimer.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(ctimer.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(ctimer.o)
+ .text.ctimer_set_with_process
+                0x00000000       0x4c contiki-cc13xx.a(ctimer.o)
+ .text.ctimer_set
+                0x00000000       0x18 contiki-cc13xx.a(ctimer.o)
+ .text.ctimer_reset
+                0x00000000       0x38 contiki-cc13xx.a(ctimer.o)
+ .text.ctimer_restart
+                0x00000000       0x38 contiki-cc13xx.a(ctimer.o)
+ .text.ctimer_stop
+                0x00000000       0x34 contiki-cc13xx.a(ctimer.o)
+ .text.ctimer_expired
+                0x00000000       0x38 contiki-cc13xx.a(ctimer.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(etimer.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(etimer.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(etimer.o)
+ .text.etimer_reset_with_new_interval
+                0x00000000       0x18 contiki-cc13xx.a(etimer.o)
+ .text.etimer_reset
+                0x00000000       0x14 contiki-cc13xx.a(etimer.o)
+ .text.etimer_restart
+                0x00000000       0x14 contiki-cc13xx.a(etimer.o)
+ .text.etimer_adjust
+                0x00000000        0xc contiki-cc13xx.a(etimer.o)
+ .text.etimer_expired
+                0x00000000        0xc contiki-cc13xx.a(etimer.o)
+ .text.etimer_expiration_time
+                0x00000000        0x8 contiki-cc13xx.a(etimer.o)
+ .text.etimer_start_time
+                0x00000000        0x4 contiki-cc13xx.a(etimer.o)
+ .text.etimer_next_expiration_time
+                0x00000000       0x14 contiki-cc13xx.a(etimer.o)
+ .text.etimer_stop
+                0x00000000       0x4c contiki-cc13xx.a(etimer.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(process.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(process.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(process.o)
+ .text.process_exit
+                0x00000000        0xc contiki-cc13xx.a(process.o)
+ .text.process_nevents
+                0x00000000       0x14 contiki-cc13xx.a(process.o)
+ .text.process_is_running
+                0x00000000        0xc contiki-cc13xx.a(process.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(rtimer.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(rtimer.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(rtimer.o)
+ .text.rtimer_set
+                0x00000000       0x2c contiki-cc13xx.a(rtimer.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(timer.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(timer.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(timer.o)
+ .text.timer_reset
+                0x00000000        0xc contiki-cc13xx.a(timer.o)
+ .text.timer_restart
+                0x00000000        0xc contiki-cc13xx.a(timer.o)
+ .text.timer_remaining
+                0x00000000       0x10 contiki-cc13xx.a(timer.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(serial-line.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(serial-line.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(serial-line.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(list.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(list.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(list.o)
+ .text.list_copy
+                0x00000000        0x8 contiki-cc13xx.a(list.o)
+ .text.list_tail
+                0x00000000       0x14 contiki-cc13xx.a(list.o)
+ .text.list_push
+                0x00000000       0x40 contiki-cc13xx.a(list.o)
+ .text.list_chop
+                0x00000000       0x24 contiki-cc13xx.a(list.o)
+ .text.list_pop
+                0x00000000        0xc contiki-cc13xx.a(list.o)
+ .text.list_length
+                0x00000000       0x14 contiki-cc13xx.a(list.o)
+ .text.list_insert
+                0x00000000       0x10 contiki-cc13xx.a(list.o)
+ .text.list_item_next
+                0x00000000        0x8 contiki-cc13xx.a(list.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(ringbuf.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(ringbuf.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(ringbuf.o)
+ .text.ringbuf_size
+                0x00000000        0x8 contiki-cc13xx.a(ringbuf.o)
+ .text.ringbuf_elements
+                0x00000000        0xc contiki-cc13xx.a(ringbuf.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(setup.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(setup.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(setup.o)
+ .text.SignExtendVddrTrimValue
+                0x00000000        0x8 contiki-cc13xx.a(setup.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(sys_ctrl.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(sys_ctrl.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrlPowerEverything
+                0x00000000       0xf0 contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrlStandby
+                0x00000000       0x30 contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrlPowerdown
+                0x00000000       0x4c contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrlShutdown
+                0x00000000       0x4c contiki-cc13xx.a(sys_ctrl.o)
+ .text.SysCtrlSetRechargeBeforePowerDown
+                0x00000000      0x290 contiki-cc13xx.a(sys_ctrl.o)
+ .text.SysCtrlAdjustRechargeAfterPowerDown
+                0x00000000       0x64 contiki-cc13xx.a(sys_ctrl.o)
+ .text.SysCtrl_DCDC_VoltageConditionalControl
+                0x00000000       0x78 contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrlResetSourceGet
+                0x00000000       0x18 contiki-cc13xx.a(sys_ctrl.o)
+ .rodata.g_pui32ModuleCG
+                0x00000000       0x34 contiki-cc13xx.a(sys_ctrl.o)
+ .bss.powerQualGlobals
+                0x00000000        0x8 contiki-cc13xx.a(sys_ctrl.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(sys_ctrl.o)
+ .ARM.attributes
+                0x00000000       0x33 contiki-cc13xx.a(sys_ctrl.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(chipinfo.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(chipinfo.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(chipinfo.o)
+ .text.ChipInfo_GetSupportedProtocol_BV
+                0x00000000       0x10 contiki-cc13xx.a(chipinfo.o)
+ .text.ChipInfo_GetPackageType
+                0x00000000       0x18 contiki-cc13xx.a(chipinfo.o)
+ .text.ChipInfo_GetChipFamily
+                0x00000000       0x38 contiki-cc13xx.a(chipinfo.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(cpu.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(cpu.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(cpu.o)
+ .text.NOROM_CPUprimask
+                0x00000000        0x8 contiki-cc13xx.a(cpu.o)
+ .text.NOROM_CPUbasepriGet
+                0x00000000        0x8 contiki-cc13xx.a(cpu.o)
+ .text.NOROM_CPUdelay
+                0x00000000        0x8 contiki-cc13xx.a(cpu.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(pwr_ctrl.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(pwr_ctrl.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(pwr_ctrl.o)
+ .text.NOROM_PowerCtrlStateSet
+                0x00000000      0x184 contiki-cc13xx.a(pwr_ctrl.o)
+ .text.NOROM_PowerCtrlSourceSet
+                0x00000000       0x30 contiki-cc13xx.a(pwr_ctrl.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(pwr_ctrl.o)
+ .ARM.attributes
+                0x00000000       0x33 contiki-cc13xx.a(pwr_ctrl.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(aon_batmon.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(aon_batmon.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(aon_batmon.o)
+ .text.AONBatMonTemperatureGetDegC
+                0x00000000       0x30 contiki-cc13xx.a(aon_batmon.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(aon_batmon.o)
+ .ARM.attributes
+                0x00000000       0x33 contiki-cc13xx.a(aon_batmon.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(aon_rtc.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(aon_rtc.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(aon_rtc.o)
+ .text.NOROM_AONRTCCurrent64BitValueGet
+                0x00000000       0x20 contiki-cc13xx.a(aon_rtc.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(osc.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(osc.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(osc.o)
+ .text.OSCHF_GetStartupTime
+                0x00000000       0x98 contiki-cc13xx.a(osc.o)
+ .text.OSCHF_TurnOnXosc
+                0x00000000       0x18 contiki-cc13xx.a(osc.o)
+ .text.OSCHF_AttemptToSwitchToXosc
+                0x00000000       0x60 contiki-cc13xx.a(osc.o)
+ .text.OSCHF_SwitchToRcOscTurnOffXosc
+                0x00000000       0x30 contiki-cc13xx.a(osc.o)
+ .bss.oscHfGlobals
+                0x00000000       0x14 contiki-cc13xx.a(osc.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(dbg-printf.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(dbg-printf.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(dbg-printf.o)
+ .text          0x00000000        0x0 contiki-cc13xx.a(strformat.o)
+ .data          0x00000000        0x0 contiki-cc13xx.a(strformat.o)
+ .bss           0x00000000        0x0 contiki-cc13xx.a(strformat.o)
+ .text.format_str
+                0x00000000       0x20 contiki-cc13xx.a(strformat.o)
+ .data          0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+ .bss           0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+ .data          0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+ .bss           0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+ .data          0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+ .bss           0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+ .data          0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+ .bss           0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+ .ARM.extab     0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+ .data          0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+ .bss           0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+ .ARM.extab     0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+ .text          0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+ .data          0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+ .bss           0x00000000        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x00000000         0x0001ffa8         xr
+FLASH_CCFG       0x0001ffa8         0x00000058         xr
+SRAM             0x20000000         0x00005000         xrw
+GPRAM            0x11000000         0x00002000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD obj_cc13xx/fault-handlers.o
+LOAD obj_cc13xx/ccfg.o
+LOAD obj_cc13xx/startup_gcc.o
+LOAD radio-uart.co
+LOAD contiki-cc13xx.a
+LOAD /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libm.a
+START GROUP
+LOAD /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a
+LOAD /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a
+END GROUP
+                0x20005000                _estack = (ORIGIN (SRAM) + 0x5000)
+                0x00000000                _Min_Heap_Size = 0x0
+                0x00000100                _Min_Stack_Size = 0x100
+
+.text           0x00000000     0x2c7c
+                0x00000000                _text = .
+ *(SORT(.vectors))
+ .vectors       0x00000000       0xc8 obj_cc13xx/startup_gcc.o
+                0x00000000                gVectors
+ *(SORT(.text*))
+ .text.FaultISR
+                0x000000c8       0x18 obj_cc13xx/fault-handlers.o
+                0x000000c8                FaultISR
+ .text.NmiSRHandler
+                0x000000e0        0x4 obj_cc13xx/startup_gcc.o
+                0x000000e0                NmiSR
+ .text.IntDefaultHandler
+                0x000000e4        0x4 obj_cc13xx/startup_gcc.o
+                0x000000e4                TRNGIntHandler
+                0x000000e4                SSI0IntHandler
+                0x000000e4                SWEvent0IntHandler
+                0x000000e4                uDMAIntHandler
+                0x000000e4                WatchdogIntHandler
+                0x000000e4                RFCHardwareIntHandler
+                0x000000e4                Timer1BIntHandler
+                0x000000e4                I2SIntHandler
+                0x000000e4                Timer2BIntHandler
+                0x000000e4                Timer2AIntHandler
+                0x000000e4                Timer1AIntHandler
+                0x000000e4                GPIOIntHandler
+                0x000000e4                AONIntHandler
+                0x000000e4                AUXSWEvent0IntHandler
+                0x000000e4                AUXADCIntHandler
+                0x000000e4                PendSVIntHandler
+                0x000000e4                RFCCPE1IntHandler
+                0x000000e4                AUXSWEvent1IntHandler
+                0x000000e4                SVCallIntHandler
+                0x000000e4                MPUFaultIntHandler
+                0x000000e4                SysTickIntHandler
+                0x000000e4                BusFaultIntHandler
+                0x000000e4                AONProgIntHandler
+                0x000000e4                AUXCompAIntHandler
+                0x000000e4                SSI1IntHandler
+                0x000000e4                FlashIntHandler
+                0x000000e4                uDMAErrIntHandler
+                0x000000e4                UsageFaultIntHandler
+                0x000000e4                RFCCmdAckIntHandler
+                0x000000e4                RFCCPE0IntHandler
+                0x000000e4                CryptoIntHandler
+                0x000000e4                Timer0AIntHandler
+                0x000000e4                I2CIntHandler
+                0x000000e4                DebugMonIntHandler
+                0x000000e4                Timer0BIntHandler
+                0x000000e4                AUXCombEventIntHandler
+                0x000000e4                Timer3AIntHandler
+                0x000000e4                DynProgIntHandler
+                0x000000e4                Timer3BIntHandler
+ .text.ResetISR
+                0x000000e8       0x5c obj_cc13xx/startup_gcc.o
+                0x000000e8                ResetISR
+ .text.process_thread_radio_receiver_process
+                0x00000144       0x1c radio-uart.co
+ .text.startup.main
+                0x00000160       0x98 contiki-cc13xx.a(contiki-main.o)
+                0x00000160                main
+ .text.wakeup_handler
+                0x000001f8       0x20 contiki-cc13xx.a(board.o)
+ .text.board_init
+                0x00000218       0x64 contiki-cc13xx.a(board.o)
+                0x00000218                board_init
+ .text.power_domain_on
+                0x0000027c       0x20 contiki-cc13xx.a(clock.o)
+ .text.clock_init
+                0x0000029c       0x90 contiki-cc13xx.a(clock.o)
+                0x0000029c                clock_init
+ .text.clock_time
+                0x0000032c       0x34 contiki-cc13xx.a(clock.o)
+                0x0000032c                clock_time
+ .text.clock_update
+                0x00000360       0x3c contiki-cc13xx.a(clock.o)
+                0x00000360                clock_update
+ .text.rtimer_arch_init
+                0x0000039c        0x4 contiki-cc13xx.a(rtimer-arch.o)
+                0x0000039c                rtimer_arch_init
+ .text.rtimer_arch_schedule
+                0x000003a0        0x8 contiki-cc13xx.a(rtimer-arch.o)
+                0x000003a0                rtimer_arch_schedule
+ .text.rtimer_arch_now
+                0x000003a8        0x4 contiki-cc13xx.a(rtimer-arch.o)
+                0x000003a8                rtimer_arch_now
+ .text.soc_rtc_init
+                0x000003ac       0x94 contiki-cc13xx.a(soc-rtc.o)
+                0x000003ac                soc_rtc_init
+ .text.soc_rtc_schedule_one_shot
+                0x00000440       0x4c contiki-cc13xx.a(soc-rtc.o)
+                0x00000440                soc_rtc_schedule_one_shot
+ .text.AONRTCIntHandler
+                0x0000048c       0x98 contiki-cc13xx.a(soc-rtc.o)
+                0x0000048c                AONRTCIntHandler
+ .text.lock_config
+                0x00000524       0x18 contiki-cc13xx.a(contiki-watchdo)
+ .text.unlock_config
+                0x0000053c       0x2c contiki-cc13xx.a(contiki-watchdo)
+ .text.watchdog_init
+                0x00000568       0x1c contiki-cc13xx.a(contiki-watchdo)
+                0x00000568                watchdog_init
+ .text.watchdog_start
+                0x00000584       0x30 contiki-cc13xx.a(contiki-watchdo)
+                0x00000584                watchdog_start
+ .text.watchdog_periodic
+                0x000005b4       0x1c contiki-cc13xx.a(contiki-watchdo)
+                0x000005b4                watchdog_periodic
+ .text.puts     0x000005d0       0x30 contiki-cc13xx.a(putchar.o)
+                0x000005d0                puts
+ .text.dbg_send_bytes
+                0x00000600       0x40 contiki-cc13xx.a(putchar.o)
+                0x00000600                dbg_send_bytes
+ .text.power_and_clock
+                0x00000640       0x40 contiki-cc13xx.a(cc26xx-uart.o)
+ .text.enable   0x00000680       0xf0 contiki-cc13xx.a(cc26xx-uart.o)
+ .text.accessible
+                0x00000770       0x24 contiki-cc13xx.a(cc26xx-uart.o)
+ .text.lpm_drop_handler
+                0x00000794       0xcc contiki-cc13xx.a(cc26xx-uart.o)
+ .text.cc26xx_uart_write_byte
+                0x00000860       0x28 contiki-cc13xx.a(cc26xx-uart.o)
+                0x00000860                cc26xx_uart_write_byte
+ .text.cc26xx_uart_set_input
+                0x00000888       0x64 contiki-cc13xx.a(cc26xx-uart.o)
+                0x00000888                cc26xx_uart_set_input
+ .text.cc26xx_uart_busy
+                0x000008ec       0x18 contiki-cc13xx.a(cc26xx-uart.o)
+                0x000008ec                cc26xx_uart_busy
+ .text.UART0IntHandler
+                0x00000904       0x88 contiki-cc13xx.a(cc26xx-uart.o)
+                0x00000904                UART0IntHandler
+ .text.lpm_register_module
+                0x0000098c        0xc contiki-cc13xx.a(lpm.o)
+                0x0000098c                lpm_register_module
+ .text.lpm_init
+                0x00000998       0x20 contiki-cc13xx.a(lpm.o)
+                0x00000998                lpm_init
+ .text.lpm_pin_set_default_state
+                0x000009b8       0x30 contiki-cc13xx.a(lpm.o)
+                0x000009b8                lpm_pin_set_default_state
+ .text.osc_interface_dis
+                0x000009e8       0x28 contiki-cc13xx.a(oscillators.o)
+ .text.osc_interface_en
+                0x00000a10       0x30 contiki-cc13xx.a(oscillators.o)
+ .text.oscillators_select_lf_xosc
+                0x00000a40       0x50 contiki-cc13xx.a(oscillators.o)
+                0x00000a40                oscillators_select_lf_xosc
+ .text.autostart_start
+                0x00000a90       0x18 contiki-cc13xx.a(autostart.o)
+                0x00000a90                autostart_start
+ .text.energest_init
+                0x00000aa8       0x30 contiki-cc13xx.a(energest.o)
+                0x00000aa8                energest_init
+ .text.process_thread_ctimer_process
+                0x00000ad8       0x94 contiki-cc13xx.a(ctimer.o)
+ .text.ctimer_init
+                0x00000b6c       0x28 contiki-cc13xx.a(ctimer.o)
+                0x00000b6c                ctimer_init
+ .text.update_time
+                0x00000b94       0x44 contiki-cc13xx.a(etimer.o)
+ .text.process_thread_etimer_process
+                0x00000bd8       0xc8 contiki-cc13xx.a(etimer.o)
+ .text.add_timer
+                0x00000ca0       0x54 contiki-cc13xx.a(etimer.o)
+ .text.etimer_request_poll
+                0x00000cf4        0xc contiki-cc13xx.a(etimer.o)
+                0x00000cf4                etimer_request_poll
+ .text.etimer_set
+                0x00000d00       0x14 contiki-cc13xx.a(etimer.o)
+                0x00000d00                etimer_set
+ .text.etimer_pending
+                0x00000d14       0x10 contiki-cc13xx.a(etimer.o)
+                0x00000d14                etimer_pending
+ .text.exit_process
+                0x00000d24       0xb0 contiki-cc13xx.a(process.o)
+ .text.call_process.part.0
+                0x00000dd4       0x38 contiki-cc13xx.a(process.o)
+ .text.do_poll  0x00000e0c       0x3c contiki-cc13xx.a(process.o)
+ .text.process_alloc_event
+                0x00000e48       0x10 contiki-cc13xx.a(process.o)
+                0x00000e48                process_alloc_event
+ .text.process_init
+                0x00000e58       0x34 contiki-cc13xx.a(process.o)
+                0x00000e58                process_init
+ .text.process_run
+                0x00000e8c       0xd8 contiki-cc13xx.a(process.o)
+                0x00000e8c                process_run
+ .text.process_post
+                0x00000f64       0x50 contiki-cc13xx.a(process.o)
+                0x00000f64                process_post
+ .text.process_post_synch
+                0x00000fb4       0x18 contiki-cc13xx.a(process.o)
+                0x00000fb4                process_post_synch
+ .text.process_start
+                0x00000fcc       0x40 contiki-cc13xx.a(process.o)
+                0x00000fcc                process_start
+ .text.process_poll
+                0x0000100c       0x18 contiki-cc13xx.a(process.o)
+                0x0000100c                process_poll
+ .text.rtimer_init
+                0x00001024        0x4 contiki-cc13xx.a(rtimer.o)
+                0x00001024                rtimer_init
+ .text.rtimer_run_next
+                0x00001028       0x28 contiki-cc13xx.a(rtimer.o)
+                0x00001028                rtimer_run_next
+ .text.timer_set
+                0x00001050       0x10 contiki-cc13xx.a(timer.o)
+                0x00001050                timer_set
+ .text.timer_expired
+                0x00001060       0x1c contiki-cc13xx.a(timer.o)
+                0x00001060                timer_expired
+ .text.process_thread_serial_line_process
+                0x0000107c       0xcc contiki-cc13xx.a(serial-line.o)
+ .text.serial_line_input_byte
+                0x00001148       0x54 contiki-cc13xx.a(serial-line.o)
+                0x00001148                serial_line_input_byte
+ .text.serial_line_init
+                0x0000119c       0x24 contiki-cc13xx.a(serial-line.o)
+                0x0000119c                serial_line_init
+ .text.list_init
+                0x000011c0        0x8 contiki-cc13xx.a(list.o)
+                0x000011c0                list_init
+ .text.list_head
+                0x000011c8        0x4 contiki-cc13xx.a(list.o)
+                0x000011c8                list_head
+ .text.list_add
+                0x000011cc       0x48 contiki-cc13xx.a(list.o)
+                0x000011cc                list_add
+ .text.list_remove
+                0x00001214       0x2c contiki-cc13xx.a(list.o)
+                0x00001214                list_remove
+ .text.ringbuf_init
+                0x00001240       0x10 contiki-cc13xx.a(ringbuf.o)
+                0x00001240                ringbuf_init
+ .text.ringbuf_put
+                0x00001250       0x30 contiki-cc13xx.a(ringbuf.o)
+                0x00001250                ringbuf_put
+ .text.ringbuf_get
+                0x00001280       0x28 contiki-cc13xx.a(ringbuf.o)
+                0x00001280                ringbuf_get
+ .text.SetVddrLevel
+                0x000012a8       0xa4 contiki-cc13xx.a(setup.o)
+                0x000012a8                SetVddrLevel
+ .text.HapiTrimDeviceShutDown
+                0x0000134c      0x564 contiki-cc13xx.a(setup.o)
+ .text.trimDevice
+                0x000018b0       0xfc contiki-cc13xx.a(setup.o)
+                0x000018b0                trimDevice
+ .text.ChipInfo_GetHwRevision
+                0x000019ac       0x98 contiki-cc13xx.a(chipinfo.o)
+                0x000019ac                ChipInfo_GetHwRevision
+ .text.ThisCodeIsBuiltForCC13xxHwRev20AndLater_HaltIfViolated
+                0x00001a44       0x40 contiki-cc13xx.a(chipinfo.o)
+                0x00001a44                ThisCodeIsBuiltForCC13xxHwRev20AndLater_HaltIfViolated
+ .text.NOROM_CPUcpsid
+                0x00001a84        0x8 contiki-cc13xx.a(cpu.o)
+                0x00001a84                NOROM_CPUcpsid
+ .text.NOROM_CPUcpsie
+                0x00001a8c        0x8 contiki-cc13xx.a(cpu.o)
+                0x00001a8c                NOROM_CPUcpsie
+ .text.NOROM_AONRTCCurrentCompareValueGet
+                0x00001a94       0x24 contiki-cc13xx.a(aon_rtc.o)
+                0x00001a94                NOROM_AONRTCCurrentCompareValueGet
+ .text.NOROM_OSCClockSourceSet
+                0x00001ab8       0x60 contiki-cc13xx.a(osc.o)
+                0x00001ab8                NOROM_OSCClockSourceSet
+ .text.NOROM_OSCClockSourceGet
+                0x00001b18       0x2c contiki-cc13xx.a(osc.o)
+                0x00001b18                NOROM_OSCClockSourceGet
+ .text.NOROM_OSCInterfaceEnable
+                0x00001b44       0x34 contiki-cc13xx.a(osc.o)
+                0x00001b44                NOROM_OSCInterfaceEnable
+ .text.write_str
+                0x00001b78       0x14 contiki-cc13xx.a(dbg-printf.o)
+ .text.printf   0x00001b8c       0x24 contiki-cc13xx.a(dbg-printf.o)
+                0x00001b8c                printf
+ .text.fill_space
+                0x00001bb0       0x3c contiki-cc13xx.a(strformat.o)
+ .text.format_str_v
+                0x00001bec      0x95c contiki-cc13xx.a(strformat.o)
+                0x00001bec                format_str_v
+ .text          0x00002548       0x2c /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+                0x00002548                __aeabi_uldivmod
+ .text          0x00002574       0x60 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+                0x00002574                __gnu_ldivmod_helper
+                0x000025a4                __gnu_uldivmod_helper
+ .text          0x000025d4        0x4 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+                0x000025d4                __aeabi_ldiv0
+                0x000025d4                __aeabi_idiv0
+ .text          0x000025d8      0x2ac /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+                0x000025d8                __divdi3
+ .text          0x00002884      0x270 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+                0x00002884                __udivdi3
+ .text.strlen   0x00002af4       0x5c /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+                0x00002af4                strlen
+ *(SORT(.rodata*))
+ .rodata.autostart_processes
+                0x00002b50        0x8 radio-uart.co
+                0x00002b50                autostart_processes
+ .rodata.str1.4
+                0x00002b58       0x27 radio-uart.co
+                                 0x28 (size before relaxing)
+ *fill*         0x00002b7f        0x1 00000000
+ .rodata.str1.4
+                0x00002b80       0x48 contiki-cc13xx.a(contiki-main.o)
+ .rodata.str1.4
+                0x00002bc8        0xf contiki-cc13xx.a(ctimer.o)
+                                 0x10 (size before relaxing)
+ *fill*         0x00002bd7        0x1 00000000
+ .rodata.str1.4
+                0x00002bd8        0xc contiki-cc13xx.a(etimer.o)
+ .rodata.str1.4
+                0x00002be4       0x2e contiki-cc13xx.a(serial-line.o)
+                                 0x30 (size before relaxing)
+ *fill*         0x00002c12        0x2 00000000
+ .rodata.str1.4
+                0x00002c14       0x48 contiki-cc13xx.a(strformat.o)
+ .rodata.buffer.4019
+                0x00002c5c       0x10 contiki-cc13xx.a(strformat.o)
+ .rodata.buffer.4028
+                0x00002c6c       0x10 contiki-cc13xx.a(strformat.o)
+                0x00002c7c                _etext = .
+
+.glue_7         0x00002c7c        0x0
+ .glue_7        0x00000000        0x0 linker stubs
+
+.glue_7t        0x00002c7c        0x0
+ .glue_7t       0x00000000        0x0 linker stubs
+
+.vfp11_veneer   0x00002c7c        0x0
+ .vfp11_veneer  0x00000000        0x0 linker stubs
+
+.v4_bx          0x00002c7c        0x0
+ .v4_bx         0x00000000        0x0 linker stubs
+
+.iplt           0x00002c7c        0x0
+ .iplt          0x00000000        0x0 obj_cc13xx/startup_gcc.o
+
+.data           0x20000000       0x70 load address 0x00002c7c
+                0x20000000                _data = .
+ *(SORT(vtable))
+ *(SORT(.data*))
+ .data.radio_receiver_process
+                0x20000000       0x10 radio-uart.co
+                0x20000000                radio_receiver_process
+ .data.srf_module
+                0x20000010       0x14 contiki-cc13xx.a(board.o)
+ .data.uart_module
+                0x20000024       0x14 contiki-cc13xx.a(cc26xx-uart.o)
+ .data.ctimer_process
+                0x20000038       0x10 contiki-cc13xx.a(ctimer.o)
+                0x20000038                ctimer_process
+ .data.etimer_process
+                0x20000048       0x10 contiki-cc13xx.a(etimer.o)
+                0x20000048                etimer_process
+ .data.serial_line_process
+                0x20000058       0x10 contiki-cc13xx.a(serial-line.o)
+                0x20000058                serial_line_process
+ .data.ctxt     0x20000068        0x8 contiki-cc13xx.a(dbg-printf.o)
+                0x20000070                _edata = .
+
+.igot.plt       0x20000070        0x0 load address 0x00002cec
+ .igot.plt      0x00000000        0x0 obj_cc13xx/startup_gcc.o
+
+.ARM.exidx      0x00002cec        0x8
+ *(SORT(.ARM.exidx*))
+ .ARM.exidx     0x00002cec        0x8 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+ .ARM.exidx     0x00002cf4        0x0 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+                                  0x8 (size before relaxing)
+
+.bss            0x20000070      0x33d
+                0x20000070                _bss = .
+ *(SORT(.bss*))
+ .bss.count     0x20000070        0x8 contiki-cc13xx.a(clock.o)
+ .bss.last_isr_time
+                0x20000078        0x4 contiki-cc13xx.a(soc-rtc.o)
+ .bss.input_handler
+                0x2000007c        0x4 contiki-cc13xx.a(cc26xx-uart.o)
+ .bss.modules_list_list
+                0x20000080        0x4 contiki-cc13xx.a(lpm.o)
+ .bss.ctimer_list_list
+                0x20000084        0x4 contiki-cc13xx.a(ctimer.o)
+ .bss.timerlist
+                0x20000088        0x4 contiki-cc13xx.a(etimer.o)
+ .bss.next_expiration
+                0x2000008c        0x4 contiki-cc13xx.a(etimer.o)
+ .bss.receiver.5127
+                0x20000090        0x4 contiki-cc13xx.a(process.o)
+ .bss.data.5126
+                0x20000094        0x4 contiki-cc13xx.a(process.o)
+ .bss.p.5128    0x20000098        0x4 contiki-cc13xx.a(process.o)
+ .bss.process_current
+                0x2000009c        0x4 contiki-cc13xx.a(process.o)
+                0x2000009c                process_current
+ .bss.process_list
+                0x200000a0        0x4 contiki-cc13xx.a(process.o)
+                0x200000a0                process_list
+ .bss.events    0x200000a4      0x180 contiki-cc13xx.a(process.o)
+ .bss.next_rtimer
+                0x20000224        0x4 contiki-cc13xx.a(rtimer.o)
+ .bss.rxbuf_data
+                0x20000228       0x80 contiki-cc13xx.a(serial-line.o)
+ .bss.rxbuf     0x200002a8        0x8 contiki-cc13xx.a(serial-line.o)
+ .bss.buf.5404  0x200002b0       0x80 contiki-cc13xx.a(serial-line.o)
+ .bss.ptr.5405  0x20000330        0x4 contiki-cc13xx.a(serial-line.o)
+ .bss.initialized
+                0x20000334        0x1 contiki-cc13xx.a(ctimer.o)
+ .bss.fevent    0x20000335        0x1 contiki-cc13xx.a(process.o)
+ .bss.nevents   0x20000336        0x1 contiki-cc13xx.a(process.o)
+ .bss.poll_requested
+                0x20000337        0x1 contiki-cc13xx.a(process.o)
+ .bss.ev.5125   0x20000338        0x1 contiki-cc13xx.a(process.o)
+ .bss.snum.5143
+                0x20000339        0x1 contiki-cc13xx.a(process.o)
+ .bss.lastevent
+                0x2000033a        0x1 contiki-cc13xx.a(process.o)
+ .bss.overflow.5398
+                0x2000033b        0x1 contiki-cc13xx.a(serial-line.o)
+ *(SORT(COMMON))
+ COMMON         0x2000033c       0x70 contiki-cc13xx.a(energest.o)
+                0x2000033c                energest_total_time
+                0x2000036c                energest_total_count
+                0x20000370                energest_current_mode
+                0x2000037c                energest_current_time
+ COMMON         0x200003ac        0x1 contiki-cc13xx.a(serial-line.o)
+                0x200003ac                serial_line_event_message
+                0x200003ad                _ebss = .
+
+.ccfg           0x0001ffa8       0x58
+ *(SORT(.ccfg))
+ .ccfg          0x0001ffa8       0x58 obj_cc13xx/ccfg.o
+                0x0001ffa8                __ccfg
+
+.rel.dyn        0x00020000        0x0
+ .rel.iplt      0x00000000        0x0 obj_cc13xx/startup_gcc.o
+
+._user_heap_stack
+                0x200003ad      0x103
+                0x200003b0                . = ALIGN (0x4)
+ *fill*         0x200003ad        0x3 
+                0x200003b0                . = (. + _Min_Heap_Size)
+                0x200004b0                . = (. + _Min_Stack_Size)
+ *fill*         0x200003b0      0x100 
+                0x200004b0                . = ALIGN (0x4)
+
+.gpram
+OUTPUT(radio-uart.elf elf32-littlearm)
+
+.comment        0x00000000       0x70
+ .comment       0x00000000       0x70 obj_cc13xx/fault-handlers.o
+                                 0x71 (size before relaxing)
+ .comment       0x00000000       0x71 obj_cc13xx/ccfg.o
+ .comment       0x00000000       0x71 obj_cc13xx/startup_gcc.o
+ .comment       0x00000000       0x71 radio-uart.co
+ .comment       0x00000000       0x71 contiki-cc13xx.a(contiki-main.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(board.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(clock.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(rtimer-arch.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(soc-rtc.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(contiki-watchdo)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(putchar.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(cc26xx-uart.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(lpm.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(oscillators.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(autostart.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(energest.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(ctimer.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(etimer.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(process.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(rtimer.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(timer.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(serial-line.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(list.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(ringbuf.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(setup.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(chipinfo.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(cpu.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(aon_rtc.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(osc.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(dbg-printf.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(strformat.o)
+
+.ARM.attributes
+                0x00000000       0x33
+ .ARM.attributes
+                0x00000000       0x33 obj_cc13xx/fault-handlers.o
+ .ARM.attributes
+                0x00000033       0x33 obj_cc13xx/ccfg.o
+ .ARM.attributes
+                0x00000066       0x33 obj_cc13xx/startup_gcc.o
+ .ARM.attributes
+                0x00000099       0x33 radio-uart.co
+ .ARM.attributes
+                0x000000cc       0x33 contiki-cc13xx.a(contiki-main.o)
+ .ARM.attributes
+                0x000000ff       0x33 contiki-cc13xx.a(board.o)
+ .ARM.attributes
+                0x00000132       0x33 contiki-cc13xx.a(clock.o)
+ .ARM.attributes
+                0x00000165       0x33 contiki-cc13xx.a(rtimer-arch.o)
+ .ARM.attributes
+                0x00000198       0x33 contiki-cc13xx.a(soc-rtc.o)
+ .ARM.attributes
+                0x000001cb       0x33 contiki-cc13xx.a(contiki-watchdo)
+ .ARM.attributes
+                0x000001fe       0x33 contiki-cc13xx.a(putchar.o)
+ .ARM.attributes
+                0x00000231       0x33 contiki-cc13xx.a(cc26xx-uart.o)
+ .ARM.attributes
+                0x00000264       0x33 contiki-cc13xx.a(lpm.o)
+ .ARM.attributes
+                0x00000297       0x33 contiki-cc13xx.a(oscillators.o)
+ .ARM.attributes
+                0x000002ca       0x33 contiki-cc13xx.a(autostart.o)
+ .ARM.attributes
+                0x000002fd       0x33 contiki-cc13xx.a(energest.o)
+ .ARM.attributes
+                0x00000330       0x33 contiki-cc13xx.a(ctimer.o)
+ .ARM.attributes
+                0x00000363       0x33 contiki-cc13xx.a(etimer.o)
+ .ARM.attributes
+                0x00000396       0x33 contiki-cc13xx.a(process.o)
+ .ARM.attributes
+                0x000003c9       0x33 contiki-cc13xx.a(rtimer.o)
+ .ARM.attributes
+                0x000003fc       0x33 contiki-cc13xx.a(timer.o)
+ .ARM.attributes
+                0x0000042f       0x33 contiki-cc13xx.a(serial-line.o)
+ .ARM.attributes
+                0x00000462       0x33 contiki-cc13xx.a(list.o)
+ .ARM.attributes
+                0x00000495       0x33 contiki-cc13xx.a(ringbuf.o)
+ .ARM.attributes
+                0x000004c8       0x33 contiki-cc13xx.a(setup.o)
+ .ARM.attributes
+                0x000004fb       0x33 contiki-cc13xx.a(chipinfo.o)
+ .ARM.attributes
+                0x0000052e       0x33 contiki-cc13xx.a(cpu.o)
+ .ARM.attributes
+                0x00000561       0x33 contiki-cc13xx.a(aon_rtc.o)
+ .ARM.attributes
+                0x00000594       0x33 contiki-cc13xx.a(osc.o)
+ .ARM.attributes
+                0x000005c7       0x33 contiki-cc13xx.a(dbg-printf.o)
+ .ARM.attributes
+                0x000005fa       0x33 contiki-cc13xx.a(strformat.o)
+ .ARM.attributes
+                0x0000062d       0x1d /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+ .ARM.attributes
+                0x0000064a       0x2d /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+ .ARM.attributes
+                0x00000677       0x1d /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+ .ARM.attributes
+                0x00000694       0x2d /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+ .ARM.attributes
+                0x000006c1       0x2d /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+ .ARM.attributes
+                0x000006ee       0x2d /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+
+.debug_frame    0x00000000      0x104
+ .debug_frame   0x00000000       0x28 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+ .debug_frame   0x00000028       0x54 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+ .debug_frame   0x0000007c       0x34 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+ .debug_frame   0x000000b0       0x34 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+ .debug_frame   0x000000e4       0x20 /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+
+Cross Reference Table
+
+Symbol                                            File
+AONBatMonTemperatureGetDegC                       contiki-cc13xx.a(aon_batmon.o)
+                                                  contiki-cc13xx.a(osc.o)
+                                                  contiki-cc13xx.a(sys_ctrl.o)
+AONIntHandler                                     obj_cc13xx/startup_gcc.o
+AONProgIntHandler                                 obj_cc13xx/startup_gcc.o
+AONRTCIntHandler                                  contiki-cc13xx.a(soc-rtc.o)
+                                                  obj_cc13xx/startup_gcc.o
+AUXADCIntHandler                                  obj_cc13xx/startup_gcc.o
+AUXCombEventIntHandler                            obj_cc13xx/startup_gcc.o
+AUXCompAIntHandler                                obj_cc13xx/startup_gcc.o
+AUXSWEvent0IntHandler                             obj_cc13xx/startup_gcc.o
+AUXSWEvent1IntHandler                             obj_cc13xx/startup_gcc.o
+BusFaultIntHandler                                obj_cc13xx/startup_gcc.o
+ChipInfo_GetChipFamily                            contiki-cc13xx.a(chipinfo.o)
+ChipInfo_GetHwRevision                            contiki-cc13xx.a(chipinfo.o)
+ChipInfo_GetPackageType                           contiki-cc13xx.a(chipinfo.o)
+ChipInfo_GetSupportedProtocol_BV                  contiki-cc13xx.a(chipinfo.o)
+CryptoIntHandler                                  obj_cc13xx/startup_gcc.o
+DebugMonIntHandler                                obj_cc13xx/startup_gcc.o
+DynProgIntHandler                                 obj_cc13xx/startup_gcc.o
+FaultISR                                          obj_cc13xx/fault-handlers.o
+FlashIntHandler                                   obj_cc13xx/startup_gcc.o
+GPIOIntHandler                                    obj_cc13xx/startup_gcc.o
+I2CIntHandler                                     obj_cc13xx/startup_gcc.o
+I2SIntHandler                                     obj_cc13xx/startup_gcc.o
+MPUFaultIntHandler                                obj_cc13xx/startup_gcc.o
+NOROM_AONRTCCurrent64BitValueGet                  contiki-cc13xx.a(aon_rtc.o)
+NOROM_AONRTCCurrentCompareValueGet                contiki-cc13xx.a(aon_rtc.o)
+                                                  contiki-cc13xx.a(osc.o)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(rtimer-arch.o)
+NOROM_CPUbasepriGet                               contiki-cc13xx.a(cpu.o)
+NOROM_CPUcpsid                                    contiki-cc13xx.a(cpu.o)
+                                                  contiki-cc13xx.a(setup.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(contiki-watchdo)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(clock.o)
+                                                  contiki-cc13xx.a(board.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+NOROM_CPUcpsie                                    contiki-cc13xx.a(cpu.o)
+                                                  contiki-cc13xx.a(setup.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(contiki-watchdo)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(clock.o)
+                                                  contiki-cc13xx.a(board.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+NOROM_CPUdelay                                    contiki-cc13xx.a(cpu.o)
+NOROM_CPUprimask                                  contiki-cc13xx.a(cpu.o)
+NOROM_OSCClockSourceGet                           contiki-cc13xx.a(osc.o)
+                                                  contiki-cc13xx.a(sys_ctrl.o)
+                                                  contiki-cc13xx.a(setup.o)
+                                                  contiki-cc13xx.a(oscillators.o)
+NOROM_OSCClockSourceSet                           contiki-cc13xx.a(osc.o)
+                                                  contiki-cc13xx.a(sys_ctrl.o)
+                                                  contiki-cc13xx.a(setup.o)
+                                                  contiki-cc13xx.a(oscillators.o)
+NOROM_OSCInterfaceEnable                          contiki-cc13xx.a(osc.o)
+                                                  contiki-cc13xx.a(sys_ctrl.o)
+                                                  contiki-cc13xx.a(oscillators.o)
+NOROM_PowerCtrlSourceSet                          contiki-cc13xx.a(pwr_ctrl.o)
+                                                  contiki-cc13xx.a(lpm.o)
+NOROM_PowerCtrlStateSet                           contiki-cc13xx.a(pwr_ctrl.o)
+                                                  contiki-cc13xx.a(sys_ctrl.o)
+NOROM_SysCtrlPowerEverything                      contiki-cc13xx.a(sys_ctrl.o)
+NOROM_SysCtrlPowerdown                            contiki-cc13xx.a(sys_ctrl.o)
+NOROM_SysCtrlResetSourceGet                       contiki-cc13xx.a(sys_ctrl.o)
+NOROM_SysCtrlShutdown                             contiki-cc13xx.a(sys_ctrl.o)
+NOROM_SysCtrlStandby                              contiki-cc13xx.a(sys_ctrl.o)
+NmiSR                                             obj_cc13xx/startup_gcc.o
+OSCHF_AttemptToSwitchToXosc                       contiki-cc13xx.a(osc.o)
+OSCHF_GetStartupTime                              contiki-cc13xx.a(osc.o)
+OSCHF_SwitchToRcOscTurnOffXosc                    contiki-cc13xx.a(osc.o)
+OSCHF_TurnOnXosc                                  contiki-cc13xx.a(osc.o)
+PendSVIntHandler                                  obj_cc13xx/startup_gcc.o
+RFCCPE0IntHandler                                 obj_cc13xx/startup_gcc.o
+RFCCPE1IntHandler                                 obj_cc13xx/startup_gcc.o
+RFCCmdAckIntHandler                               obj_cc13xx/startup_gcc.o
+RFCHardwareIntHandler                             obj_cc13xx/startup_gcc.o
+ResetISR                                          obj_cc13xx/startup_gcc.o
+SSI0IntHandler                                    obj_cc13xx/startup_gcc.o
+SSI1IntHandler                                    obj_cc13xx/startup_gcc.o
+SVCallIntHandler                                  obj_cc13xx/startup_gcc.o
+SWEvent0IntHandler                                obj_cc13xx/startup_gcc.o
+SetVddrLevel                                      contiki-cc13xx.a(setup.o)
+SignExtendVddrTrimValue                           contiki-cc13xx.a(setup.o)
+                                                  contiki-cc13xx.a(sys_ctrl.o)
+SysCtrlAdjustRechargeAfterPowerDown               contiki-cc13xx.a(sys_ctrl.o)
+                                                  contiki-cc13xx.a(lpm.o)
+SysCtrlSetRechargeBeforePowerDown                 contiki-cc13xx.a(sys_ctrl.o)
+                                                  contiki-cc13xx.a(lpm.o)
+SysCtrl_DCDC_VoltageConditionalControl            contiki-cc13xx.a(sys_ctrl.o)
+                                                  contiki-cc13xx.a(lpm.o)
+SysTickIntHandler                                 obj_cc13xx/startup_gcc.o
+TRNGIntHandler                                    obj_cc13xx/startup_gcc.o
+ThisCodeIsBuiltForCC13xxHwRev20AndLater_HaltIfViolated contiki-cc13xx.a(chipinfo.o)
+                                                  contiki-cc13xx.a(setup.o)
+Timer0AIntHandler                                 obj_cc13xx/startup_gcc.o
+Timer0BIntHandler                                 obj_cc13xx/startup_gcc.o
+Timer1AIntHandler                                 obj_cc13xx/startup_gcc.o
+Timer1BIntHandler                                 obj_cc13xx/startup_gcc.o
+Timer2AIntHandler                                 obj_cc13xx/startup_gcc.o
+Timer2BIntHandler                                 obj_cc13xx/startup_gcc.o
+Timer3AIntHandler                                 obj_cc13xx/startup_gcc.o
+Timer3BIntHandler                                 obj_cc13xx/startup_gcc.o
+UART0IntHandler                                   contiki-cc13xx.a(cc26xx-uart.o)
+                                                  obj_cc13xx/startup_gcc.o
+UsageFaultIntHandler                              obj_cc13xx/startup_gcc.o
+WatchdogIntHandler                                obj_cc13xx/startup_gcc.o
+__aeabi_idiv0                                     /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+__aeabi_ldiv0                                     /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+                                                  /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+__aeabi_uldivmod                                  /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+                                                  contiki-cc13xx.a(strformat.o)
+__ccfg                                            obj_cc13xx/ccfg.o
+__divdi3                                          /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+                                                  /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+__gnu_ldivmod_helper                              /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+__gnu_uldivmod_helper                             /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+                                                  /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+__udivdi3                                         /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+                                                  /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+_bss                                              obj_cc13xx/startup_gcc.o
+_data                                             obj_cc13xx/startup_gcc.o
+_ebss                                             obj_cc13xx/startup_gcc.o
+_edata                                            obj_cc13xx/startup_gcc.o
+_estack                                           obj_cc13xx/startup_gcc.o
+_etext                                            obj_cc13xx/startup_gcc.o
+autostart_exit                                    contiki-cc13xx.a(autostart.o)
+autostart_processes                               radio-uart.co
+                                                  contiki-cc13xx.a(contiki-main.o)
+autostart_start                                   contiki-cc13xx.a(autostart.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+board_init                                        contiki-cc13xx.a(board.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+cc26xx_uart_busy                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(putchar.o)
+cc26xx_uart_init                                  contiki-cc13xx.a(cc26xx-uart.o)
+cc26xx_uart_set_input                             contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+cc26xx_uart_write_byte                            contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(putchar.o)
+clock_delay                                       contiki-cc13xx.a(clock.o)
+clock_delay_usec                                  contiki-cc13xx.a(clock.o)
+clock_init                                        contiki-cc13xx.a(clock.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+clock_seconds                                     contiki-cc13xx.a(clock.o)
+clock_time                                        contiki-cc13xx.a(clock.o)
+                                                  contiki-cc13xx.a(timer.o)
+                                                  contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(lpm.o)
+clock_update                                      contiki-cc13xx.a(clock.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+clock_wait                                        contiki-cc13xx.a(clock.o)
+ctimer_expired                                    contiki-cc13xx.a(ctimer.o)
+ctimer_init                                       contiki-cc13xx.a(ctimer.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+ctimer_process                                    contiki-cc13xx.a(ctimer.o)
+ctimer_reset                                      contiki-cc13xx.a(ctimer.o)
+ctimer_restart                                    contiki-cc13xx.a(ctimer.o)
+ctimer_set                                        contiki-cc13xx.a(ctimer.o)
+ctimer_set_with_process                           contiki-cc13xx.a(ctimer.o)
+ctimer_stop                                       contiki-cc13xx.a(ctimer.o)
+dbg_send_bytes                                    contiki-cc13xx.a(putchar.o)
+                                                  contiki-cc13xx.a(dbg-printf.o)
+energest_current_mode                             contiki-cc13xx.a(energest.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+energest_current_time                             contiki-cc13xx.a(energest.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+energest_flush                                    contiki-cc13xx.a(energest.o)
+energest_init                                     contiki-cc13xx.a(energest.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+energest_leveldevice_leveltime                    contiki-cc13xx.a(energest.o)
+energest_total_count                              contiki-cc13xx.a(energest.o)
+energest_total_time                               contiki-cc13xx.a(energest.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+energest_type_set                                 contiki-cc13xx.a(energest.o)
+                                                  contiki-cc13xx.a(lpm.o)
+energest_type_time                                contiki-cc13xx.a(energest.o)
+                                                  contiki-cc13xx.a(lpm.o)
+etimer_adjust                                     contiki-cc13xx.a(etimer.o)
+etimer_expiration_time                            contiki-cc13xx.a(etimer.o)
+etimer_expired                                    contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+etimer_next_expiration_time                       contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(lpm.o)
+etimer_pending                                    contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(clock.o)
+etimer_process                                    contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+etimer_request_poll                               contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(clock.o)
+etimer_reset                                      contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+etimer_reset_with_new_interval                    contiki-cc13xx.a(etimer.o)
+etimer_restart                                    contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+etimer_set                                        contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+etimer_start_time                                 contiki-cc13xx.a(etimer.o)
+etimer_stop                                       contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+format_str                                        contiki-cc13xx.a(strformat.o)
+format_str_v                                      contiki-cc13xx.a(strformat.o)
+                                                  contiki-cc13xx.a(dbg-printf.o)
+gVectors                                          obj_cc13xx/startup_gcc.o
+list_add                                          contiki-cc13xx.a(list.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+                                                  contiki-cc13xx.a(lpm.o)
+list_chop                                         contiki-cc13xx.a(list.o)
+list_copy                                         contiki-cc13xx.a(list.o)
+list_head                                         contiki-cc13xx.a(list.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+                                                  contiki-cc13xx.a(lpm.o)
+list_init                                         contiki-cc13xx.a(list.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+                                                  contiki-cc13xx.a(lpm.o)
+list_insert                                       contiki-cc13xx.a(list.o)
+list_item_next                                    contiki-cc13xx.a(list.o)
+list_length                                       contiki-cc13xx.a(list.o)
+list_pop                                          contiki-cc13xx.a(list.o)
+list_push                                         contiki-cc13xx.a(list.o)
+list_remove                                       contiki-cc13xx.a(list.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+                                                  contiki-cc13xx.a(lpm.o)
+list_tail                                         contiki-cc13xx.a(list.o)
+lpm_drop                                          contiki-cc13xx.a(lpm.o)
+lpm_init                                          contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+lpm_pin_set_default_state                         contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+lpm_register_module                               contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(board.o)
+lpm_shutdown                                      contiki-cc13xx.a(lpm.o)
+lpm_sleep                                         contiki-cc13xx.a(lpm.o)
+lpm_unregister_module                             contiki-cc13xx.a(lpm.o)
+main                                              contiki-cc13xx.a(contiki-main.o)
+                                                  obj_cc13xx/startup_gcc.o
+oscillators_request_hf_xosc                       contiki-cc13xx.a(oscillators.o)
+oscillators_select_lf_rcosc                       contiki-cc13xx.a(oscillators.o)
+                                                  contiki-cc13xx.a(lpm.o)
+oscillators_select_lf_xosc                        contiki-cc13xx.a(oscillators.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+oscillators_switch_to_hf_rc                       contiki-cc13xx.a(oscillators.o)
+                                                  contiki-cc13xx.a(lpm.o)
+oscillators_switch_to_hf_xosc                     contiki-cc13xx.a(oscillators.o)
+printf                                            contiki-cc13xx.a(dbg-printf.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+process_alloc_event                               contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+process_current                                   contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+                                                  contiki-cc13xx.a(etimer.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+process_exit                                      contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(autostart.o)
+process_init                                      contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+process_is_running                                contiki-cc13xx.a(process.o)
+process_list                                      contiki-cc13xx.a(process.o)
+process_nevents                                   contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(lpm.o)
+process_poll                                      contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+                                                  contiki-cc13xx.a(etimer.o)
+process_post                                      contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+                                                  contiki-cc13xx.a(etimer.o)
+process_post_synch                                contiki-cc13xx.a(process.o)
+process_run                                       contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+process_start                                     contiki-cc13xx.a(process.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+                                                  contiki-cc13xx.a(ctimer.o)
+                                                  contiki-cc13xx.a(autostart.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+putchar                                           contiki-cc13xx.a(putchar.o)
+puts                                              contiki-cc13xx.a(putchar.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+                                                  radio-uart.co
+radio_receiver_process                            radio-uart.co
+ringbuf_elements                                  contiki-cc13xx.a(ringbuf.o)
+ringbuf_get                                       contiki-cc13xx.a(ringbuf.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+ringbuf_init                                      contiki-cc13xx.a(ringbuf.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+ringbuf_put                                       contiki-cc13xx.a(ringbuf.o)
+                                                  contiki-cc13xx.a(serial-line.o)
+ringbuf_size                                      contiki-cc13xx.a(ringbuf.o)
+rtimer_arch_init                                  contiki-cc13xx.a(rtimer-arch.o)
+                                                  contiki-cc13xx.a(rtimer.o)
+rtimer_arch_now                                   contiki-cc13xx.a(rtimer-arch.o)
+                                                  contiki-cc13xx.a(energest.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(cc26xx-uart.o)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+rtimer_arch_schedule                              contiki-cc13xx.a(rtimer-arch.o)
+                                                  contiki-cc13xx.a(rtimer.o)
+rtimer_init                                       contiki-cc13xx.a(rtimer.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+rtimer_run_next                                   contiki-cc13xx.a(rtimer.o)
+                                                  contiki-cc13xx.a(soc-rtc.o)
+rtimer_set                                        contiki-cc13xx.a(rtimer.o)
+serial_line_event_message                         contiki-cc13xx.a(serial-line.o)
+serial_line_init                                  contiki-cc13xx.a(serial-line.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+serial_line_input_byte                            contiki-cc13xx.a(serial-line.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+serial_line_process                               contiki-cc13xx.a(serial-line.o)
+soc_rtc_get_next_trigger                          contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(lpm.o)
+soc_rtc_init                                      contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+soc_rtc_last_isr_time                             contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(lpm.o)
+soc_rtc_schedule_one_shot                         contiki-cc13xx.a(soc-rtc.o)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(rtimer-arch.o)
+strlen                                            /media/jack/Software/gcc-arm-none-eabi-4_9-linux/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+                                                  contiki-cc13xx.a(putchar.o)
+timer_expired                                     contiki-cc13xx.a(timer.o)
+                                                  contiki-cc13xx.a(etimer.o)
+timer_remaining                                   contiki-cc13xx.a(timer.o)
+timer_reset                                       contiki-cc13xx.a(timer.o)
+                                                  contiki-cc13xx.a(etimer.o)
+timer_restart                                     contiki-cc13xx.a(timer.o)
+                                                  contiki-cc13xx.a(etimer.o)
+timer_set                                         contiki-cc13xx.a(timer.o)
+                                                  contiki-cc13xx.a(etimer.o)
+trimDevice                                        contiki-cc13xx.a(setup.o)
+                                                  obj_cc13xx/startup_gcc.o
+uDMAErrIntHandler                                 obj_cc13xx/startup_gcc.o
+uDMAIntHandler                                    obj_cc13xx/startup_gcc.o
+watchdog_init                                     contiki-cc13xx.a(contiki-watchdo)
+                                                  contiki-cc13xx.a(contiki-main.o)
+watchdog_periodic                                 contiki-cc13xx.a(contiki-watchdo)
+                                                  contiki-cc13xx.a(lpm.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
+watchdog_reboot                                   contiki-cc13xx.a(contiki-watchdo)
+watchdog_start                                    contiki-cc13xx.a(contiki-watchdo)
+                                                  contiki-cc13xx.a(contiki-main.o)
+watchdog_stop                                     contiki-cc13xx.a(contiki-watchdo)

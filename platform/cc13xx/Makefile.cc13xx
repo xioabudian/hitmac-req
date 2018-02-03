@@ -1,0 +1,38 @@
+# cc13xx platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+
+
+### Board and BSP selection
+ifeq ($(BOARD),)
+  BOARD=.
+endif
+CONTIKI_TARGET_DIRS += .
+
+
+### Will allow the inclusion of the correct CPU makefile
+CPU_FAMILY = cc13xx
+
+BOARD_SOURCEFILES +=board.c sensors.c flashdata.c node-id.c bat-voltage.c cc1310-pa.c external-watchdog.c
+
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c
+CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.srf06-cc26xx
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 0
+endif
+
+### Define the CPU directory and pull in the correct CPU makefile. This will
+### be defined by one of the makefiles included above and it can be either
+### Makefile.cc26xx or Makefile.cc13xx
+CONTIKI_CPU=$(CONTIKI)/cpu/cc26xx-cc13xx
+include $(CONTIKI_CPU)/Makefile.$(CPU_FAMILY)
+
+MODULES += core/net core/net/mac core/net/mac/hitmac core/net/llsec core/net/mac/contikimac
