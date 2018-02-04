@@ -26,6 +26,11 @@ static struct hitmac_asn_t hitmac_current_asn;
 static struct hitmac_scheduler_t hitmac_current_scheduler;
 
 static uint32_t mod_type;
+/*record current asn timeslot start point */
+static rtimer_clock_t current_asn_timeoffset;
+/*record current asn timeslot responding request or sync eb timeoffset start point  */
+static rtimer_clock_t current_sync_timeoffset;
+
 
 PT_THREAD(hitmac_request(struct pt *pt));
 /*root send eb packet periodically*/
@@ -39,7 +44,7 @@ PROCESS(hitmac_process, "HITMAC: main process");
 void
 logic_test(uint32_t i);
 /*---------------------------------------------------------------------------*/
-/*time synchronize*/
+/*time synchronize 1:asscoiate 0:not associate*/
 /*update asn operation*/
 void 
 update_asn()
@@ -66,7 +71,11 @@ update_asn()
 
    process_post_synch(&hitmac_scheduler_process, PROCESS_EVENT_POLL, NULL);
 
-   rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD,0,update_asn,NULL);
+   if(hitmac_is_associated == 1){
+    rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD,0,update_asn,NULL);
+   }
+   
+   current_asn_timeoffset = RTIMER_NOW();
    
 }
 
@@ -89,7 +98,7 @@ PROCESS_THREAD(hitmac_root_eb_process,ev,data)
        /*send eb packet*/
       printf("send eb packet length:%d\n",eb_len);
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
-      leds_toggle(LEDS_RED);
+      // leds_toggle(LEDS_RED);
     }
 
   }
@@ -117,6 +126,11 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+void turn_radio_off_patch(){
+
+  NETSTACK_RADIO.off();
+}
+/*---------------------------------------------------------------------------*/
 /* Scanning protothread, called by hitmac_process:
  * Listen to an channels, and when receiving an EB,
  * attempt to associate.
@@ -136,8 +150,7 @@ PT_THREAD(hitmac_request(struct pt *pt))
     struct ieee802154_ies eb_ies;
     frame802154_t frame;
     int request_len;
-    // /* Turn radio on and wait for EB */
-    NETSTACK_RADIO.on();
+    struct rtimer patch_rtimer;
 
     /*Send request to root*/
     /* Prepare the REQUEST packet and schedule it to be sent */
@@ -145,44 +158,55 @@ PT_THREAD(hitmac_request(struct pt *pt))
     packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_CMDFRAME);
 
     request_len = hitmac_packet_create_request_associate(packetbuf_dataptr(), PACKETBUF_SIZE, 0xFFFF);
-
+    
+    logic_test(1);
+    /* Turn radio on and wait for EB */
+    NETSTACK_RADIO.on();
+    
     if(request_len > 0){
       packetbuf_set_datalen(request_len);
        /*send cmd packet*/
       printf("send cmd packet length:%d\n",request_len);
 
+      /*Send request packet*/
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
-      leds_toggle(LEDS_RED);
     }
 
     /* We are not coordinator, try to associate */
     rtimer_clock_t t0;
     is_packet_pending = NETSTACK_RADIO.pending_packet();
-    if(!is_packet_pending && NETSTACK_RADIO.receiving_packet()) {
-      /* If we are currently receiving a packet, wait until end of reception */
-      t0 = RTIMER_NOW();
-      BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0, HITMAC_ASN_PERIOD);
-    }
+
+    /* If we are currently receiving a packet, wait until end of reception */
+    t0 = RTIMER_NOW();
+    /*Wait  for two timslots for EB*/
+    // logic_test(1);
+    BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_LISTEN_SYNC_WAIT_TIME);
+    // logic_test(0);
+    rtimer_set(&patch_rtimer,RTIMER_NOW() + RTIMER_SECOND,0,turn_radio_off_patch,NULL);
 
     if(is_packet_pending) {
       eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_MAX_LEN);
       if(hitmac_packet_parse_eb(input_eb,eb_len,&frame,&eb_ies)!=0){
         printf("receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
         hitmac_is_associated = 1;
+        /*hitmac_request pt will exit, go back on hitmac process*/
       }
     }
-
+    NETSTACK_RADIO.off();
+    logic_test(0);
     if(!hitmac_is_associated) {
       /* Go back to scanning */
       etimer_set(&scan_timer,HITMAC_SCAN_PERIOD);
       PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
     }
-    NETSTACK_RADIO.off();
-
+    
+    
+    leds_toggle(LEDS_RED);
   }
 
   PT_END(pt);
 }
+
 /*---------------------------------------------------------------------------*/
 /*The main hitmac process*/
 PROCESS_THREAD(hitmac_process, ev, data)
@@ -192,26 +216,27 @@ PROCESS_THREAD(hitmac_process, ev, data)
   static struct pt request_pt;
 
   while(1){
+   
     while(!hitmac_is_associated){
       if(!hitmac_is_root){
-        /*periodically send eb reuqest to root */
+        /*periodically send eb reuqest to root,periodically in request_pt,
+        not go back to hitmac process only when hitmac_is_associated = 1*/
         PROCESS_PT_SPAWN(&request_pt,hitmac_request(&request_pt));
-
+        
       }else
       {
         hitmac_is_associated = 1;
         process_start(&hitmac_root_eb_process,NULL);
       }
     }
-
     /*start scheduler process*/
     process_start(&hitmac_scheduler_process,NULL);
 
     /*we start asn operation*/
     update_asn();
 
-    /* Yield our main process. Slot operation will re-schedule itself
-     * as long as we are associated */
+
+    /*make hitmac process block,make rooms for cpu to sleep*/
     PROCESS_YIELD_UNTIL(!hitmac_is_associated);
     
   }
@@ -231,9 +256,9 @@ hitmac_init()
   HITMAC_SCHDELER_INIT(hitmac_current_scheduler,HITMAC_UPLOAD_LENGTH, 
     HITMAC_DOWNLOAD_LENGTH,HITMAC_SLEEP_TIME_LENGTH,HITMAC_TIME_LENGTH,HITMAC_EB_PERIOD);
 
-#if HITMAC_AUTO_START
+// #if HITMAC_AUTO_START
   NETSTACK_MAC.on();
-#endif
+// #endif
 
   PRINTF("start hitmac\n");
   
@@ -272,8 +297,7 @@ packet_input(void)
 
   /**********************************************/
 
-  leds_toggle(LEDS_RED);
-  // logic_test(0);
+  // leds_toggle(LEDS_RED);
   // /* PRINTF("TSCH: EB received\n"); */
   // frame802154_t frame;
   // /* Verify incoming EB (does its ASN match our Rx time?),

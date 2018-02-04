@@ -115,8 +115,8 @@ main(void)
 
   serial_line_init();
   
-  //input_uart_data,this bug will  lead nodes restart
-  // uart1_set_input(serial_line_input_byte);
+  //input_uart_data
+  uart1_set_input(serial_line_input_byte);
 
   process_start(&etimer_process, NULL);
   ctimer_init();

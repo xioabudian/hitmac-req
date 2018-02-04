@@ -38,6 +38,7 @@
  */
 
 #include "contiki.h"
+#include "net/netstack.h"
 
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
@@ -46,7 +47,14 @@
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
-
+char test_fun1() //no expeir
+{
+  // while(1){
+    NETSTACK_RADIO.on();
+    NETSTACK_RADIO.off();
+    return 0;
+  // }
+}
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(hello_world_process, ev, data)
 {
@@ -55,6 +63,8 @@ PROCESS_THREAD(hello_world_process, ev, data)
   printf("Hello, world\n");
   
   while(1){
+
+    test_fun1();
   	PROCESS_YIELD();
   	if( ev == serial_line_event_message && data!=NULL){
   		// printf("receive ok\n");

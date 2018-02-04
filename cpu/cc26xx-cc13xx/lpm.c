@@ -573,7 +573,7 @@ lpm_init()
   list_init(modules_list);
 
   /* Always wake up on any DIO edge detection */
-  // ti_lib_aon_event_mcu_wake_up_set(AON_EVENT_MCU_WU3, AON_EVENT_IO);
+  ti_lib_aon_event_mcu_wake_up_set(AON_EVENT_MCU_WU3, AON_EVENT_IO);
 }
 /*---------------------------------------------------------------------------*/
 void

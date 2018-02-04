@@ -141,7 +141,7 @@ board_init()
   while(!ti_lib_prcm_load_get()) ;
 
   /* Make sure the external flash is in the lower power mode */
-  /* ext_flash_init(); */
+   // ext_flash_init(); 
 
   lpm_register_module(&srf_module);
 
@@ -149,7 +149,7 @@ board_init()
   configure_unused_pins();
 
   /* Initialise the RF switch if present */
-  /* rf_switch_init(); */
+   // rf_switch_init(); 
 
   /* Re-enable interrupt if initially enabled. */
   if(!int_disabled) {
