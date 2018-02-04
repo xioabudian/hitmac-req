@@ -9,12 +9,14 @@
 #include "dev/leds.h"
 
 #include <stdio.h>
-
 #if 0
 #define PRINTF(...) printf(__VA_ARGS__)
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
 #else 
 #define PRINTF(...)
+#define PRINTLLADDR(...)
 #endif 
+
 int hitmac_is_root;
 
 static int hitmac_is_associated;
@@ -30,7 +32,8 @@ static uint32_t mod_type;
 static rtimer_clock_t current_asn_timeoffset;
 /*record current asn timeslot responding request or sync eb timeoffset start point  */
 static rtimer_clock_t current_sync_timeoffset;
-
+/*root receive request timeoffset*/
+rtimer_clock_t receive_request_timeoffset;
 
 PT_THREAD(hitmac_request(struct pt *pt));
 /*root send eb packet periodically*/
@@ -96,7 +99,7 @@ PROCESS_THREAD(hitmac_root_eb_process,ev,data)
     if(eb_len > 0){
       packetbuf_set_datalen(eb_len);
        /*send eb packet*/
-      printf("send eb packet length:%d\n",eb_len);
+      printf("periodically send eb packet length:%d\n",eb_len);
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
       // leds_toggle(LEDS_RED);
     }
@@ -125,11 +128,7 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
 
   PROCESS_END();
 }
-/*---------------------------------------------------------------------------*/
-void turn_radio_off_patch(){
 
-  NETSTACK_RADIO.off();
-}
 /*---------------------------------------------------------------------------*/
 /* Scanning protothread, called by hitmac_process:
  * Listen to an channels, and when receiving an EB,
@@ -150,7 +149,6 @@ PT_THREAD(hitmac_request(struct pt *pt))
     struct ieee802154_ies eb_ies;
     frame802154_t frame;
     int request_len;
-    struct rtimer patch_rtimer;
 
     /*Send request to root*/
     /* Prepare the REQUEST packet and schedule it to be sent */
@@ -159,15 +157,14 @@ PT_THREAD(hitmac_request(struct pt *pt))
 
     request_len = hitmac_packet_create_request_associate(packetbuf_dataptr(), PACKETBUF_SIZE, 0xFFFF);
     
-    logic_test(1);
     /* Turn radio on and wait for EB */
     NETSTACK_RADIO.on();
     
     if(request_len > 0){
       packetbuf_set_datalen(request_len);
        /*send cmd packet*/
-      printf("send cmd packet length:%d\n",request_len);
-
+      printf("periodically send cmd request packet length:%d\n",request_len);
+      leds_toggle(LEDS_RED);
       /*Send request packet*/
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
     }
@@ -179,10 +176,10 @@ PT_THREAD(hitmac_request(struct pt *pt))
     /* If we are currently receiving a packet, wait until end of reception */
     t0 = RTIMER_NOW();
     /*Wait  for two timslots for EB*/
-    // logic_test(1);
+
     BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_LISTEN_SYNC_WAIT_TIME);
-    // logic_test(0);
-    rtimer_set(&patch_rtimer,RTIMER_NOW() + RTIMER_SECOND,0,turn_radio_off_patch,NULL);
+
+    NETSTACK_RADIO.off();
 
     if(is_packet_pending) {
       eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_MAX_LEN);
@@ -192,16 +189,14 @@ PT_THREAD(hitmac_request(struct pt *pt))
         /*hitmac_request pt will exit, go back on hitmac process*/
       }
     }
-    NETSTACK_RADIO.off();
-    logic_test(0);
+    
     if(!hitmac_is_associated) {
       /* Go back to scanning */
       etimer_set(&scan_timer,HITMAC_SCAN_PERIOD);
       PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
     }
+     
     
-    
-    leds_toggle(LEDS_RED);
   }
 
   PT_END(pt);
@@ -256,9 +251,9 @@ hitmac_init()
   HITMAC_SCHDELER_INIT(hitmac_current_scheduler,HITMAC_UPLOAD_LENGTH, 
     HITMAC_DOWNLOAD_LENGTH,HITMAC_SLEEP_TIME_LENGTH,HITMAC_TIME_LENGTH,HITMAC_EB_PERIOD);
 
-// #if HITMAC_AUTO_START
+#if HITMAC_AUTO_START
   NETSTACK_MAC.on();
-// #endif
+#endif
 
   PRINTF("start hitmac\n");
   
@@ -274,26 +269,62 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 packet_input(void)
 {
-  
-  int request_len;
-  /* Prepare the REQUEST packet and schedule it to be sent */
-  packetbuf_clear();
-  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_CMDFRAME);
+  frame802154_t frame;
+  int ret;
 
-  request_len = hitmac_packet_create_request_associate(packetbuf_dataptr(), PACKETBUF_SIZE, 0xFFFF);
-
-  if(request_len > 0){
-    packetbuf_set_datalen(request_len);
-     /*send cmd packet*/
-    printf("send cmd packet length:%d\n",request_len);
+  if((ret=frame802154_parse(packetbuf_dataptr(),packetbuf_datalen(),&frame)) == 0) {
+    PRINTF("HITMAC: failed to parse frame\n");
+    return ;
   }
 
+  if(frame.fcf.frame_type == FRAME802154_CMDFRAME && hitmac_packet_is_broadcast(frame.dest_addr))
+  {
+    /*is FRAME802154_REQUEST_ASSOCIATE_CMDID?*/
+    frame802154_t frame1;
+    uint8_t cmd;
+    int eb_len = 0;
 
-  frame802154_t frame1;
-  uint8_t cmd;
-  hitmac_packet_parse_cmd(packetbuf_dataptr(),packetbuf_datalen(),&frame1,&cmd);
-  printf("receive cmd packet length:%d\n",packetbuf_datalen());
-  printf("cmd type:%2x\n",cmd);
+    hitmac_packet_parse_cmd(packetbuf_dataptr(),packetbuf_datalen(),&frame1,&cmd);
+    printf("cmd type:%2x\n",cmd);
+    if(cmd == FRAME802154_REQUEST_ASSOCIATE_CMDID){
+      receive_request_timeoffset = RTIMER_NOW();
+      /* Prepare the EB packet and schedule it to be sent */
+      packetbuf_clear();
+      packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
+
+      eb_len = hitmac_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE, hitmac_current_asn);
+
+      if(eb_len > 0){
+        packetbuf_set_datalen(eb_len);
+         /*send eb packet*/
+        printf("send eb packet length:%d\n",eb_len);
+        NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
+        // leds_toggle(LEDS_RED);
+      }
+    }
+    leds_toggle(LEDS_RED);
+
+  }
+  
+  // int request_len;
+  // /* Prepare the REQUEST packet and schedule it to be sent */
+  // packetbuf_clear();
+  // packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_CMDFRAME);
+
+  // request_len = hitmac_packet_create_request_associate(packetbuf_dataptr(), PACKETBUF_SIZE, 0xFFFF);
+
+  // if(request_len > 0){
+  //   packetbuf_set_datalen(request_len);
+  //    /*send cmd packet*/
+  //   printf("send cmd packet length:%d\n",request_len);
+  // }
+
+
+  // frame802154_t frame1;
+  // uint8_t cmd;
+  // hitmac_packet_parse_cmd(packetbuf_dataptr(),packetbuf_datalen(),&frame1,&cmd);
+  // printf("receive cmd packet length:%d\n",packetbuf_datalen());
+  // printf("cmd type:%2x\n",cmd);
 
   /**********************************************/
 

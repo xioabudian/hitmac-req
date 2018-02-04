@@ -33,4 +33,7 @@ int hitmac_packet_create_request_associate(uint8_t *buf, int buf_size, uint16_t 
 /* Parse a IEEE 802.15.4e REQUEST CMD  */
 int hitmac_packet_parse_cmd(const uint8_t *buf, int buf_size,
                      frame802154_t *frame, uint8_t *cmdtype);
+char hitmac_packet_is_broadcast(uint8_t *addr);
+
+
 #endif

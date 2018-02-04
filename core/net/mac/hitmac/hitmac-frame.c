@@ -280,3 +280,12 @@ hitmac_packet_parse_cmd(const uint8_t *buf, int buf_size,
 
 }
 /*---------------------------------------------------------------------------*/
+char
+hitmac_packet_is_broadcast(uint8_t *addr)
+{
+  if( addr[0] == 0xFF && addr[1] == 0xFF){
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/

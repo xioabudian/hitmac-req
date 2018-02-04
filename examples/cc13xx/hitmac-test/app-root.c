@@ -21,9 +21,10 @@ PROCESS_THREAD(app_root_process,ev,data)
 	etimer_set(&periodic,SEND_INTERVAL);
 
 	hitmac_is_root = 1;
-
-	NETSTACK_CONF_MAC.on();
+	
 	NETSTACK_CONF_MAC.off(1);
+	NETSTACK_CONF_MAC.on();
+
 	printf("app root\n");
 	while(1){
 		PROCESS_YIELD_UNTIL(ev==PROCESS_EVENT_TIMER);

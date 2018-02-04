@@ -83,12 +83,12 @@
 /* CC1310 PA 433MHZ */
 #include "cc1310-pa.h"
 /*---------------------------------------------------------------------------*/
-#define LOGIC_TEST 0
+#define LOGIC_TEST 1
 #if LOGIC_TEST
 void logic_test(uint32_t i);
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else

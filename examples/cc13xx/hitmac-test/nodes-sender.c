@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define PERIOD 10
+#define PERIOD 15
 #define SEND_INTERVAL (PERIOD*CLOCK_SECOND)
 
 PROCESS(nodes_sender_process,"nodes sender process");
