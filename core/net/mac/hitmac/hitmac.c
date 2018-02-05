@@ -19,9 +19,11 @@
 
 int hitmac_is_root;
 
+int hitmac_is_started;
+
 static int hitmac_is_associated;
 
-// static int hitmac_is_started;
+static struct rtimer asn_rtimer;
 
 static struct hitmac_asn_t hitmac_current_asn;
 
@@ -29,11 +31,9 @@ static struct hitmac_scheduler_t hitmac_current_scheduler;
 
 static uint32_t mod_type;
 /*record current asn timeslot start point */
-static rtimer_clock_t current_asn_timeoffset;
-/*record current asn timeslot responding request or sync eb timeoffset start point  */
-static rtimer_clock_t current_sync_timeoffset;
+static rtimer_clock_t current_asn_time;
 /*root receive request timeoffset*/
-rtimer_clock_t receive_request_timeoffset;
+rtimer_clock_t receive_request_time;
 
 PT_THREAD(hitmac_request(struct pt *pt));
 /*root send eb packet periodically*/
@@ -47,14 +47,58 @@ PROCESS(hitmac_process, "HITMAC: main process");
 void
 logic_test(uint32_t i);
 /*---------------------------------------------------------------------------*/
+/*on a timeslot , send packet timeoffset*/
+int hitmac_send_packet(uint8_t type){
+
+  int len = 0;
+  if(type == FRAME802154_BEACONFRAME){
+    packetbuf_clear();
+    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
+
+    len = hitmac_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE, hitmac_current_asn);
+
+    logic_test(1);
+    if(len > 0){
+      packetbuf_set_datalen(len);
+       /*send eb packet*/
+      printf("send eb packet length:%d\n",len);
+      NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
+
+    }
+    logic_test(0);
+
+  }
+  return len;
+}
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+int hitmac_send_ack(){
+  int len = 0;
+  return len;
+}
+/*---------------------------------------------------------------------------*/
+int hitmac_send_data(){
+  int len = 0;
+  return len;
+}
+/*---------------------------------------------------------------------------*/
+int hitmac_send_cmd(){
+  int len = 0;
+  return len;
+}
+
+/*---------------------------------------------------------------------------*/
 /*time synchronize 1:asscoiate 0:not associate*/
 /*update asn operation*/
 void 
 update_asn()
 {
-   static struct rtimer asn_rtimer;
-   // rtimer_clock_t now = RTIMER_NOW();
    
+   
+   logic_test(1);
+   rtimer_clock_t asn_diff;
    uint32_t mod_res;
    mod_type = HITMAC_UNKNOWN_TYPE;
 
@@ -72,13 +116,19 @@ update_asn()
 
    PRINTF("mod_type1:%lu\n",mod_type);
 
-   process_post_synch(&hitmac_scheduler_process, PROCESS_EVENT_POLL, NULL);
-
    if(hitmac_is_associated == 1){
-    rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD,0,update_asn,NULL);
+    if(hitmac_is_root){
+
+      rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD,0,update_asn,NULL);
+    }else{
+      asn_diff = 14;
+      rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD - asn_diff,0,update_asn,NULL);
+    }
+
+    process_post_synch(&hitmac_scheduler_process, PROCESS_EVENT_POLL, NULL);
    }
-   
-   current_asn_timeoffset = RTIMER_NOW();
+   logic_test(0);
+   current_asn_time = RTIMER_NOW();
    
 }
 
@@ -86,23 +136,19 @@ update_asn()
 PROCESS_THREAD(hitmac_root_eb_process,ev,data)
 {
   PROCESS_BEGIN();
-  int eb_len;
- 
+
+
   while(1){
     PROCESS_YIELD();
-    /* Prepare the EB packet and schedule it to be sent */
-    packetbuf_clear();
-    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
 
-    eb_len = hitmac_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE, hitmac_current_asn);
+    /* Prepare the EB packet and schedule it to be sent,50 kbps we use rtimer wait,but 5k,we will use etimer*/
+    rtimer_clock_t wt;
+    wt = RTIMER_NOW();
+    while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + HITMAC_EB_TIMEOFFSET)) { }
 
-    if(eb_len > 0){
-      packetbuf_set_datalen(eb_len);
-       /*send eb packet*/
-      printf("periodically send eb packet length:%d\n",eb_len);
-      NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
-      // leds_toggle(LEDS_RED);
-    }
+    hitmac_send_packet(FRAME802154_BEACONFRAME);
+
+    // leds_toggle(LEDS_RED);
 
   }
   
@@ -119,9 +165,14 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
     PRINTF("scheduler poll\n");
-    if(mod_type == HITMAC_SYNC_TYPE){
+    if(mod_type == HITMAC_SYNC_TYPE && hitmac_is_root == 1){
+      /*root send eb sync packet*/
       process_poll(&hitmac_root_eb_process);
       //process_post
+    }else if(mod_type == HITMAC_SYNC_TYPE && hitmac_is_root == 0){
+      /*nodes receive eb sync packet,if */
+      
+      PRINTF("receive eb sync packet\n");
     }
 
   }
@@ -139,7 +190,7 @@ PT_THREAD(hitmac_request(struct pt *pt))
   PT_BEGIN(pt);
 
   static struct etimer scan_timer;
-
+  static uint8_t rand_req = 0;
   etimer_set(&scan_timer,HITMAC_SCAN_PERIOD);
 
   while(!hitmac_is_associated) {
@@ -156,7 +207,7 @@ PT_THREAD(hitmac_request(struct pt *pt))
     packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_CMDFRAME);
 
     request_len = hitmac_packet_create_request_associate(packetbuf_dataptr(), PACKETBUF_SIZE, 0xFFFF);
-    
+    // logic_test(1);
     /* Turn radio on and wait for EB */
     NETSTACK_RADIO.on();
     
@@ -181,18 +232,31 @@ PT_THREAD(hitmac_request(struct pt *pt))
 
     NETSTACK_RADIO.off();
 
+    // logic_test(0);
+    rand_req ++;
     if(is_packet_pending) {
       eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_MAX_LEN);
       if(hitmac_packet_parse_eb(input_eb,eb_len,&frame,&eb_ies)!=0){
         printf("receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
         hitmac_is_associated = 1;
+        /*update current nodes asn*/
+        hitmac_current_asn.ms1b = eb_ies.ie_asn.ms1b;
+        hitmac_current_asn.ls4b = eb_ies.ie_asn.ls4b;
+        /*wait a timeoffset until next slot to correct update*/
+        t0 = RTIMER_NOW();
+        while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + HITMAC_REQ_EB_WAIT_TIMEOFFSET)) { }
         /*hitmac_request pt will exit, go back on hitmac process*/
       }
     }
     
     if(!hitmac_is_associated) {
-      /* Go back to scanning */
-      etimer_set(&scan_timer,HITMAC_SCAN_PERIOD);
+      /* Go back to scanning,nodes will promise root seceive request during up timeslot,*/
+      if(rand_req%2 == 1){
+        etimer_set(&scan_timer,HITMAC_SCAN_PERIOD + HITMAC_UP_SYNC_ETIMER_TIMEOFFSET);
+      }else{
+        etimer_set(&scan_timer,HITMAC_SCAN_PERIOD);
+      }
+      
       PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
     }
      
@@ -230,7 +294,6 @@ PROCESS_THREAD(hitmac_process, ev, data)
     /*we start asn operation*/
     update_asn();
 
-
     /*make hitmac process block,make rooms for cpu to sleep*/
     PROCESS_YIELD_UNTIL(!hitmac_is_associated);
     
@@ -244,6 +307,9 @@ static void
 hitmac_init()
 {
   hitmac_is_root = ROOTNODE;
+
+  hitmac_is_started = 0;
+
   hitmac_is_associated = 0;
 
   HITMAC_ASN_INIT(hitmac_current_asn,0,0);
@@ -286,24 +352,42 @@ packet_input(void)
 
     hitmac_packet_parse_cmd(packetbuf_dataptr(),packetbuf_datalen(),&frame1,&cmd);
     printf("cmd type:%2x\n",cmd);
+
     if(cmd == FRAME802154_REQUEST_ASSOCIATE_CMDID){
-      receive_request_timeoffset = RTIMER_NOW();
-      /* Prepare the EB packet and schedule it to be sent */
-      packetbuf_clear();
-      packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
 
-      eb_len = hitmac_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE, hitmac_current_asn);
+      receive_request_time = RTIMER_NOW();
 
-      if(eb_len > 0){
-        packetbuf_set_datalen(eb_len);
-         /*send eb packet*/
-        printf("send eb packet length:%d\n",eb_len);
-        NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
-        // leds_toggle(LEDS_RED);
+      rtimer_clock_t relative_timeoffset;
+      if(receive_request_time > current_asn_time){
+        relative_timeoffset = receive_request_time - current_asn_time;
+      }else{
+        relative_timeoffset = 0xFFFFFFFF - current_asn_time +receive_request_time;
       }
-    }
-    leds_toggle(LEDS_RED);
+      if(relative_timeoffset<=HITMAC_UP_SYNC_RTIMER_TIMEOFFSET)
+      {        
+        /*current slot send */
+        rtimer_clock_t wt,left_timeoffset = 0;
 
+        wt = RTIMER_NOW();
+        
+        if((current_asn_time+HITMAC_EB_TIMEOFFSET)>receive_request_time){
+          left_timeoffset = (current_asn_time+HITMAC_EB_TIMEOFFSET)-receive_request_time;
+        }else{
+          left_timeoffset = (0xFFFFFFFF-(current_asn_time+HITMAC_EB_TIMEOFFSET)) + receive_request_time;
+        }
+        
+        while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + left_timeoffset)) { }
+
+        hitmac_send_packet(FRAME802154_BEACONFRAME);
+
+        leds_toggle(LEDS_RED);
+
+        printf("root respond\n");
+      }
+
+    }
+    
+    
   }
   
   // int request_len;
@@ -344,7 +428,7 @@ packet_input(void)
 static int
 turn_on(void)
 {
-  if(hitmac_is_associated == 0 ) {
+  if(hitmac_is_started == 0 ) {
  
     process_start(&hitmac_process, NULL);
     return 1;

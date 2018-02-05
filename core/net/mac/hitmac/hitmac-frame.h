@@ -8,7 +8,6 @@
 #include "net/mac/frame802154e-ie.h"
 #include "net/mac/hitmac/hitmac.h"
 /************ Types ***********/
-
 /* Stores data about an incoming packet */
 struct input_packet {
   uint8_t payload[HITMAC_PACKET_MAX_LEN]; /* Packet payload */
@@ -34,6 +33,5 @@ int hitmac_packet_create_request_associate(uint8_t *buf, int buf_size, uint16_t 
 int hitmac_packet_parse_cmd(const uint8_t *buf, int buf_size,
                      frame802154_t *frame, uint8_t *cmdtype);
 char hitmac_packet_is_broadcast(uint8_t *addr);
-
 
 #endif
