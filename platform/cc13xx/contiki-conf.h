@@ -429,9 +429,10 @@ typedef uint32_t rtimer_clock_t;
 /*-----------------external watchdog driver by xiaobing-------------------------------*/
 #define EXTER_WATCHDOG 1
 #define PA_434MHZ  0 /* with AN1310 HA/UA-PA-A-434 Module,reference to board.h*/
-/*-------------uart  configure -------------------*/
+/*---------------------------------------------------------------------------*/
 #undef  ROOTNODE
 #define ROOTNODE  0
+
 #if ROOTNODE
 #define HITMAC_AUTO_START 1
 #endif
@@ -440,6 +441,7 @@ typedef uint32_t rtimer_clock_t;
 #define CC26XX_UART_CONF_BAUD_RATE    115200 /**< Default UART0 baud rate */
 #else
 #define CC26XX_UART_CONF_BAUD_RATE    115200//115200 /**< Default UART0 baud rate */
+#define HITMAC_CHANGE_RTIMER_RESET   1
 #endif
 /*---------------------------------------------------------------------------*/
 

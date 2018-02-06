@@ -80,6 +80,13 @@ rtimer_set(struct rtimer *rtimer, rtimer_clock_t time,
   rtimer->ptr = ptr;
 
   rtimer->time = time;
+
+#if HITMAC_CHANGE_RTIMER_RESET
+  if(next_rtimer == rtimer){
+      rtimer_arch_schedule(time);
+   }
+#endif
+   
   next_rtimer = rtimer;
 
   if(first == 1) {

@@ -21,6 +21,8 @@ int hitmac_is_root;
 
 int hitmac_is_started;
 
+uint8_t lost_sync_num = 0;
+
 static int hitmac_is_associated;
 
 static struct rtimer asn_rtimer;
@@ -48,7 +50,8 @@ void
 logic_test(uint32_t i);
 /*---------------------------------------------------------------------------*/
 /*on a timeslot , send packet timeoffset*/
-int hitmac_send_packet(uint8_t type){
+int 
+hitmac_send_packet(uint8_t type){
 
   int len = 0;
   if(type == FRAME802154_BEACONFRAME){
@@ -70,7 +73,6 @@ int hitmac_send_packet(uint8_t type){
   }
   return len;
 }
-/*---------------------------------------------------------------------------*/
 
 
 /*---------------------------------------------------------------------------*/
@@ -117,6 +119,8 @@ update_asn()
    PRINTF("mod_type1:%lu\n",mod_type);
 
    if(hitmac_is_associated == 1){
+    /*for nodes passive synchronization*/
+    
     if(hitmac_is_root){
 
       rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD,0,update_asn,NULL);
@@ -124,15 +128,59 @@ update_asn()
       asn_diff = 14;
       rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD - asn_diff,0,update_asn,NULL);
     }
-
     process_post_synch(&hitmac_scheduler_process, PROCESS_EVENT_POLL, NULL);
+    
    }
    logic_test(0);
    current_asn_time = RTIMER_NOW();
    
 }
-
 /*---------------------------------------------------------------------------*/
+void hitmac_receive_eb()
+{
+  /*nodes receive eb sync packet,if not received, nodes will increase lost_sync_num*/
+  int is_packet_pending = 0;
+  int eb_len;
+  uint8_t input_eb[HITMAC_PACKET_EB_LENGTH];
+  struct ieee802154_ies eb_ies;
+  frame802154_t frame;
+
+  NETSTACK_RADIO.on();
+  rtimer_clock_t t0;
+  is_packet_pending = NETSTACK_RADIO.pending_packet();
+
+  /* If we are currently receiving a packet, wait until end of reception */
+  t0 = RTIMER_NOW();
+  /*Wait  for two timslots for EB*/
+  BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_LISTEN_WAIT_EB_MAX_LENGTH);
+  
+  eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_EB_LENGTH);
+  if(hitmac_packet_parse_eb(input_eb,eb_len,&frame,&eb_ies)!=0){   
+    /*update current nodes asn*/
+    hitmac_current_asn.ms1b = eb_ies.ie_asn.ms1b;
+    hitmac_current_asn.ls4b = eb_ies.ie_asn.ls4b;
+    /*reset asn rtimer*/
+    rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_REQ_EB_WAIT_TIMEOFFSET1,0,update_asn,NULL);
+    PRINTF("nodes current asn ms:%u  ls:%lu\n",hitmac_current_asn.ms1b, hitmac_current_asn.ls4b);
+    PRINTF("nodes passive receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
+    leds_toggle(LEDS_RED);
+    lost_sync_num = 0;
+  }
+  else{
+    /*disassociate from network because not receive eb packet*/  
+    lost_sync_num ++;
+    if(lost_sync_num>=HITMAC_LOST_SYNC_MAX_NUM){
+      hitmac_is_associated = 0;
+      printf("nodes disassociate from network\n");
+      process_post(&hitmac_process, PROCESS_EVENT_POLL, NULL);
+    }  
+  }
+
+  NETSTACK_RADIO.off();
+
+}
+/*---------------------------------------------------------------------------*/
+
 PROCESS_THREAD(hitmac_root_eb_process,ev,data)
 {
   PROCESS_BEGIN();
@@ -147,8 +195,6 @@ PROCESS_THREAD(hitmac_root_eb_process,ev,data)
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + HITMAC_EB_TIMEOFFSET)) { }
 
     hitmac_send_packet(FRAME802154_BEACONFRAME);
-
-    // leds_toggle(LEDS_RED);
 
   }
   
@@ -170,10 +216,12 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
       process_poll(&hitmac_root_eb_process);
       //process_post
     }else if(mod_type == HITMAC_SYNC_TYPE && hitmac_is_root == 0){
-      /*nodes receive eb sync packet,if */
-      
-      PRINTF("receive eb sync packet\n");
+      hitmac_receive_eb();
+      PRINTF("prepare to receive eb sync packet\n");
+    }else{
+
     }
+
 
   }
 
@@ -196,7 +244,7 @@ PT_THREAD(hitmac_request(struct pt *pt))
   while(!hitmac_is_associated) {
     int is_packet_pending = 0;
     int eb_len;
-    uint8_t input_eb[HITMAC_PACKET_MAX_LEN];
+    uint8_t input_eb[HITMAC_PACKET_EB_LENGTH];
     struct ieee802154_ies eb_ies;
     frame802154_t frame;
     int request_len;
@@ -215,7 +263,6 @@ PT_THREAD(hitmac_request(struct pt *pt))
       packetbuf_set_datalen(request_len);
        /*send cmd packet*/
       printf("periodically send cmd request packet length:%d\n",request_len);
-      leds_toggle(LEDS_RED);
       /*Send request packet*/
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
     }
@@ -226,18 +273,18 @@ PT_THREAD(hitmac_request(struct pt *pt))
 
     /* If we are currently receiving a packet, wait until end of reception */
     t0 = RTIMER_NOW();
-    /*Wait  for two timslots for EB*/
+    /*Wait  for one timslots for EB*/
 
     BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_LISTEN_SYNC_WAIT_TIME);
-
+    /*key operation*/
     NETSTACK_RADIO.off();
 
     // logic_test(0);
     rand_req ++;
     if(is_packet_pending) {
-      eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_MAX_LEN);
+      eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_EB_LENGTH);
       if(hitmac_packet_parse_eb(input_eb,eb_len,&frame,&eb_ies)!=0){
-        printf("receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
+        printf("nodes possive receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
         hitmac_is_associated = 1;
         /*update current nodes asn*/
         hitmac_current_asn.ms1b = eb_ies.ie_asn.ms1b;
@@ -348,10 +395,10 @@ packet_input(void)
     /*is FRAME802154_REQUEST_ASSOCIATE_CMDID?*/
     frame802154_t frame1;
     uint8_t cmd;
-    int eb_len = 0;
 
     hitmac_packet_parse_cmd(packetbuf_dataptr(),packetbuf_datalen(),&frame1,&cmd);
-    printf("cmd type:%2x\n",cmd);
+    printf("root receive cmd type:%2x,src addr %2x %2x\n",cmd,frame1.src_addr[0],frame1.src_addr[1]);
+
 
     if(cmd == FRAME802154_REQUEST_ASSOCIATE_CMDID){
 
@@ -387,7 +434,6 @@ packet_input(void)
 
     }
     
-    
   }
   
   // int request_len;
@@ -412,7 +458,7 @@ packet_input(void)
 
   /**********************************************/
 
-  // leds_toggle(LEDS_RED);
+
   // /* PRINTF("TSCH: EB received\n"); */
   // frame802154_t frame;
   // /* Verify incoming EB (does its ASN match our Rx time?),
