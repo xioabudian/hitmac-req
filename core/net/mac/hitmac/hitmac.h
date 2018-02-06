@@ -18,6 +18,7 @@ struct hitmac_asn_t{
 	uint8_t ms1b;
 };
 
+
 /* Initialize ASN */
 #define HITMAC_ASN_INIT(asn, ms1b_, ls4b_) do { \
     (asn).ms1b = (ms1b_); \

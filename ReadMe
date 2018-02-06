@@ -1,9 +1,0 @@
-1.this version from github.com/contiki-os,including etimer,rtimer,three RTC channel.
-2.hitmac-v.0.tar.gz is the smallest version,including the smallest board configures(uart,external watchdog,led,50k radio,2 bytes link address).But it excludes network layer,such 6lowpan,tcp/ip,only exists radio driver.
-3.hitman-v.1 basic scheduler asn increased by one
-4.hitman-v.2 correct local eb create and parse 
-5.hitman-v.3 correct radio eb create and parse,reason:radio use MAC.input not RDC.input,NETSTACK_FRAMER.parse(); will change packetdataptr().nodes will send request periodically
-6.hitman-v.4 solve nodes radio.off restart
-7.hitman-v.5 solve nodes request sync roughly
-8.hitman-v.6 solve Fine-grained time synchronization
-9.hitman-v.7 solve Fine-grained time synchronization\join network\exit network

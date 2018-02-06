@@ -8,6 +8,8 @@
 #include "net/mac/hitmac/hitmac-frame.h"
 #include "dev/leds.h"
 
+#include "node-id.h"
+
 #include <stdio.h>
 #if 0
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -30,12 +32,18 @@ static struct rtimer asn_rtimer;
 static struct hitmac_asn_t hitmac_current_asn;
 
 static struct hitmac_scheduler_t hitmac_current_scheduler;
+/*bussiness phrase*/
+static uint32_t hitmac_current_bussiness = 0;
 
-static uint32_t mod_type;
+static uint8_t mod_type;
 /*record current asn timeslot start point */
 static rtimer_clock_t current_asn_time;
 /*root receive request timeoffset*/
 rtimer_clock_t receive_request_time;
+/*static nodeid to slot*/
+static uint8_t hitmac_slot;
+uint16_t hitmac_nodeid[5]={0x0e78,0x0e53,0xf0e5};
+uint8_t nodeid_slot[5] ={79,54,0xe6};
 
 PT_THREAD(hitmac_request(struct pt *pt));
 /*root send eb packet periodically*/
@@ -48,6 +56,8 @@ PROCESS(hitmac_process, "HITMAC: main process");
 /*@test*/
 void
 logic_test(uint32_t i);
+PROCESS(hitmac_test_process,"test process");
+
 /*---------------------------------------------------------------------------*/
 /*on a timeslot , send packet timeoffset*/
 int 
@@ -64,9 +74,8 @@ hitmac_send_packet(uint8_t type){
     if(len > 0){
       packetbuf_set_datalen(len);
        /*send eb packet*/
-      printf("send eb packet length:%d\n",len);
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
-
+      printf("send eb packet length:%d\n",len);
     }
     logic_test(0);
 
@@ -80,11 +89,13 @@ int hitmac_send_ack(){
   int len = 0;
   return len;
 }
+
 /*---------------------------------------------------------------------------*/
 int hitmac_send_data(){
   int len = 0;
   return len;
 }
+
 /*---------------------------------------------------------------------------*/
 int hitmac_send_cmd(){
   int len = 0;
@@ -92,24 +103,47 @@ int hitmac_send_cmd(){
 }
 
 /*---------------------------------------------------------------------------*/
+uint32_t get_asn_mod_val(struct hitmac_asn_t asn,uint32_t MOD){
+
+  uint32_t res =0xFFFF;
+  HITMAC_ASN_MOD(asn,MOD,res);
+
+  return res;
+}
+/*---------------------------------------------------------------------------*/
 /*time synchronize 1:asscoiate 0:not associate*/
 /*update asn operation*/
 void 
 update_asn()
 {
    
-   
    logic_test(1);
    rtimer_clock_t asn_diff;
+
    uint32_t mod_res;
+   uint32_t business_res;
+
    mod_type = HITMAC_UNKNOWN_TYPE;
 
    HITMAC_ASN_INC(hitmac_current_asn,1);
 
-   HITMAC_ASN_MOD(hitmac_current_asn,HITMAC_EB_PERIOD,mod_res);
+   mod_res = get_asn_mod_val(hitmac_current_asn,HITMAC_EB_PERIOD);
 
    if(mod_res == 0){
-     mod_type = HITMAC_SYNC_TYPE;
+      /*synchronization phrase*/
+      mod_type = HITMAC_SYNC_TYPE;
+   }else{
+      /*business phrase*/
+      business_res = hitmac_current_bussiness % HITMAC_TIME_LENGTH;
+
+      if(business_res >= 0 && business_res < HITMAC_UPLOAD_LENGTH){
+        mod_type = HITMAC_UPLOAD_TYPE;
+      }else if(business_res >= HITMAC_UPLOAD_LENGTH && business_res<(HITMAC_UPLOAD_LENGTH + HITMAC_DOWNLOAD_LENGTH) ){
+        mod_type = HITMAC_DOWNLOAD_TYPE;
+      }
+
+      hitmac_current_bussiness ++;
+
    }
 
    PRINTF("current asn ms:%u  ls:%lu\n",hitmac_current_asn.ms1b,hitmac_current_asn.ls4b);
@@ -211,17 +245,41 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
     PRINTF("scheduler poll\n");
-    if(mod_type == HITMAC_SYNC_TYPE && hitmac_is_root == 1){
-      /*root send eb sync packet*/
-      process_poll(&hitmac_root_eb_process);
-      //process_post
-    }else if(mod_type == HITMAC_SYNC_TYPE && hitmac_is_root == 0){
-      hitmac_receive_eb();
-      PRINTF("prepare to receive eb sync packet\n");
-    }else{
 
+    switch(mod_type){
+
+      case HITMAC_SYNC_TYPE: 
+        if(hitmac_is_root == 1){
+          /*root send eb sync packet*/
+          process_poll(&hitmac_root_eb_process);
+          //process_post
+        }else{
+          hitmac_receive_eb();
+          PRINTF("prepare to receive eb sync packet\n");
+        }
+
+      break;
+
+      case HITMAC_UPLOAD_TYPE: 
+        if(!hitmac_is_root){
+          if(hitmac_current_bussiness % HITMAC_NODES_NUM == hitmac_slot){
+
+            PRINTF("nodes schedule upload\n");
+          }
+        }
+      break;
+
+      case HITMAC_DOWNLOAD_TYPE: 
+        if(hitmac_is_root ==1){
+
+        }else{
+
+        }
+
+      break;
+
+      default:PRINTF("sleep phrase\n");
     }
-
 
   }
 
@@ -348,6 +406,26 @@ PROCESS_THREAD(hitmac_process, ev, data)
 
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
+//@test process
+PROCESS_THREAD(hitmac_test_process, ev , data){
+  PROCESS_BEGIN();
+  static struct etimer test_et;
+  etimer_set(&test_et,CLOCK_SECOND*3);
+
+  while(1){
+
+    PROCESS_YIELD();
+
+    if(etimer_expired(&test_et) && ev == PROCESS_EVENT_TIMER){
+       etimer_set(&test_et,CLOCK_SECOND*3);
+       printf("phrase: %u\n",mod_type);
+       printf("current asn: %lu\n", hitmac_current_asn.ls4b);
+    }
+
+  }
+  PROCESS_END();
+}
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -359,6 +437,19 @@ hitmac_init()
 
   hitmac_is_associated = 0;
 
+  hitmac_slot = (uint8_t)node_id & 0x00FF;
+
+
+  /*static assign time slots*/
+  for(int i =0;i<3; i++){
+    if(node_id == hitmac_nodeid[i]){
+       hitmac_slot = nodeid_slot[i] ;
+       break;
+    }
+  }
+
+  printf("hitmac slot %x\n",hitmac_slot);
+
   HITMAC_ASN_INIT(hitmac_current_asn,0,0);
 
   HITMAC_SCHDELER_INIT(hitmac_current_scheduler,HITMAC_UPLOAD_LENGTH, 
@@ -368,7 +459,10 @@ hitmac_init()
   NETSTACK_MAC.on();
 #endif
 
-  PRINTF("start hitmac\n");
+#if 1
+  process_start(&hitmac_test_process,NULL);
+#endif
+  printf("start hitmac\n");
   
 }
 /*---------------------------------------------------------------------------*/

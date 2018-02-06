@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define PERIOD 15
+#define PERIOD 60*15
 #define SEND_INTERVAL (PERIOD*CLOCK_SECOND)
 
 PROCESS(nodes_sender_process,"nodes sender process");
@@ -27,7 +27,9 @@ PROCESS_THREAD(nodes_sender_process,ev,data)
 		PROCESS_YIELD_UNTIL(ev==PROCESS_EVENT_TIMER);
 		if(etimer_expired(&periodic)){
 			
-			
+			printf("nodes app send packet");
+
+			etimer_set(&periodic,SEND_INTERVAL);
 			// NETSTACK_CONF_MAC.send(NULL,NULL);
 		}
 	}
