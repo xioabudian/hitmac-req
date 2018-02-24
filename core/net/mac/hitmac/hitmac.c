@@ -15,6 +15,7 @@
 
 #include <math.h>
 #include <stdio.h>
+
 #if 0
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
@@ -22,6 +23,14 @@
 #define PRINTF(...)
 #define PRINTLLADDR(...)
 #endif 
+
+#define DEBUG_JOIN_NET 0
+
+#define DEBUG_SYNC 0
+
+#define DEBUG_UPLOAD 0
+
+#define DEBUG_DOWNLOAD 0
 
 int hitmac_is_root;
 
@@ -45,6 +54,8 @@ static struct hitmac_scheduler_t hitmac_current_scheduler;
 static uint32_t hitmac_current_bussiness;
 
 static uint8_t mod_type;
+
+static uint8_t hitmac_is_broadcast = 2;
 /*record current asn timeslot start point */
 static rtimer_clock_t current_asn_time;
 /*root receive request timeoffset*/
@@ -71,7 +82,7 @@ logic_test(uint32_t i);
 PROCESS(hitmac_test_process,"test process");
 
 /*---------------------------------------------------------------------------*/
-/*on a timeslot , send packet timeoffset*/
+/*on a timeslot , beacon immediately send,data later send*/
 int 
 hitmac_send_packet(uint8_t type){
 
@@ -88,36 +99,41 @@ hitmac_send_packet(uint8_t type){
       logic_test(1);
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
       logic_test(0);
-      printf("send eb packet length:%d\n",len);
+#if DEBUG_SYNC
+      printf("hitmac send eb packet length:%d\n",len);
       PRINTF("current asn: %lu\n", hitmac_current_asn.ls4b);
-
+#endif
     }
     
 
   }else if(type == FRAME802154_DATAFRAME){
     uint8_t buf[HITMAC_PACKET_MAX_LEN];
     /*buf = head + data*/
-    len = hitmac_packet_create_dataframe(buf,HITMAC_PACKET_MAX_LEN,current_root_addr.u16);
-    
+    const linkaddr_t *addr;
+    if(hitmac_is_root){
+      addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+      len = hitmac_packet_create_dataframe(buf,HITMAC_PACKET_MAX_LEN,addr->u16);
+      PRINTF("send current root addr %2x%2x\n", addr->u8[0],addr->u8[1]);
+    }else{
+      len = hitmac_packet_create_dataframe(buf,HITMAC_PACKET_MAX_LEN,current_root_addr.u16);
+      addr = &current_root_addr;
+      PRINTF("send current nodes addr %2x%2x\n", addr->u8[0],addr->u8[1]);
+    }
+
     if(len > 0){
       packetbuf_clear();
       packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
       packetbuf_copyfrom(buf,len);
+
+      
     }
 
-    printf("send data packet length:%u\n", len);
   }
   return len;
 }
 
 /*---------------------------------------------------------------------------*/
-int hitmac_send_ack(){
-  int len = 0;
-  return len;
-}
-
-/*---------------------------------------------------------------------------*/
-int hitmac_send_data(){
+int hitmac_nodes_send_data(){
   int len = -1;
   /*get packet from queue*/
   struct hitmac_packet *p = hitmac_queue_get_packet();
@@ -130,7 +146,7 @@ int hitmac_send_data(){
     if(p->len > 0){
       /*send data*/
       NETSTACK_RADIO.send(p->data,p->len);
-      printf("current bussiness %lu\n", hitmac_current_bussiness);
+      PRINTF("upload current bussiness %lu\n", hitmac_current_bussiness);
     }
    /* We are not coordinator, try to wait ack */
     rtimer_clock_t t0;
@@ -146,7 +162,6 @@ int hitmac_send_data(){
         len = p->len;
         hitmac_queue_remove_packet();
         NETSTACK_RADIO.off();
-        printf("receive ack\n");
         return len;
       }
     }
@@ -154,7 +169,9 @@ int hitmac_send_data(){
       p->transmissions++;
       if(p->transmissions > HITMAC_RETRANSMITS_MAX_NUM){//HITMAC_RETRANSMITS_MAX_NUM
         hitmac_queue_remove_packet();
+#if DEBUG_UPLOAD
         printf("nodes send lost packet\n");
+#endif 
       }
     }
     /*key operation*/
@@ -163,13 +180,127 @@ int hitmac_send_data(){
   }
   return len;
 }
-
 /*---------------------------------------------------------------------------*/
-int hitmac_send_cmd(){
-  int len = 0;
-  return len;
+/*Nodes parse data and send ack*/
+void hitmac_node_parse_data(){
+  int hdr_len = -1;
+  int duplicate = 0;
+
+  hdr_len = NETSTACK_FRAMER.parse();
+         
+  if(hdr_len < 0){
+    printf("HITMAC: download failed to parse frame\n");
+    return ; 
+  }
+
+  /*root receive data frame*/
+  if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)==FRAME802154_DATAFRAME){
+    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),&linkaddr_node_addr)==1){
+      /*unicast addr*/
+      uint8_t ack_len[ACK_LEN];
+      ack_len[ACK_LEN-1] = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) +1;
+      NETSTACK_RADIO.send(ack_len,ACK_LEN);
+    }
+    /*broadcast addr,do nothing*/
+    uint8_t *original_dataptr = packetbuf_dataptr();
+
+    /* Seqno of 0xffff means no seqno */
+    if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) != 0xffff) {
+      /* Check for duplicates */
+      duplicate = mac_sequence_is_duplicate();
+      if(duplicate) {
+        /* Drop the packet. */
+        printf("HITMAC:! drop dup seqno %u\n",packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+        
+      } else {
+        mac_sequence_register_seqno();
+      }
+    }
+
+    if(!duplicate) {
+#if DEBUG_DOWNLOAD
+      PRINTF("HITMAC! packet input\n");
+#endif
+      input_buf.len = packetbuf_datalen()-hdr_len;
+      memcpy(input_buf.buf,&original_dataptr[hdr_len], input_buf.len);
+      memcpy(&input_buf.src_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER), LINKADDR_SIZE);
+      memcpy(&input_buf.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LINKADDR_SIZE);    
+      if(conn_process!=NULL){
+        process_post(conn_process, PACKET_INPUT, NULL);   
+      }
+    }
+
+    return;
+  }
 }
 
+/*---------------------------------------------------------------------------*/
+int hitmac_root_send_data(){
+  int len = -1;
+  /*get packet from queue*/
+  struct hitmac_packet *p = hitmac_queue_get_packet();
+  uint8_t ackbuf[ACK_LEN] = {0,0,0};
+  int ack_len;
+  int is_packet_pending = 0;
+
+  if(p != NULL){
+    if(p->len > 0){
+      /*send data*/
+      logic_test(1);
+      NETSTACK_RADIO.send(p->data,p->len);
+      logic_test(0);
+      hitmac_is_broadcast--;
+      
+    }
+    if(p->data[5]==0xFF && p->data[6]==0xFF){
+      /*broadcast addr*/
+      if(hitmac_is_broadcast == 0){
+        hitmac_queue_remove_packet();
+      }
+      
+#if DEBUG_DOWNLOAD
+      printf("send broadcast\n");
+#endif
+      return p->len;
+    }
+
+
+#if DEBUG_DOWNLOAD
+    printf("send unicast\n");
+#endif
+    logic_test(1);
+   /* We are not coordinator, try to wait ack */
+    rtimer_clock_t t0;
+    t0 = RTIMER_NOW();
+    /*Wait  for one timslot for ACK*/
+    BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_NODE_WAIT_DATA_TIME);
+    
+    if(is_packet_pending){
+      ack_len = NETSTACK_RADIO.read(ackbuf,ACK_LEN);
+      uint8_t seq_no = (uint8_t)p->data[2]+1;
+      
+      if(ack_len==ACK_LEN &&  seq_no== ackbuf[ACK_LEN-1]){
+        len = p->len;
+        hitmac_queue_remove_packet();
+        logic_test(0);
+        return len;
+      }
+    }
+    if(len < 0){
+      p->transmissions++;
+      if(p->transmissions > HITMAC_RETRANSMITS_MAX_NUM){//HITMAC_RETRANSMITS_MAX_NUM
+        hitmac_queue_remove_packet();
+#if DEBUG_DOWNLOAD
+        printf("root send lost packet\n");
+#endif
+        
+      }
+    }
+    logic_test(0);
+    
+  }
+  return len;
+}
 /*---------------------------------------------------------------------------*/
 /*return  hitmac_current_bussiness*/
 void hitmac_set_asn(struct tsch_asn_t asn){
@@ -181,10 +312,12 @@ void hitmac_set_asn(struct tsch_asn_t asn){
   if(mod_asn % HITMAC_EB_PERIOD == 0){
     res = mod_asn - mod_asn/HITMAC_EB_PERIOD;
   }else{
-    res = mod_asn - mod_asn/HITMAC_EB_PERIOD - 1;
+    res = mod_asn - mod_asn/HITMAC_EB_PERIOD -1;
   }
-
-  hitmac_current_bussiness = res;
+//patch 6 years
+  hitmac_current_bussiness = res;// - (asn.ls4b / HITMAC_TIME_LENGTH)*(HITMAC_TIME_LENGTH/HITMAC_EB_PERIOD);
+  
+  printf("bus %lu\n", res);
 }
 /*---------------------------------------------------------------------------*/
 /*time synchronize 1:asscoiate 0:not associate*/
@@ -222,7 +355,6 @@ update_asn()
       hitmac_current_bussiness ++;
       
    }
-   
    HITMAC_ASN_INC(hitmac_current_asn,1);
 
    PRINTF("current asn ms:%u  ls:%lu\n",hitmac_current_asn.ms1b,hitmac_current_asn.ls4b);
@@ -230,7 +362,7 @@ update_asn()
    PRINTF("mod_res:%lu\n",mod_res);
 
    PRINTF("mod_type1:%lu\n",mod_type);
-
+   
    if(hitmac_is_associated == 1){
     /*for nodes passive synchronization*/
     
@@ -241,12 +373,21 @@ update_asn()
       asn_diff = 14;
       rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD - asn_diff,0,update_asn,NULL);
     }
+    logic_test(0);
+
     process_post_synch(&hitmac_scheduler_process, PROCESS_EVENT_POLL, NULL);
     
    }
-   logic_test(0);
    current_asn_time = RTIMER_NOW();
    
+}
+/*---------------------------------------------------------------------------*/
+uint8_t 
+get_mod_type(){
+  uint8_t res;
+  res = mod_type;
+
+  return res;
 }
 /*---------------------------------------------------------------------------*/
 void hitmac_receive_eb()
@@ -264,7 +405,7 @@ void hitmac_receive_eb()
 
   /* If we are currently receiving a packet, wait until end of reception */
   t0 = RTIMER_NOW();
-  /*Wait  for two timslots for EB*/
+  /*Wait  for one timslot for EB*/
   BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_LISTEN_WAIT_EB_MAX_LENGTH);
   
   eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_EB_LENGTH);
@@ -276,9 +417,11 @@ void hitmac_receive_eb()
 
     /*reset asn rtimer*/
     rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_REQ_EB_WAIT_TIMEOFFSET1,0,update_asn,NULL);
+#if DEBUG_SYNC
     PRINTF("nodes current asn ms:%u  ls:%lu\n",hitmac_current_asn.ms1b, hitmac_current_asn.ls4b);
     PRINTF("nodes passive receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
     leds_toggle(LEDS_RED);
+#endif
     lost_sync_num = 0;
   }
   else{
@@ -315,7 +458,10 @@ PROCESS_THREAD(hitmac_root_eb_process,ev,data)
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + HITMAC_EB_TIMEOFFSET)) { }
 
     hitmac_send_packet(FRAME802154_BEACONFRAME);
-
+#if DEBUG_SYNC
+    printf("send eb packet\n");
+#endif
+    printf("root bus %lu\n", hitmac_current_bussiness);
 
   }
   
@@ -327,11 +473,19 @@ PROCESS_THREAD(hitmac_root_eb_process,ev,data)
 PROCESS_THREAD(hitmac_scheduler_process,ev,data)
 {
   PROCESS_BEGIN();
+  /*hitmac download phrase schedule*/
+  uint8_t down_schedule;
+  static uint32_t down_schedule_num = 0;
+  static uint8_t next_slot_packet_seen =0;
+  int is_packet_pending = 0;
+  int len;
+  static rtimer_clock_t start;
+  static uint8_t strobes;
+  static char down_buf[HITMAC_DOWNLOAD_BUF_TIME]="wake nodes packets";
+  memset(down_buf,0,HITMAC_DOWNLOAD_BUF_TIME);
 
   while(1){
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-
-    PRINTF("scheduler poll\n");
 
     switch(mod_type){
 
@@ -342,7 +496,6 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
           //process_post
         }else{
           hitmac_receive_eb();
-          PRINTF("prepare to receive eb sync packet\n");
         }
 
       break;
@@ -350,18 +503,101 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
       case HITMAC_UPLOAD_TYPE: 
         if(!hitmac_is_root){
           if(hitmac_current_bussiness % HITMAC_NODES_NUM == hitmac_slot){
-            hitmac_send_data();
+            hitmac_nodes_send_data();
             
           }
         }
       break;
 
       case HITMAC_DOWNLOAD_TYPE: 
-        if(hitmac_is_root ==1){
-
-        }else{
-
+        
+        if(down_schedule_num >= HITMAC_DOWNLOAD_LENGTH){
+          down_schedule_num = 0;
         }
+        down_schedule= down_schedule_num % HITMAC_DOWNLOAD_FREQUENCY;
+
+        if(hitmac_is_root ==1){
+          if(down_schedule==0){
+            /*root send a series of packets until waited ack*/
+            // rtimer_clock_t t0;
+            struct hitmac_packet *p = hitmac_queue_get_packet();
+            if(p!=NULL && p->len>0){
+              start = RTIMER_NOW();
+              for(strobes=0;RTIMER_CLOCK_LT(RTIMER_NOW(), start + HITMAC_ROOT_DOWNLOAD_WAKE_TIME); 
+                strobes++){
+                logic_test(1);
+                NETSTACK_RADIO.send(down_buf,sizeof(down_buf));
+                logic_test(0);
+                // t0 = RTIMER_NOW();packet_interval = 8.83ms - 6.4ms =2.43ms
+                // while(RTIMER_CLOCK_LT(RTIMER_NOW(),(t0+HITMAC_PACKET_INTERVAL))){}
+                /*wait next cycle*/
+              }
+            }
+
+          }else if(down_schedule==1){
+            /*start send time*/
+            start = RTIMER_NOW();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_ROOT_DOWNLOAD_START_TIME))){}
+            /*root send a packet until waited ack*/
+            hitmac_root_send_data();
+          }
+        }else{
+          if(down_schedule==0){
+            /*nodes do 2 times cca*/
+            start = RTIMER_NOW();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_START_TIME))){}
+            NETSTACK_RADIO.on();
+            logic_test(1);
+            if(NETSTACK_RADIO.channel_clear() == 0){
+              next_slot_packet_seen ++;
+            }
+            logic_test(0);
+            NETSTACK_RADIO.off();
+            start = RTIMER_NOW();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_SLEEP_TIME))){}
+            NETSTACK_RADIO.on();
+            logic_test(1);
+            if(NETSTACK_RADIO.channel_clear() == 0){
+              next_slot_packet_seen ++;
+            }
+            logic_test(0);
+            NETSTACK_RADIO.off();
+            
+          }else if(down_schedule==1){
+           
+            if(next_slot_packet_seen > 0){
+              /*nodes wait for data and return a ack*/
+              logic_test(1);
+              NETSTACK_RADIO.on();
+              start = RTIMER_NOW();
+              /*wait for data frame*/
+              BUSYWAIT_UNTIL_ABS((is_packet_pending=NETSTACK_RADIO.pending_packet()),start,HITMAC_NODE_WAIT_DATA_TIME);
+              /*parse data*/
+              if(is_packet_pending){
+                /*receive data */   
+                packetbuf_clear();
+                len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
+                if( len>0 ){
+                  packetbuf_set_datalen(len);
+                }
+                /*parse data and send ack*/
+                /*input packet into nodes app*/
+                hitmac_node_parse_data();
+              }
+              NETSTACK_RADIO.off();
+              logic_test(0);
+              PRINTF("packet_seen:%d\n",next_slot_packet_seen);
+
+            }else{
+              NETSTACK_RADIO.off();
+            }
+          }else{
+            next_slot_packet_seen =0;
+            
+          }
+        }
+
+        down_schedule_num ++;
 
       break;
 
@@ -406,10 +642,12 @@ PT_THREAD(hitmac_request(struct pt *pt))
     
     if(request_len > 0){
       packetbuf_set_datalen(request_len);
-       /*send cmd packet*/
-      printf("periodically send cmd request packet length:%d\n",request_len);
-      /*Send request packet*/
+      /*send cmd request packet*/
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
+#if DEBUG_JOIN_NET
+      printf("periodically send cmd request packet length:%d\n",request_len);
+#endif
+
     }
 
     /* We are not coordinator, try to associate */
@@ -425,7 +663,10 @@ PT_THREAD(hitmac_request(struct pt *pt))
     if(is_packet_pending) {
       eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_EB_LENGTH);
       if(hitmac_packet_parse_eb(input_eb,eb_len,&frame,&eb_ies)!=0){
+#if DEBUG_JOIN_NET
         printf("nodes possive receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
+#endif
+        leds_toggle(LEDS_RED);
         hitmac_is_associated = 1;
 #if!ROOTNODE
         current_root_addr.u8[0] = frame.src_addr[0];
@@ -578,6 +819,9 @@ send_packet(mac_callback_t sent, void *ptr)
     PRINTF("send current nodes addr %2x%2x\n", addr->u8[0],addr->u8[1]);
   }else{
     addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+    if(addr->u16 ==0xFFFF){
+      hitmac_is_broadcast = HITMAC_DOWNLOAD_BROADCAST_MAX_NUM;
+    }
     PRINTF("send current root addr %2x%2x\n", addr->u8[0],addr->u8[1]);
   }
 
@@ -589,7 +833,7 @@ send_packet(mac_callback_t sent, void *ptr)
   }
 
   if((buf_len = hitmac_send_packet(FRAME802154_DATAFRAME)) < 0){
-    PRINTF("HITMAC:! can't send packet due to framer error\n");
+    printf("HITMAC:! can't send packet due to framer error\n");
     ret = MAC_TX_ERR;
   }else{
     int put_index;
@@ -600,9 +844,11 @@ send_packet(mac_callback_t sent, void *ptr)
       printf("HITMAC:! can't send packet to %2x%2x\n",
           addr->u8[0],addr->u8[1]);
     }
-    
+
   }
-  
+
+  addr =NULL;
+
   if(ret != MAC_TX_DEFERRED) {
     mac_call_sent_callback(sent, ptr, ret, 1);
   }
@@ -622,8 +868,8 @@ packet_input(void)
     return ; 
   }
 
-
-  if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)== FRAME802154_CMDFRAME 
+  /*root receive cmd request*/
+  if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)== FRAME802154_CMDFRAME && hitmac_is_root==1
     && linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null) == 1)//broadcast
   {
     /*is FRAME802154_REQUEST_ASSOCIATE_CMDID?*/
@@ -631,10 +877,11 @@ packet_input(void)
     uint8_t cmd;
 
     hitmac_packet_parse_cmd(packetbuf_dataptr(),packetbuf_datalen(),&frame1,&cmd);
-    
+#if DEBUG_JOIN_NET
     printf("root receive cmd type:%2x,src addr %2x %2x\n",cmd,frame1.src_addr[0],frame1.src_addr[1]);
     PRINTF("cmd hdr len:%d\n", hdr_len);
     PRINTF("rssi: %d\n", (int8_t)packetbuf_attr(PACKETBUF_ATTR_RSSI));
+#endif
     /*request cmd && rssi threshold*/
     if(cmd == FRAME802154_REQUEST_ASSOCIATE_CMDID &&(int8_t)packetbuf_attr(PACKETBUF_ATTR_RSSI) >= rssi_threshold){
 
@@ -662,18 +909,19 @@ packet_input(void)
         while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + left_timeoffset)) { }
 
         hitmac_send_packet(FRAME802154_BEACONFRAME);
-
         leds_toggle(LEDS_RED);
-
+        // printf("root bus %lu\n", hitmac_current_bussiness);
+#if DEBUG_JOIN_NET
         printf("root respond\n");
+#endif
       }
 
     }
 
     return;
   }
-  
-  if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)==FRAME802154_DATAFRAME 
+  /*root receive data frame*/
+  if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)==FRAME802154_DATAFRAME && hitmac_is_root==1
     && linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),&linkaddr_node_addr)==1){
     uint8_t ack_len[ACK_LEN];
     ack_len[ACK_LEN-1] = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) +1;
@@ -699,19 +947,20 @@ packet_input(void)
     }
 
     if(!duplicate) {
+#if DEBUG_UPLOAD
       PRINTF("HITMAC! packet input\n");
+#endif
       input_buf.len = packetbuf_datalen()-hdr_len;
       memcpy(input_buf.buf,&original_dataptr[hdr_len], input_buf.len);
       memcpy(&input_buf.src_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER), LINKADDR_SIZE);
       memcpy(&input_buf.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LINKADDR_SIZE);    
-      
-      process_post(conn_process, PACKET_INPUT, NULL);   
+      if(conn_process!=NULL){
+        process_post(conn_process, PACKET_INPUT, NULL);   
+      }
     }
 
     return;
   }
-  
-  
   
 }
 /*---------------------------------------------------------------------------*/
@@ -721,6 +970,7 @@ turn_on(void)
   if(hitmac_is_started == 0 ) {
  
     process_start(&hitmac_process, NULL);
+    hitmac_is_started = 1;
     return 1;
   }
   return 0;

@@ -4,6 +4,7 @@
 #include "lib/random.h"
 #include "dev/leds.h"
 #include "net/mac/hitmac/hitmac.h"
+#include "net/mac/hitmac/app-router.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +21,37 @@
 
 PROCESS(nodes_sender_process,"nodes sender process");
 AUTOSTART_PROCESSES(&nodes_sender_process);
+
+/*---------------------------------------------------------------------------*/
+void 
+hitmac_set_conn_process(struct process *p){
+	if(p!=NULL){
+		conn_process = p;
+	}
+}
+/*---------------------------------------------------------------------------*/
+/*event handler*/
+static void
+eventhandler(process_event_t ev, process_data_t data)
+{
+	uint8_t *string;
+	switch(ev) {
+  		
+  		case PACKET_INPUT:
+	  		printf("nodes receive from: %x%x,len:%d\n",input_buf.src_addr.u8[0],input_buf.src_addr.u8[1],input_buf.len);
+	  		printf("data:");
+	  		string = input_buf.buf;
+	  		printf("%s\n", string);
+	  		/*clear input_buf*/
+	  		input_buf.len = 0;
+	  		leds_toggle(LEDS_RED);
+	  		
+	    break;
+
+	    default:
+	    break;
+  	}
+}
 /*---------------------------------------------------------------------------*/
 /*mac return status*/
 static void
@@ -44,7 +76,7 @@ packet_sent(void *ptr, int status, int transmissions)
 }
 /*---------------------------------------------------------------------------*/
 /*app sender function*/
-static void send()
+static void nodes_send()
 {
 	static int i=0;
 	char buf[20]="AAAAAAAA";
@@ -55,6 +87,8 @@ static void send()
 		len++;
 	}
 	packetbuf_copyfrom(buf,len+1);
+
+	leds_toggle(LEDS_RED);
 
 	NETSTACK_MAC.send(&packet_sent, NULL);
 }
@@ -67,17 +101,19 @@ PROCESS_THREAD(nodes_sender_process,ev,data)
 	hitmac_is_root = 0;
 	printf("nodes sender\n");
 	NETSTACK_CONF_MAC.on();
+
+	hitmac_set_conn_process(&nodes_sender_process);
 	while(1){
-		PROCESS_YIELD_UNTIL(ev==PROCESS_EVENT_TIMER);
+		PROCESS_YIELD();
 		if(etimer_expired(&periodic)){
-
-			send();
-			
+			nodes_send();	
 			printf("nodes app send packet");
-
 			etimer_set(&periodic,SEND_INTERVAL);
-			// NETSTACK_CONF_MAC.send(NULL,NULL);
 		}
+		if(ev ==PACKET_INPUT){
+			eventhandler(ev, data);
+		}
+
 	}
 	PROCESS_END();
 }

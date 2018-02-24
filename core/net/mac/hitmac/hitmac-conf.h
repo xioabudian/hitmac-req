@@ -6,7 +6,7 @@
 #define ACK_LEN 3
 #define HITMAC_PACKET_EB_LENGTH 20
 #define HITMAC_PACKET_MAX_LEN MIN(127,PACKETBUF_SIZE)
-/******** Configuration *******/
+/******** Hitmac send queue configuration *******/
 
 /* The maximum number of outgoing packets towards each neighbor
  * Must be power of two to enable atomic ringbuf operations.
@@ -48,32 +48,38 @@
 #define HITMAC_DOWNLOAD_LENGTH (6000) //5minutes (6000)
 #define HITMAC_SLEEP_TIME_LENGTH  (HITMAC_CONF_DEFAULT_SCHEDULER_LENGTH-HITMAC_UPLOAD_LENGTH-HITMAC_DOWNLOAD_LENGTH)
 #define HITMAC_TIME_LENGTH HITMAC_CONF_DEFAULT_SCHEDULER_LENGTH
-
-
-#define HITMAC_EB_PERIOD  600//root send eb packet period is 30 second
-/*record current eb timeoffset when meet responding request or sending sync eb*/
-#define HITMAC_EB_TIMEOFFSET (RTIMER_SECOND/36) //28 35 ms
-#define HITMAC_LISTEN_SYNC_WAIT_TIME (HITMAC_ASN_PERIOD)
-#define HITMAC_LISTEN_ACK_WAIT_TIME (RTIMER_SECOND/100)
-#define HITMAC_LISTEN_WAIT_EB_MAX_LENGTH (RTIMER_SECOND/15)
-#define HITMAC_LOST_SYNC_MAX_NUM 1
-
-#define HITMAC_REQ_EB_WAIT_TIMEOFFSET (RTIMER_SECOND/78)
-
-#define HITMAC_REQ_EB_WAIT_TIMEOFFSET1 (RTIMER_SECOND/60)
-
-#define HITMAC_SCAN_PERIOD  (CLOCK_SECOND*20)//nodes request associate period  is 30s
-//according to HITMAC_ASN_PERIOD set HITMAC_UP_SYNC_TIMEOFFSET.
-#define HITMAC_UP_SYNC_ETIMER_TIMEOFFSET (CLOCK_SECOND/40)
-#define HITMAC_UP_SYNC_RTIMER_TIMEOFFSET (HITMAC_ASN_PERIOD/2)
-
-#define HITMAC_RSSI_THRESHOLD 0xA6 /* 0xBA<==>-70  0xB0<==>-80// 0xA6<==>-90 */
-
+/*define hitmac scheduler type*/
 #define HITMAC_SYNC_TYPE 0
 #define HITMAC_UPLOAD_TYPE 1
 #define HITMAC_DOWNLOAD_TYPE 2
 #define HITMAC_SLEEP_TYPE 3
 #define HITMAC_UNKNOWN_TYPE 0xFF
+/*define hitmac join network*/
+#define HITMAC_SCAN_PERIOD  (CLOCK_SECOND*20)//nodes request associate period  is 30s
+#define HITMAC_LISTEN_SYNC_WAIT_TIME (HITMAC_ASN_PERIOD)
+#define HITMAC_REQ_EB_WAIT_TIMEOFFSET (RTIMER_SECOND/64)  //59
+#define HITMAC_UP_SYNC_ETIMER_TIMEOFFSET (CLOCK_SECOND/40)//according to HITMAC_ASN_PERIOD set HITMAC_UP_SYNC_TIMEOFFSET.
+#define HITMAC_RSSI_THRESHOLD 0xA6 /* 0xBA<==>-70  0xB0<==>-80// 0xA6<==>-90 */
+/*define hitmac eb sync*/
+/*record current eb timeoffset when meet responding request or sending sync eb*/
+#define HITMAC_EB_TIMEOFFSET (RTIMER_SECOND/36) //28 35 ms
+#define HITMAC_EB_PERIOD  600//root send eb packet period is 30 second
+#define HITMAC_LISTEN_WAIT_EB_MAX_LENGTH (RTIMER_SECOND/15)
+#define HITMAC_LOST_SYNC_MAX_NUM 1
+#define HITMAC_REQ_EB_WAIT_TIMEOFFSET1 (RTIMER_SECOND/59)
+/*define hitmac upload*/
+#define HITMAC_LISTEN_ACK_WAIT_TIME (RTIMER_SECOND/100)
+#define HITMAC_UP_SYNC_RTIMER_TIMEOFFSET (HITMAC_ASN_PERIOD/2)
+/*define hitmac download*/
+#define HITMAC_DOWNLOAD_FREQUENCY 5 //5 represents 4Hz,10 represents 2Hz
+#define HITMAC_CCA_START_TIME (RTIMER_SECOND/100) //10ms
+#define HITMAC_CCA_SLEEP_TIME (RTIMER_SECOND/422) //250:5.633ms  422:4ms
+#define HITMAC_PACKET_INTERVAL (RTIMER_SECOND/1000) //1ms,real value:2.43ms
+#define HITMAC_ROOT_DOWNLOAD_WAKE_TIME (RTIMER_SECOND/25) //40ms
+#define HITMAC_ROOT_DOWNLOAD_START_TIME (RTIMER_SECOND/100) //10ms
+#define HITMAC_NODE_WAIT_DATA_TIME (RTIMER_SECOND/33) //30.3ms
+#define HITMAC_DOWNLOAD_BUF_TIME 40 //40*8/50=6.4ms
+#define HITMAC_DOWNLOAD_BROADCAST_MAX_NUM 2
 
 #else
 #error "NOT SUPPORT THIS SCHEDULER LENGTH"

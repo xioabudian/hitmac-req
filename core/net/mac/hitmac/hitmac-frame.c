@@ -6,7 +6,7 @@
 #include "lib/random.h"
 
 #include <stdio.h>
-#if 1
+#if 0
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
 #else 
@@ -452,8 +452,9 @@ hitmac_queue_get_packet(){
   get_index = ringbufindex_peek_get(&current_queue.tx_ringbuf);
   if(get_index != -1){
     p = current_queue.tx_array[get_index];
-    PRINTF("HITMAC-queue: packet is get get_index=%u, packet=%p\n",
-                   get_index, p);
+    // PRINTF("HITMAC-queue: packet is get get_index=%u, packet=%p\n",
+    //                get_index, p);
+    PRINTF("get=%u\n",get_index);
     return p;
   }
   

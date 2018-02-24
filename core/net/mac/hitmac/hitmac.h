@@ -88,6 +88,8 @@ struct hitmac_queue
 	res = ((hitmac_front_ms%div*hitmac_tail_ms%div)%div%div + asn.ls4b%div)%div;
 
 /* The HIT MAC driver */
+uint8_t get_mod_type();
+
 extern int hitmac_is_root;
 extern const struct mac_driver hitmac_driver;
 struct hitmac_input_buf input_buf;
