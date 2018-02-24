@@ -29,7 +29,18 @@
 /*---------------------------------------------------------------------------*/
 /** \brief Board specific iniatialisation */
 void board_init(void);
+/*---------------------------------------------------------------------------*/
+void set_nodeid(){
+  uint16_t short_addr;
+  uint8_t ext_addr[8];
+  ieee_addr_cpy_to(ext_addr, 8);
 
+  short_addr = ext_addr[7];
+  short_addr |= ext_addr[6] << 8;
+  node_id_burn(short_addr);
+  /****************set node-id**********************/
+  printf("node_id: %x\n", node_id);
+}
 /*---------------------------------------------------------------------------*/
 static void
 set_rf_params(void)
@@ -45,10 +56,7 @@ set_rf_params(void)
 
   /* Populate linkaddr_node_addr. Maintain endianness */
   memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
-
-  /****************set node-id**********************/
-  node_id_burn(short_addr);
-  printf("node_id: %x\n", node_id);
+  
 
   NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
   NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
@@ -130,6 +138,8 @@ main(void)
   printf("%s\n", NETSTACK_MAC.name);
   printf(" RDC: ");
   printf("%s\n", NETSTACK_RDC.name);
+
+  set_nodeid();
 
   netstack_init();
 

@@ -216,16 +216,16 @@ parse(void)
 
   hdr_len = frame802154_parse(packetbuf_dataptr(), packetbuf_datalen(), &frame);
 
-  if(hdr_len && packetbuf_hdrreduce(hdr_len)) {
+  if(hdr_len >0) { //&& packetbuf_hdrreduce(hdr_len)
     packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, frame.fcf.frame_type);
 
     if(frame.fcf.dest_addr_mode) {
-      if(frame.dest_pid != frame802154_get_pan_id() &&
-         frame.dest_pid != FRAME802154_BROADCASTPANDID) {
-        /* Packet to another PAN */
-        PRINTF("15.4: for another pan %u\n", frame.dest_pid);
-        return FRAMER_FAILED;
-      }
+      // if(frame.dest_pid != frame802154_get_pan_id() &&
+      //    frame.dest_pid != FRAME802154_BROADCASTPANDID) {
+      //   ///* Packet to another PAN */
+      //   PRINTF("15.4: for another pan %u\n", frame.dest_pid);
+      //   return FRAMER_FAILED;
+      // }
       if(!frame802154_is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&frame.dest_addr);
       }

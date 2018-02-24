@@ -7,14 +7,8 @@
 #include "net/mac/frame802154.h"
 #include "net/mac/frame802154e-ie.h"
 #include "net/mac/hitmac/hitmac.h"
-/************ Types ***********/
-/* Stores data about an incoming packet */
-struct input_packet {
-  uint8_t payload[HITMAC_PACKET_MAX_LEN]; /* Packet payload */
-  struct hitmac_asn_t rx_asn; /* ASN when the packet was received */
-  int len; /* Packet len */
-  int16_t rssi; /* RSSI for this packet */
-};
+#include "net/mac/mac.h"
+
 
 #define FRAME802154_REQUEST_ASSOCIATE_CMDID  0x01
 #define FRAME802154_RESPONSE_ASSOCIATE_CMDID  0x02
@@ -33,5 +27,19 @@ int hitmac_packet_create_request_associate(uint8_t *buf, int buf_size, uint16_t 
 int hitmac_packet_parse_cmd(const uint8_t *buf, int buf_size,
                      frame802154_t *frame, uint8_t *cmdtype);
 char hitmac_packet_is_broadcast(uint8_t *addr);
+
+uint32_t get_asn_mod_val(struct hitmac_asn_t asn,uint32_t MOD);
+/* Add packet to queue.*/
+int hitmac_queue_add_packet(mac_callback_t sent, void *ptr);
+/* Remove packet from queue */
+int hitmac_queue_remove_packet();
+/* Get packet from queue */
+struct  hitmac_packet * hitmac_queue_get_packet();
+/*Create a data frame*/
+int hitmac_packet_create_dataframe(uint8_t *buf, int buf_size,uint16_t addr);
+
+void hitmac_queue_init();
+
+void hitmac_queue_reset();
 
 #endif

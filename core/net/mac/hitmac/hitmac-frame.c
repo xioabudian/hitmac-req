@@ -1,5 +1,10 @@
 #include "hitmac-frame.h"
 
+#include "lib/ringbufindex.h"
+#include "net/queuebuf.h"
+#include "lib/memb.h"
+#include "lib/random.h"
+
 #include <stdio.h>
 #if 1
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -9,6 +14,10 @@
 #define PRINTLLADDR(...)
 #endif 
 
+/*hitmac packet array*/
+MEMB(packet_memb, struct hitmac_packet, QUEUEBUF_NUM);
+/*hitmac queue*/
+struct hitmac_queue current_queue;
 /*---------------------------------------------------------------------------*/
 /* MLME sub-IE. HITMAC synchronization. Used in EBs: ASN */
 int
@@ -136,6 +145,74 @@ hitmac_packet_create_request_associate(uint8_t *buf, int buf_size, uint16_t addr
     FRAME802154_REQUEST_ASSOCIATE_CMDID)) == -1){
     return -1;
   }
+  curr_len += ret;
+
+  return curr_len;
+
+}
+/*---------------------------------------------------------------------------*/
+char
+hitmac_packet_is_broadcast(uint8_t *addr)
+{
+  if( addr[0] == 0xFF && addr[1] == 0xFF){
+    return 1;
+  }
+  return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+/*Create a data frame*/
+int
+hitmac_packet_create_dataframe(uint8_t *buf, int buf_size,uint16_t addr)
+{
+  int ret = 0;
+  uint8_t curr_len = 0;
+  static uint8_t hitmac_packet_seqno = 0;
+  frame802154_t p;
+
+  if(buf_size < HITMAC_PACKET_MAX_LEN) {
+    return 0;
+  }
+
+  /* Create 802.15.4 header */
+  memset(&p, 0, sizeof(p));
+  p.fcf.frame_type = FRAME802154_DATAFRAME;
+ 
+  p.fcf.frame_version = FRAME802154_IEEE802154E_2012;
+  p.fcf.src_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;
+  p.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
+  p.fcf.sequence_number_suppression = 0;
+
+  if(addr != 0xFFFF){
+    p.fcf.ack_required = 1;
+  }
+
+  p.src_pid = frame802154_get_pan_id();
+  p.dest_pid = frame802154_get_pan_id();
+
+  if(++hitmac_packet_seqno == 0) {
+      hitmac_packet_seqno++;
+  }
+  p.seq = hitmac_packet_seqno;
+
+  linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
+  p.dest_addr[0] = addr & 0xff;
+  p.dest_addr[1] = (addr>>8) & 0xff;
+
+  if((curr_len = frame802154_create(&p, buf)) == 0) {
+    return 0;
+  }
+  // PRINTF("send data hdr packet length:%u\n", curr_len);
+  /*copy data*/
+  if(packetbuf_datalen()>0){
+    ret = packetbuf_datalen();
+    memcpy(buf + curr_len,packetbuf_dataptr(),ret);
+  }else{
+    /*no app data*/
+    return 0;
+  }
+  // PRINTF("send data dtr packet length:%u\n", ret);
+  
   curr_len += ret;
 
   return curr_len;
@@ -280,15 +357,105 @@ hitmac_packet_parse_cmd(const uint8_t *buf, int buf_size,
 
 }
 /*---------------------------------------------------------------------------*/
-char
-hitmac_packet_is_broadcast(uint8_t *addr)
+
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+uint32_t 
+get_asn_mod_val(struct hitmac_asn_t asn,uint32_t MOD){
+
+  uint32_t res =0xFFFF;
+  HITMAC_ASN_MOD(asn,MOD,res);
+
+  return res;
+}
+/*---------------------------------------------------------------------------*/
+void 
+hitmac_queue_init(){
+  /*mark array and content array are set zero value*/
+  int i;
+  /*init packet_memb*/
+  memb_init(&packet_memb);
+  /*init queue*/
+  for(i=0; i< HITMAC_QUEUE_NUM;i++){
+    current_queue.tx_array[i] =NULL;
+  }
+  ringbufindex_init(&current_queue.tx_ringbuf,HITMAC_QUEUE_NUM);
+
+}
+/*---------------------------------------------------------------------------*/
+void 
+hitmac_queue_reset(){
+  hitmac_queue_init();
+}
+/*---------------------------------------------------------------------------*/
+/* Add packet to queue. Use same lockfree implementation as ringbuf.c (put is atomic) */
+int 
+hitmac_queue_add_packet(mac_callback_t sent, void *ptr)
 {
-  if( addr[0] == 0xFF && addr[1] == 0xFF){
+  
+  struct hitmac_packet *p = NULL;
+  int16_t put_index = -1;
+  put_index = ringbufindex_peek_put(&current_queue.tx_ringbuf);
+  if(put_index != -1){
+    p = (struct hitmac_packet *)memb_alloc(&packet_memb);
+    if(p != NULL){
+      if(packetbuf_datalen() > 0){
+        p->sent = sent;
+        p->ptr = ptr;
+        p->transmissions = 0;
+        p->ret = MAC_TX_DEFERRED;
+        p->len = packetbuf_datalen();
+        memcpy(p->data,packetbuf_dataptr(),p->len); 
+        /* Add to ringbuf (actual add committed through atomic operation) */
+        current_queue.tx_array[put_index] = p;
+        ringbufindex_put(&current_queue.tx_ringbuf);
+
+        PRINTF("HITMAC-queue: packet is added put_index=%u, packet=%p\n",
+                   put_index, p);
+        return 1;
+      }else{
+        memb_free(&packet_memb,p);
+      }
+      
+    }
+
+  }
+
+  PRINTF("current queue is full\n");
+  return -1;
+}
+/*---------------------------------------------------------------------------*/
+/* Remove packet from queue */
+int 
+hitmac_queue_remove_packet(){
+  struct hitmac_packet *p = NULL;
+  int16_t get_index = -1;
+  get_index = ringbufindex_peek_get(&current_queue.tx_ringbuf);
+  if(get_index != -1){
+    ringbufindex_get(&current_queue.tx_ringbuf);
+    p = current_queue.tx_array[get_index];
+    PRINTF("HITMAC-queue: packet is removed get_index=%u, packet=%p\n",
+                   get_index, p);
+    memb_free(&packet_memb,p);
     return 1;
   }
-  return 0;
+  return -1;
 }
-
 /*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
+/* Get packet from queue */
+struct  hitmac_packet * 
+hitmac_queue_get_packet(){
+  struct hitmac_packet *p =NULL;
+  int16_t get_index = -1;
+  get_index = ringbufindex_peek_get(&current_queue.tx_ringbuf);
+  if(get_index != -1){
+    p = current_queue.tx_array[get_index];
+    PRINTF("HITMAC-queue: packet is get get_index=%u, packet=%p\n",
+                   get_index, p);
+    return p;
+  }
+  
+  return p;
+}

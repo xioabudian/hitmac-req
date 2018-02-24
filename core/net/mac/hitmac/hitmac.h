@@ -1,8 +1,13 @@
 #ifndef __HITMAC_H__
 #define __HITMAC_H__
 #include "hitmac-conf.h"
+#include "contiki.h"
+#include "net/packetbuf.h"
+#include "net/mac/hitmac/hitmac.h"
+#include "net/mac/mac.h"
+#include "lib/ringbufindex.h"
 
-//define scheduler
+/*define scheduler*/
 struct hitmac_scheduler_t{
 	uint32_t up_load;
 	uint32_t down_load;
@@ -12,12 +17,39 @@ struct hitmac_scheduler_t{
 
 };
 
-//define absolute slot number
+/*define absolute slot number*/
 struct hitmac_asn_t{
 	uint32_t ls4b;
 	uint8_t ms1b;
 };
+/*define hitmac input buf*/
+struct hitmac_input_buf{
+  uint8_t buf[HITMAC_PACKET_MAX_LEN];
+  int len;
+  linkaddr_t src_addr;
+  linkaddr_t dest_addr;
+};
+/*define send packet */
+struct hitmac_packet{
 
+  // struct queuebuf *qb;  /* pointer to the queuebuf to be sent */
+  mac_callback_t sent; /* callback for this packet */
+  void *ptr; /* MAC callback parameter */
+  uint8_t transmissions; /* #transmissions performed for this packet */
+  uint8_t ret; /* status -- MAC return code */
+
+  uint8_t data[PACKETBUF_SIZE];/*mac data frame*/
+  uint16_t len;/*mac data frame length*/
+};
+/*define hitmac queue*/
+struct hitmac_queue
+{
+  /* Array for the ringbuf. Contains pointers to packets.
+   * Its size must be a power of two to allow for atomic put */
+  struct hitmac_packet *tx_array[HITMAC_QUEUE_NUM];
+  /* Circular buffer of pointers to packet. */
+  struct ringbufindex tx_ringbuf;
+};
 
 /* Initialize ASN */
 #define HITMAC_ASN_INIT(asn, ms1b_, ls4b_) do { \
@@ -58,5 +90,7 @@ struct hitmac_asn_t{
 /* The HIT MAC driver */
 extern int hitmac_is_root;
 extern const struct mac_driver hitmac_driver;
+struct hitmac_input_buf input_buf;
+
 
 #endif

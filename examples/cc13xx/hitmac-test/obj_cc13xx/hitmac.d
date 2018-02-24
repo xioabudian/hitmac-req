@@ -35,8 +35,11 @@ obj_cc13xx/hitmac.o: ../../../core/net/mac/hitmac/hitmac.c \
  ../../../core/./net/ip/uip.h ../../../core/./net/ip/uipopt.h \
  ../../../core/./net/ip/tcpip.h ../../../core/./net/mac/framer.h \
  ../../../core/./net/packetbuf.h ../../../core/./net/mac/tsch/tsch-conf.h \
- ../../../core/./net/queuebuf.h ../../../core/./net/mac/hitmac/hitmac.h \
+ ../../../core/./net/queuebuf.h ../../../core/./net/mac/mac-sequence.h \
+ ../../../core/./net/mac/hitmac/hitmac.h \
  ../../../core/./net/mac/hitmac/hitmac-conf.h \
+ ../../../core/./lib/ringbufindex.h \
+ ../../../core/./net/mac/hitmac/app-router.h \
  ../../../core/./net/mac/hitmac/hitmac-frame.h \
  ../../../core/./net/mac/tsch/tsch-private.h \
  ../../../core/./net/mac/tsch/tsch-asn.h \
@@ -79,8 +82,11 @@ obj_cc13xx/hitmac.o: ../../../core/net/mac/hitmac/hitmac.c \
  ../../../core/./net/ip/uip.h ../../../core/./net/ip/uipopt.h :
  ../../../core/./net/ip/tcpip.h ../../../core/./net/mac/framer.h :
  ../../../core/./net/packetbuf.h ../../../core/./net/mac/tsch/tsch-conf.h :
- ../../../core/./net/queuebuf.h ../../../core/./net/mac/hitmac/hitmac.h :
+ ../../../core/./net/queuebuf.h ../../../core/./net/mac/mac-sequence.h :
+ ../../../core/./net/mac/hitmac/hitmac.h :
  ../../../core/./net/mac/hitmac/hitmac-conf.h :
+ ../../../core/./lib/ringbufindex.h :
+ ../../../core/./net/mac/hitmac/app-router.h :
  ../../../core/./net/mac/hitmac/hitmac-frame.h :
  ../../../core/./net/mac/tsch/tsch-private.h :
  ../../../core/./net/mac/tsch/tsch-asn.h :

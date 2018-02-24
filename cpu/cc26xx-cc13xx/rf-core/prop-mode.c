@@ -731,7 +731,7 @@ transmit(unsigned short transmit_len)
     /* Idle away while the command is running */
     while((cmd_tx_adv->status & RF_CORE_RADIO_OP_MASKED_STATUS)
           == RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING) {
-      lpm_sleep();
+      // lpm_sleep();
     }
 
     if(cmd_tx_adv->status == RF_CORE_RADIO_OP_STATUS_PROP_DONE_OK) {
