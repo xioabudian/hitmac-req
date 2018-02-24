@@ -10,6 +10,7 @@
 
 #include "node-id.h"
 
+#include <math.h>
 #include <stdio.h>
 #if 0
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -33,7 +34,7 @@ static struct hitmac_asn_t hitmac_current_asn;
 
 static struct hitmac_scheduler_t hitmac_current_scheduler;
 /*bussiness phrase*/
-static uint32_t hitmac_current_bussiness = 0;
+static uint32_t hitmac_current_bussiness;
 
 static uint8_t mod_type;
 /*record current asn timeslot start point */
@@ -111,6 +112,22 @@ uint32_t get_asn_mod_val(struct hitmac_asn_t asn,uint32_t MOD){
   return res;
 }
 /*---------------------------------------------------------------------------*/
+/*return  hitmac_current_bussiness*/
+void hitmac_set_asn(struct tsch_asn_t asn){
+  uint32_t res =0;
+  hitmac_current_asn.ms1b = asn.ms1b;
+  hitmac_current_asn.ls4b = asn.ls4b;
+  uint32_t mod_asn = get_asn_mod_val(hitmac_current_asn,HITMAC_TIME_LENGTH);
+  
+  if(mod_asn % HITMAC_EB_PERIOD == 0){
+    res = mod_asn - mod_asn/HITMAC_EB_PERIOD;
+  }else{
+    res = mod_asn - mod_asn/HITMAC_EB_PERIOD - 1;
+  }
+
+  hitmac_current_bussiness = res;
+}
+/*---------------------------------------------------------------------------*/
 /*time synchronize 1:asscoiate 0:not associate*/
 /*update asn operation*/
 void 
@@ -125,14 +142,16 @@ update_asn()
 
    mod_type = HITMAC_UNKNOWN_TYPE;
 
-   HITMAC_ASN_INC(hitmac_current_asn,1);
-
    mod_res = get_asn_mod_val(hitmac_current_asn,HITMAC_EB_PERIOD);
 
    if(mod_res == 0){
       /*synchronization phrase*/
       mod_type = HITMAC_SYNC_TYPE;
    }else{
+      
+      if(hitmac_current_bussiness >= HITMAC_TIME_LENGTH){
+        hitmac_current_bussiness = 0;
+      }
       /*business phrase*/
       business_res = hitmac_current_bussiness % HITMAC_TIME_LENGTH;
 
@@ -141,10 +160,11 @@ update_asn()
       }else if(business_res >= HITMAC_UPLOAD_LENGTH && business_res<(HITMAC_UPLOAD_LENGTH + HITMAC_DOWNLOAD_LENGTH) ){
         mod_type = HITMAC_DOWNLOAD_TYPE;
       }
-
       hitmac_current_bussiness ++;
-
+      
    }
+   
+   HITMAC_ASN_INC(hitmac_current_asn,1);
 
    PRINTF("current asn ms:%u  ls:%lu\n",hitmac_current_asn.ms1b,hitmac_current_asn.ls4b);
 
@@ -191,8 +211,9 @@ void hitmac_receive_eb()
   eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_EB_LENGTH);
   if(hitmac_packet_parse_eb(input_eb,eb_len,&frame,&eb_ies)!=0){   
     /*update current nodes asn*/
-    hitmac_current_asn.ms1b = eb_ies.ie_asn.ms1b;
-    hitmac_current_asn.ls4b = eb_ies.ie_asn.ls4b;
+    /*according surrent asn to calculate current_bussiness*/
+    hitmac_set_asn(eb_ies.ie_asn);
+
     /*reset asn rtimer*/
     rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_REQ_EB_WAIT_TIMEOFFSET1,0,update_asn,NULL);
     PRINTF("nodes current asn ms:%u  ls:%lu\n",hitmac_current_asn.ms1b, hitmac_current_asn.ls4b);
@@ -345,8 +366,8 @@ PT_THREAD(hitmac_request(struct pt *pt))
         printf("nodes possive receive asn ms:%u  ls:%lu\n",eb_ies.ie_asn.ms1b,eb_ies.ie_asn.ls4b);
         hitmac_is_associated = 1;
         /*update current nodes asn*/
-        hitmac_current_asn.ms1b = eb_ies.ie_asn.ms1b;
-        hitmac_current_asn.ls4b = eb_ies.ie_asn.ls4b;
+        /*according surrent asn to calculate current_bussiness*/
+        hitmac_set_asn(eb_ies.ie_asn);
         /*wait a timeoffset until next slot to correct update*/
         t0 = RTIMER_NOW();
         while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + HITMAC_REQ_EB_WAIT_TIMEOFFSET)) { }
@@ -419,8 +440,10 @@ PROCESS_THREAD(hitmac_test_process, ev , data){
 
     if(etimer_expired(&test_et) && ev == PROCESS_EVENT_TIMER){
        etimer_set(&test_et,CLOCK_SECOND*3);
-       printf("phrase: %u\n",mod_type);
+       
        printf("current asn: %lu\n", hitmac_current_asn.ls4b);
+       printf("current bussiness %lu\n", hitmac_current_bussiness);
+       printf("phrase: %u\n",mod_type);
     }
 
   }
@@ -451,6 +474,8 @@ hitmac_init()
   printf("hitmac slot %x\n",hitmac_slot);
 
   HITMAC_ASN_INIT(hitmac_current_asn,0,0);
+
+  hitmac_current_bussiness = 0xFFFFFFFF;
 
   HITMAC_SCHDELER_INIT(hitmac_current_scheduler,HITMAC_UPLOAD_LENGTH, 
     HITMAC_DOWNLOAD_LENGTH,HITMAC_SLEEP_TIME_LENGTH,HITMAC_TIME_LENGTH,HITMAC_EB_PERIOD);
