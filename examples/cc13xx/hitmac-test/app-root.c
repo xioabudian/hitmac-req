@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define PERIOD 30
+#define PERIOD 60
 #define SEND_INTERVAL (PERIOD*CLOCK_SECOND)
 #define HITMAC_DOWNLOAD_TYPE 2
 
@@ -96,6 +96,7 @@ PROCESS_THREAD(app_root_process,ev,data)
 		if(ev ==PACKET_INPUT){
 			eventhandler(ev, data);
 		}
+
 		if(etimer_expired(&periodic)){
 			/*only download permit root sending packets*/
 			if(get_mod_type()== HITMAC_DOWNLOAD_TYPE){

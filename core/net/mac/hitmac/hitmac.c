@@ -32,6 +32,8 @@
 
 #define DEBUG_DOWNLOAD 0
 
+#define DEBUG_OTHER 0
+
 int hitmac_is_root;
 
 int hitmac_is_started;
@@ -52,6 +54,8 @@ static struct hitmac_asn_t hitmac_current_asn;
 static struct hitmac_scheduler_t hitmac_current_scheduler;
 /*bussiness phrase*/
 static uint32_t hitmac_current_bussiness;
+/*down number*/
+static uint32_t down_schedule_num = 0;
 
 static uint8_t mod_type;
 
@@ -210,7 +214,9 @@ void hitmac_node_parse_data(){
       duplicate = mac_sequence_is_duplicate();
       if(duplicate) {
         /* Drop the packet. */
+#if DEBUG_OTHER
         printf("HITMAC:! drop dup seqno %u\n",packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+#endif
         
       } else {
         mac_sequence_register_seqno();
@@ -305,19 +311,21 @@ int hitmac_root_send_data(){
 /*return  hitmac_current_bussiness*/
 void hitmac_set_asn(struct tsch_asn_t asn){
   uint32_t res =0;
+  uint32_t a,b,c;
   hitmac_current_asn.ms1b = asn.ms1b;
   hitmac_current_asn.ls4b = asn.ls4b;
-  uint32_t mod_asn = get_asn_mod_val(hitmac_current_asn,HITMAC_TIME_LENGTH);
   
-  if(mod_asn % HITMAC_EB_PERIOD == 0){
-    res = mod_asn - mod_asn/HITMAC_EB_PERIOD;
-  }else{
-    res = mod_asn - mod_asn/HITMAC_EB_PERIOD -1;
-  }
 //patch 6 years
-  hitmac_current_bussiness = res;// - (asn.ls4b / HITMAC_TIME_LENGTH)*(HITMAC_TIME_LENGTH/HITMAC_EB_PERIOD);
-  
+  down_schedule_num = 3;
+  a = asn.ls4b;
+  b = HITMAC_EB_PERIOD;
+  c = a-(a+b-1)/b;
+  res = c % HITMAC_TIME_LENGTH;
+
+  hitmac_current_bussiness = res;
+#if DEBUG_OTHER
   printf("bus %lu\n", res);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 /*time synchronize 1:asscoiate 0:not associate*/
@@ -342,15 +350,17 @@ update_asn()
    }else{
       
       if(hitmac_current_bussiness >= HITMAC_TIME_LENGTH){
+
         hitmac_current_bussiness = 0;
       }
       /*business phrase*/
-      business_res = hitmac_current_bussiness % HITMAC_TIME_LENGTH;
+      business_res = hitmac_current_bussiness;
 
       if(business_res >= 0 && business_res < HITMAC_UPLOAD_LENGTH){
         mod_type = HITMAC_UPLOAD_TYPE;
       }else if(business_res >= HITMAC_UPLOAD_LENGTH && business_res<(HITMAC_UPLOAD_LENGTH + HITMAC_DOWNLOAD_LENGTH) ){
         mod_type = HITMAC_DOWNLOAD_TYPE;
+        
       }
       hitmac_current_bussiness ++;
       
@@ -387,6 +397,10 @@ get_mod_type(){
   uint8_t res;
   res = mod_type;
 
+  if(!hitmac_is_associated){
+    
+    return HITMAC_UNKNOWN_TYPE;
+  }
   return res;
 }
 /*---------------------------------------------------------------------------*/
@@ -458,11 +472,14 @@ PROCESS_THREAD(hitmac_root_eb_process,ev,data)
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + HITMAC_EB_TIMEOFFSET)) { }
 
     hitmac_send_packet(FRAME802154_BEACONFRAME);
+    down_schedule_num = 3;
 #if DEBUG_SYNC
     printf("send eb packet\n");
 #endif
+#if DEBUG_OTHER
     printf("root bus %lu\n", hitmac_current_bussiness);
-
+#endif
+    
   }
   
   PROCESS_END();
@@ -475,7 +492,7 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
   PROCESS_BEGIN();
   /*hitmac download phrase schedule*/
   uint8_t down_schedule;
-  static uint32_t down_schedule_num = 0;
+
   static uint8_t next_slot_packet_seen =0;
   int is_packet_pending = 0;
   int len;
@@ -511,9 +528,6 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
 
       case HITMAC_DOWNLOAD_TYPE: 
         
-        if(down_schedule_num >= HITMAC_DOWNLOAD_LENGTH){
-          down_schedule_num = 0;
-        }
         down_schedule= down_schedule_num % HITMAC_DOWNLOAD_FREQUENCY;
 
         if(hitmac_is_root ==1){
@@ -586,7 +600,10 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
               }
               NETSTACK_RADIO.off();
               logic_test(0);
+#if DEBUG_OTHER
               PRINTF("packet_seen:%d\n",next_slot_packet_seen);
+#endif
+              
 
             }else{
               NETSTACK_RADIO.off();
@@ -641,12 +658,12 @@ PT_THREAD(hitmac_request(struct pt *pt))
     NETSTACK_RADIO.on();
     
     if(request_len > 0){
-      packetbuf_set_datalen(request_len);
-      /*send cmd request packet*/
-      NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
 #if DEBUG_JOIN_NET
       printf("periodically send cmd request packet length:%d\n",request_len);
 #endif
+      packetbuf_set_datalen(request_len);
+      /*send cmd request packet*/
+      NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
 
     }
 
@@ -864,7 +881,9 @@ packet_input(void)
   hdr_len = NETSTACK_FRAMER.parse();
 
   if(hdr_len < 0){
+#if DEBUG_OTHER
     printf("HITMAC: failed to parse frame\n");
+#endif
     return ; 
   }
 
@@ -910,7 +929,6 @@ packet_input(void)
 
         hitmac_send_packet(FRAME802154_BEACONFRAME);
         leds_toggle(LEDS_RED);
-        // printf("root bus %lu\n", hitmac_current_bussiness);
 #if DEBUG_JOIN_NET
         printf("root respond\n");
 #endif
@@ -939,8 +957,9 @@ packet_input(void)
       duplicate = mac_sequence_is_duplicate();
       if(duplicate) {
         /* Drop the packet. */
+#if DEBUG_OTHER
         printf("HITMAC:! drop dup seqno %u\n",packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
-        
+#endif
       } else {
         mac_sequence_register_seqno();
       }

@@ -106,11 +106,11 @@
 #endif /* CC13XX_CONF_PROP_MODE */
 #endif /* CPU_FAMILY_CC13XX */
 
-#if CC13XX_CONF_PROP_MODE
+#if CC13XX_CONF_PROP_MODE/* CC13XX_CONF_PROP_MODE */
 #define NETSTACK_CONF_RADIO        prop_mode_driver
 
 #ifndef RF_CORE_CONF_CHANNEL
-#define RF_CORE_CONF_CHANNEL                      8
+#define RF_CORE_CONF_CHANNEL                      9
 #endif
 
 #define NULLRDC_CONF_ACK_WAIT_TIME                (RTIMER_SECOND / 400)
@@ -124,7 +124,7 @@
 #define CONTIKIMAC_CONF_SEND_SW_ACK               1
 #define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME (RTIMER_SECOND / 920) /* 920 */
 #define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 200) /* 200<=>5.0ms */
-#else
+#else /* CC13XX_CONF_PROP_MODE */
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
 
 #ifndef RF_CORE_CONF_CHANNEL
