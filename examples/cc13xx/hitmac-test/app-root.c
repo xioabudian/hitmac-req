@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define PERIOD 60
+#define PERIOD 60*2
 #define SEND_INTERVAL (PERIOD*CLOCK_SECOND)
 #define HITMAC_DOWNLOAD_TYPE 2
 

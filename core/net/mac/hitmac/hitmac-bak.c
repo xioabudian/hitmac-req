@@ -34,7 +34,7 @@
 
 #define DEBUG_OTHER 0
 
-#define DEBUG_LOGIC 1
+#define DEBUG_LOGIC 0
 
 int hitmac_is_root;
 
@@ -517,123 +517,129 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
   memset(down_buf,0,HITMAC_DOWNLOAD_BUF_TIME);
 
   while(1){
-
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
-    if(mod_type == HITMAC_SYNC_TYPE){
-      if(hitmac_is_root == 1){
-        /*root send eb sync packet*/
-        process_poll(&hitmac_root_eb_process);
-        //process_post
-      }else{
-        hitmac_receive_eb();
-      }
+    switch(mod_type){
 
-    }else if(mod_type == HITMAC_UPLOAD_TYPE){
-      if(!hitmac_is_root){
-        if(hitmac_current_bussiness % HITMAC_NODES_NUM == hitmac_slot){
-          hitmac_nodes_send_data();
-          
+      case HITMAC_SYNC_TYPE: 
+        if(hitmac_is_root == 1){
+          /*root send eb sync packet*/
+          process_poll(&hitmac_root_eb_process);
+          //process_post
+        }else{
+          hitmac_receive_eb();
         }
-      }
 
-    }else if(mod_type == HITMAC_DOWNLOAD_TYPE){
+      break;
 
-      down_schedule= down_schedule_num % HITMAC_DOWNLOAD_FREQUENCY;
-
-      if(hitmac_is_root ==1){
-        if(down_schedule==0){
-          /*root send a series of packets until waited ack*/
-          // rtimer_clock_t t0;
-          struct hitmac_packet *p = hitmac_queue_get_packet();
-          if(p!=NULL && p->len>0){
-            start = RTIMER_NOW();
-            for(strobes=0;RTIMER_CLOCK_LT(RTIMER_NOW(), start + HITMAC_ROOT_DOWNLOAD_WAKE_TIME); 
-              strobes++){
-              LOGIC_TEST(1);
-              NETSTACK_RADIO.send(down_buf,sizeof(down_buf));
-              LOGIC_TEST(0);
-              // t0 = RTIMER_NOW();packet_interval = 8.83ms - 6.4ms =2.43ms
-              // while(RTIMER_CLOCK_LT(RTIMER_NOW(),(t0+HITMAC_PACKET_INTERVAL))){}
-              /*wait next cycle*/
-            }
+      case HITMAC_UPLOAD_TYPE: 
+        if(!hitmac_is_root){
+          if(hitmac_current_bussiness % HITMAC_NODES_NUM == hitmac_slot){
+            hitmac_nodes_send_data();
+            
           }
-
-        }else if(down_schedule==1){
-          /*start send time*/
-          start = RTIMER_NOW();
-          while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_ROOT_DOWNLOAD_START_TIME))){}
-          /*root send a packet until waited ack*/
-          hitmac_root_send_data();
         }
-      }else{
-        if(down_schedule==0){
-          /*nodes do 2 times cca*/
-          // start = RTIMER_NOW();
-          // while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_START_TIME))){}//need to optimization
-          static struct etimer cca_et;
-          etimer_set(&cca_et,CLOCK_SECOND/64);
-          PROCESS_WAIT_UNTIL(etimer_expired(&cca_et));
-          
-          NETSTACK_RADIO.on();
-          LOGIC_TEST(1);
-          if(NETSTACK_RADIO.channel_clear() == 0){
-            next_slot_packet_seen ++;
-          }
-          LOGIC_TEST(0);
-          NETSTACK_RADIO.off();
-          start = RTIMER_NOW();
-          while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_SLEEP_TIME))){}//need to optimization
-          
-          NETSTACK_RADIO.on();
-          LOGIC_TEST(1);
-          if(NETSTACK_RADIO.channel_clear() == 0){
-            next_slot_packet_seen ++;
-          }
-          LOGIC_TEST(0);
-          NETSTACK_RADIO.off();
-          
-        }else if(down_schedule==1){
-         
-          if(next_slot_packet_seen > 0){
-            /*nodes wait for data and return a ack*/
-            LOGIC_TEST(1);
-            NETSTACK_RADIO.on();
-            start = RTIMER_NOW();
-            /*wait for data frame*/
-            BUSYWAIT_UNTIL_ABS((is_packet_pending=NETSTACK_RADIO.pending_packet()),start,HITMAC_NODE_WAIT_DATA_TIME);
-            /*parse data*/
-            if(is_packet_pending){
-              /*receive data */   
-              packetbuf_clear();
-              len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
-              if( len>0 ){
-                packetbuf_set_datalen(len);
+      break;
+
+      case HITMAC_DOWNLOAD_TYPE: 
+        
+        down_schedule= down_schedule_num % HITMAC_DOWNLOAD_FREQUENCY;
+
+        if(hitmac_is_root ==1){
+          if(down_schedule==0){
+            /*root send a series of packets until waited ack*/
+            // rtimer_clock_t t0;
+            struct hitmac_packet *p = hitmac_queue_get_packet();
+            if(p!=NULL && p->len>0){
+              start = RTIMER_NOW();
+              for(strobes=0;RTIMER_CLOCK_LT(RTIMER_NOW(), start + HITMAC_ROOT_DOWNLOAD_WAKE_TIME); 
+                strobes++){
+                LOGIC_TEST(1);
+                NETSTACK_RADIO.send(down_buf,sizeof(down_buf));
+                LOGIC_TEST(0);
+                // t0 = RTIMER_NOW();packet_interval = 8.83ms - 6.4ms =2.43ms
+                // while(RTIMER_CLOCK_LT(RTIMER_NOW(),(t0+HITMAC_PACKET_INTERVAL))){}
+                /*wait next cycle*/
               }
-              /*parse data and send ack*/
-              /*input packet into nodes app*/
-              hitmac_node_parse_data();
             }
-            NETSTACK_RADIO.off();
-            LOGIC_TEST(0);
-#if DEBUG_OTHER
-            PRINTF("packet_seen:%d\n",next_slot_packet_seen);
-#endif  
-          }else{
-            NETSTACK_RADIO.off();
+
+          }else if(down_schedule==1){
+            /*start send time*/
+            start = RTIMER_NOW();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_ROOT_DOWNLOAD_START_TIME))){}
+            /*root send a packet until waited ack*/
+            hitmac_root_send_data();
           }
         }else{
-          next_slot_packet_seen =0;
-          
+          if(down_schedule==0){
+            /*nodes do 2 times cca*/
+            start = RTIMER_NOW();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_START_TIME))){}//need to optimization
+            // static struct etimer cca_et;
+            // etimer_set(&cca_et,CLOCK_SECOND/64);
+            // PROCESS_WAIT_UNTIL(etimer_expired(&cca_et));
+            
+            NETSTACK_RADIO.on();
+            LOGIC_TEST(1);
+            if(NETSTACK_RADIO.channel_clear() == 0){
+              next_slot_packet_seen ++;
+            }
+            LOGIC_TEST(0);
+            NETSTACK_RADIO.off();
+            start = RTIMER_NOW();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_SLEEP_TIME))){}//need to optimization
+            
+            NETSTACK_RADIO.on();
+            LOGIC_TEST(1);
+            if(NETSTACK_RADIO.channel_clear() == 0){
+              next_slot_packet_seen ++;
+            }
+            LOGIC_TEST(0);
+            NETSTACK_RADIO.off();
+            
+          }else if(down_schedule==1){
+           
+            if(next_slot_packet_seen > 0){
+              /*nodes wait for data and return a ack*/
+              LOGIC_TEST(1);
+              NETSTACK_RADIO.on();
+              start = RTIMER_NOW();
+              /*wait for data frame*/
+              BUSYWAIT_UNTIL_ABS((is_packet_pending=NETSTACK_RADIO.pending_packet()),start,HITMAC_NODE_WAIT_DATA_TIME);
+              /*parse data*/
+              if(is_packet_pending){
+                /*receive data */   
+                packetbuf_clear();
+                len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
+                if( len>0 ){
+                  packetbuf_set_datalen(len);
+                }
+                /*parse data and send ack*/
+                /*input packet into nodes app*/
+                hitmac_node_parse_data();
+              }
+              NETSTACK_RADIO.off();
+              LOGIC_TEST(0);
+#if DEBUG_OTHER
+              PRINTF("packet_seen:%d\n",next_slot_packet_seen);
+#endif  
+            }else{
+              NETSTACK_RADIO.off();
+            }
+          }else{
+            next_slot_packet_seen =0;
+            
+          }
         }
-      }
 
-      down_schedule_num ++;
+        down_schedule_num ++;
 
-    }else{
-      PRINTF("sleep phrase\n");
+      break;
 
+      default:PRINTF("sleep phrase\n");
     }
+
+    
 
   }
 

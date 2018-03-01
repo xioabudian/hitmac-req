@@ -44,7 +44,7 @@ eventhandler(process_event_t ev, process_data_t data)
 	  		printf("%s\n", string);
 	  		/*clear input_buf*/
 	  		input_buf.len = 0;
-	  		leds_toggle(LEDS_RED);
+	  		// leds_toggle(LEDS_RED);
 	  		
 	    break;
 
@@ -88,7 +88,7 @@ static void nodes_send()
 	}
 	packetbuf_copyfrom(buf,len+1);
 
-	leds_toggle(LEDS_RED);
+	// leds_toggle(LEDS_RED);
 
 	NETSTACK_MAC.send(&packet_sent, NULL);
 }
