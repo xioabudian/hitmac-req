@@ -2319,6 +2319,7 @@ uip_process(uint8_t flag)
   uip_clear_buf();
   uip_ext_bitmap = 0;
   uip_flags = 0;
+  PRINTF("drop\n");
   return;
 }
 /*---------------------------------------------------------------------------*/

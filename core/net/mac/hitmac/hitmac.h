@@ -6,6 +6,7 @@
 #include "net/mac/hitmac/hitmac.h"
 #include "net/mac/mac.h"
 #include "lib/ringbufindex.h"
+#include "net/mac/tsch/tsch-private.h"
 
 /*define scheduler*/
 struct hitmac_scheduler_t{
@@ -89,6 +90,7 @@ struct hitmac_queue
 
 /* The HIT MAC driver */
 uint8_t get_mod_type();
+void hitmac_set_asn(struct tsch_asn_t asn);
 
 extern int hitmac_is_root;
 extern const struct mac_driver hitmac_driver;

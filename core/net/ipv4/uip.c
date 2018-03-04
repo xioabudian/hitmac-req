@@ -42,7 +42,7 @@
  * @{
  */
 
-#define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/
+#define DEBUG_PRINTF(...) printf(__VA_ARGS__)
 
 /*
  * uIP is a small implementation of the IP, UDP and TCP protocols (as

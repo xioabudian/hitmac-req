@@ -722,7 +722,6 @@ tcpip_ipv6_output(void)
 #endif /* UIP_ND6_SEND_NS */
 
       tcpip_output(uip_ds6_nbr_get_ll(nbr));
-
 #if UIP_CONF_IPV6_QUEUE_PKT
       /*
        * Send the queued packets from here, may not be 100% perfect though.

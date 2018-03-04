@@ -199,7 +199,7 @@
  */
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
 #ifndef NETSTACK_CONF_WITH_IPV6
-#define NETSTACK_CONF_WITH_IPV6              0
+#define NETSTACK_CONF_WITH_IPV6              1
 #endif
 
 #if NETSTACK_CONF_WITH_IPV6
