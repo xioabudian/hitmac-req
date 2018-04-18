@@ -22,8 +22,6 @@
 #include <stdio.h>
 #include <string.h>
 /*--------------------app router configure--------------------------*/
-#define PERIOD 10
-#define SCHEDULE_SEND_INTERVAL (PERIOD*CLOCK_SECOND)
 #define HITMAC_DOWNLOAD_TYPE 2
 /*--------------------tcpip configure---------------------------------*/
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -53,7 +51,7 @@ uint8_t APP_BUF[150];
 
 PROCESS(app_root_process,"app root process");
 PROCESS(app_tcpip_process,"app tcpip process");
-AUTOSTART_PROCESSES(&app_root_process,&app_tcpip_process);//
+AUTOSTART_PROCESSES(&app_tcpip_process);//&app_root_process,
 /*---------------------------------------------------------------------------*/
 void
 logic_test(uint32_t i);
@@ -86,29 +84,32 @@ static void root_send(uint16_t addr)
 	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER,&dest);
 	NETSTACK_MAC.send(NULL, NULL);
 	
-
+	PRINTF("%c",0300);
 	PRINTF("root app send packet:%2x,len:%d\n",dest.u16,len+1);
+	PRINTF("%c",0300);
 }
 /*---------------------------------------------------------------------------*/
 static void
 tcpip_handler_border(void)
-{
-	
+{	
   if(uip_newdata()) {
+
 	leds_toggle(LEDS_RED);
 	/*broadcast*/
 	unsigned char buffered_data_length;
 	buffered_data_length = (unsigned char) ((char *)uip_appdata)[0];
 	memset(APP_BUF,0,sizeof(APP_BUF));
 	memcpy(APP_BUF, &uip_appdata[1], buffered_data_length);
-
-	PRINTF("phrase: %u\n",get_mod_type());
-
+	printf("%c",0300);
+	printf("phrase: %u\n",get_mod_type());
+	printf("%c",0300);
 	if(APP_BUF[0]==0x01&&APP_BUF[1]==0x80&&APP_BUF[2]==0x88&&APP_BUF[3]==0x66&&APP_BUF[4]==0x88){
 		struct tsch_asn_t loacl_asn;
-		loacl_asn.ls4b = 15600;
+		loacl_asn.ls4b = APP_BUF[5]<<8|APP_BUF[6];
 		hitmac_set_asn(loacl_asn);
-		PRINTF("set root asn\n");
+		printf("%c",0300);
+		printf("set root asn %lu\n",loacl_asn.ls4b);
+		printf("%c",0300);
 	}
 	/*only download permit root sending packets*/
 	if(get_mod_type()!= HITMAC_DOWNLOAD_TYPE){
@@ -133,7 +134,7 @@ static void
 eventhandler(process_event_t ev, process_data_t data)
 {
 
-	int len;
+	int len = 0;
 	switch(ev) {
   		
   		case PACKET_INPUT:
@@ -162,7 +163,12 @@ eventhandler(process_event_t ev, process_data_t data)
 			uip_udp_packet_send(server_conn, APP_BUF, len);
 			uip_create_unspecified(&server_conn->ripaddr);
 			/*clear input_buf*/
-	  		input_buf.len = 0;
+			/*use slip send packet*/
+			// printf("%c",0300);
+			// printf("len:%d\n",len);
+			// printf("%c",0300);
+			
+	  		input_buf.len = 0; 		
 	  		
 	    break;
 
@@ -251,6 +257,8 @@ PROCESS_THREAD(app_tcpip_process,ev,data)
     /*set concentrator server ipaddr*/
 	uip_ip6addr(&server_ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x02);
 
+	process_start(&app_root_process,NULL);
+
 	while(1){
 		PROCESS_YIELD();
 		if(ev == tcpip_event) {
@@ -274,14 +282,33 @@ PROCESS_THREAD(app_root_process,ev,data)
 
 	hitmac_set_conn_process(&app_root_process);
 	printf("app root started\n");
-
 	
+	// /*@test upload*/
+	// uint8_t test_buf[20]="hello world\n";
+	// static struct etimer et;
+	// etimer_set(&et,CLOCK_SECOND*3);
+
 	while(1){
 		PROCESS_YIELD();
 		if(ev ==PACKET_INPUT){
 			eventhandler(ev, data);
 		}
 
+		// if(etimer_expired(&et)){
+		// 	/*@test upload*/
+		// 	packetbuf_clear();
+		// 	packetbuf_copyfrom(test_buf,20);
+		// 	packetbuf_set_datalen(20);
+			
+		// 	input_buf.len = packetbuf_datalen();
+		// 	memcpy(input_buf.buf,&test_buf, input_buf.len);
+		// 	input_buf.src_addr.u16 = 0xFE23;
+		// 	input_buf.dest_addr.u16 = 0xFEA8;
+
+		// 	eventhandler(PACKET_INPUT, data);
+			
+		// 	etimer_set(&et,CLOCK_SECOND*60);
+		// }
 		
 	}
 	PROCESS_END();

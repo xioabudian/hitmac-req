@@ -44,7 +44,7 @@ obj_cc13xx/hitmac.o: ../../../core/net/mac/hitmac/hitmac.c \
  ../../../core/./net/mac/hitmac/app-router.h \
  ../../../core/./net/mac/hitmac/hitmac-frame.h \
  ../../../core/./net/mac/frame802154e-ie.h ../../../core/./dev/leds.h \
- ../../../core/sys/node-id.h
+ ../../../core/sys/node-id.h ../../../core/lib/random.h
 ../../../core/net/mac/hitmac/hitmac.c :
  ../../../core/./contiki.h ../../../core/./contiki-version.h :
  ../../../platform/cc13xx/./contiki-conf.h project-conf.h :
@@ -91,4 +91,4 @@ obj_cc13xx/hitmac.o: ../../../core/net/mac/hitmac/hitmac.c \
  ../../../core/./net/mac/hitmac/app-router.h :
  ../../../core/./net/mac/hitmac/hitmac-frame.h :
  ../../../core/./net/mac/frame802154e-ie.h ../../../core/./dev/leds.h :
- ../../../core/sys/node-id.h :
+ ../../../core/sys/node-id.h ../../../core/lib/random.h :

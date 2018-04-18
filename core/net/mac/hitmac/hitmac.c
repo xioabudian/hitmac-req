@@ -12,6 +12,7 @@
 #include "dev/leds.h"
 
 #include "node-id.h"
+#include "random.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -77,7 +78,7 @@ static int8_t rssi_threshold = HITMAC_RSSI_THRESHOLD;
 static uint16_t rtimer_tick_comple = 0;
 
 uint16_t hitmac_nodeid[5]={0x0e78,0x0e53,0xf0e5};
-uint8_t nodeid_slot[5] ={79,54,0xe6};
+uint8_t nodeid_slot[5] ={0x79,0x54,0xe6};
 
 PT_THREAD(hitmac_request(struct pt *pt));
 /*root send eb packet periodically*/
@@ -241,6 +242,7 @@ void hitmac_node_parse_data(){
     }
 
     if(!duplicate) {
+
 #if DEBUG_DOWNLOAD
       PRINTF("HITMAC! packet input\n");
 #endif
@@ -248,7 +250,7 @@ void hitmac_node_parse_data(){
       memcpy(input_buf.buf,&original_dataptr[hdr_len], input_buf.len);
       memcpy(&input_buf.src_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER), LINKADDR_SIZE);
       memcpy(&input_buf.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LINKADDR_SIZE);    
-      if(conn_process!=NULL){
+      if(conn_process!=NULL){//nodes receive data
         process_post(conn_process, PACKET_INPUT, NULL);   
       }
     }
@@ -284,6 +286,7 @@ int hitmac_root_send_data(){
 #if DEBUG_DOWNLOAD
       printf("send broadcast\n");
 #endif
+      /*broadcast return */
       return p->len;
     }
 
@@ -296,7 +299,7 @@ int hitmac_root_send_data(){
     rtimer_clock_t t0;
     t0 = RTIMER_NOW();
     /*Wait  for one timslot for ACK*/
-    BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_NODE_WAIT_DATA_TIME);
+    BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_NODE_WAIT_ACK_TIME);
     
     if(is_packet_pending){
       ack_len = NETSTACK_RADIO.read(ackbuf,ACK_LEN);
@@ -395,14 +398,12 @@ update_asn()
    if(hitmac_is_associated == 1){
     /*for nodes passive synchronization*/
     clock_now = RTIMER_NOW();
-    asn_diff = HITMAC_ASN_PERIOD - HITMAC_NODES_COMPLEM;
-    
-    rtimer_tick_comple += 10;//10 is root lower than nodes 1.0us(average value) each time
+    asn_diff = HITMAC_ASN_PERIOD - HITMAC_NODES_COMPLEM;    
     if(hitmac_is_root){
 
       rtimer_set(&asn_rtimer,clock_now + HITMAC_ASN_PERIOD,0,update_asn,NULL);
     }else{
-      
+      rtimer_tick_comple += 10;//10 is root lower than nodes 1.0us(average value) each time
       if(rtimer_tick_comple > 305){//305 is RTC tick
         asn_diff -=1;
         rtimer_tick_comple = 0;
@@ -643,6 +644,12 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
       down_schedule_num ++;
 
     }else{
+      //nodes sender time before (HITMAC_TIME_LENGTH-100)
+#if!ROOTNODE
+      if(hitmac_current_bussiness==(HITMAC_TIME_LENGTH-100)&&conn_process!=NULL){
+        process_post(conn_process, PACKET_SENDER, NULL); 
+      }        
+#endif
       PRINTF("sleep phrase\n");
 
     }
@@ -700,9 +707,9 @@ PT_THREAD(hitmac_request(struct pt *pt))
     /* If we are currently receiving a packet, wait until end of reception */
     t0 = RTIMER_NOW();
     /*Wait  for one timslots for EB*/
-
+    leds_on(LEDS_RED);
     BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0,HITMAC_LISTEN_SYNC_WAIT_TIME);
-    
+    leds_off(LEDS_RED);
     if(is_packet_pending) {
       eb_len = NETSTACK_RADIO.read(input_eb, HITMAC_PACKET_EB_LENGTH);
       if(hitmac_packet_parse_eb(input_eb,eb_len,&frame,&eb_ies)!=0){
@@ -733,7 +740,7 @@ PT_THREAD(hitmac_request(struct pt *pt))
       if(rand_req%2 == 1){
         etimer_set(&scan_timer,HITMAC_SCAN_PERIOD + HITMAC_UP_SYNC_ETIMER_TIMEOFFSET);
       }else{
-        etimer_set(&scan_timer,HITMAC_SCAN_PERIOD);
+        etimer_set(&scan_timer,HITMAC_SCAN_PERIOD + (random_rand()%HITMAC_NODES_NUM)*(CLOCK_CONF_SECOND/20));
       }
       
       PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
@@ -995,7 +1002,7 @@ packet_input(void)
       memcpy(input_buf.buf,&original_dataptr[hdr_len], input_buf.len);
       memcpy(&input_buf.src_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER), LINKADDR_SIZE);
       memcpy(&input_buf.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LINKADDR_SIZE);    
-      if(conn_process!=NULL){
+      if(conn_process!=NULL){//root receive packet
         process_post(conn_process, PACKET_INPUT, NULL);   
       }
     }

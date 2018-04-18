@@ -423,7 +423,7 @@ typedef uint32_t rtimer_clock_t;
 #define PA_434MHZ  0 /* with AN1310 HA/UA-PA-A-434 Module,reference to board.h*/
 /*---------------------------------------------------------------------------*/
 #undef  ROOTNODE
-#define ROOTNODE  0
+#define ROOTNODE  1
 
 /*---------------------------------------------------------------------------*/
 #if ROOTNODE

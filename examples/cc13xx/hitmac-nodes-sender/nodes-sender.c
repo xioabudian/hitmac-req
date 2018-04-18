@@ -44,7 +44,7 @@ eventhandler(process_event_t ev, process_data_t data)
 	  		printf("%s\n", string);
 	  		/*clear input_buf*/
 	  		input_buf.len = 0;
-	  		
+	  		// leds_toggle(LEDS_RED);
 	    break;
 
 	    default:
@@ -92,8 +92,6 @@ static void nodes_send()
 PROCESS_THREAD(nodes_sender_process,ev,data)
 {
 	PROCESS_BEGIN();
-	static struct etimer periodic;
-	etimer_set(&periodic,CLOCK_SECOND * 2);
 
 	hitmac_is_root = 0;
 	printf("nodes sender\n");
@@ -102,12 +100,12 @@ PROCESS_THREAD(nodes_sender_process,ev,data)
 	hitmac_set_conn_process(&nodes_sender_process);
 	while(1){
 		PROCESS_YIELD();
-		if(etimer_expired(&periodic)){
+		if(ev == PACKET_SENDER){
 			nodes_send();
 			printf("nodes app send packet");
-			etimer_set(&periodic,SEND_INTERVAL);
 		}
-		if(ev ==PACKET_INPUT){
+		if(ev == PACKET_INPUT){
+			
 			eventhandler(ev, data);
 		}
 
