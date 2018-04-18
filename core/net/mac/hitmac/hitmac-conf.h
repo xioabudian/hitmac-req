@@ -59,6 +59,7 @@
 #define HITMAC_LISTEN_SYNC_WAIT_TIME (HITMAC_ASN_PERIOD)
 #define HITMAC_REQ_EB_WAIT_TIMEOFFSET (RTIMER_SECOND/62)  //59
 #define HITMAC_UP_SYNC_ETIMER_TIMEOFFSET (CLOCK_SECOND/40)//according to HITMAC_ASN_PERIOD set HITMAC_UP_SYNC_TIMEOFFSET.
+#define HITMAC_NODES_COMPLEM 15 //nodes sender complement rtimer tick,do not change this parameter
 #define HITMAC_RSSI_THRESHOLD 0xA6 /* 0xBA<==>-70  0xB0<==>-80// 0xA6<==>-90 */
 /*define hitmac eb sync*/
 /*record current eb timeoffset when meet responding request or sending sync eb*/
@@ -66,7 +67,7 @@
 #define HITMAC_EB_PERIOD  600//root send eb packet period is 30 second
 #define HITMAC_LISTEN_WAIT_EB_MAX_LENGTH (RTIMER_SECOND/15)
 #define HITMAC_LOST_SYNC_MAX_NUM 1
-#define HITMAC_REQ_EB_WAIT_TIMEOFFSET1 (RTIMER_SECOND/60)  //59 63
+#define HITMAC_REQ_EB_WAIT_TIMEOFFSET1 (RTIMER_SECOND/60)  //60 59:in a rtimer tick
 /*define hitmac upload*/
 #define HITMAC_LISTEN_ACK_WAIT_TIME (RTIMER_SECOND/100)
 #define HITMAC_UP_SYNC_RTIMER_TIMEOFFSET (HITMAC_ASN_PERIOD/2)

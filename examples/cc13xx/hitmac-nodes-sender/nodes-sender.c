@@ -44,7 +44,6 @@ eventhandler(process_event_t ev, process_data_t data)
 	  		printf("%s\n", string);
 	  		/*clear input_buf*/
 	  		input_buf.len = 0;
-	  		leds_toggle(LEDS_RED);
 	  		
 	    break;
 

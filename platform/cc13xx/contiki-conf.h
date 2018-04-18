@@ -417,14 +417,6 @@ typedef uint32_t rtimer_clock_t;
 /*Define upload+downlod+sleep time slot total number*/
 #define HITMAC_CONF_DEFAULT_SCHEDULER_LENGTH 18000
 /** @} */
-/**-------------low power configure ---------------*/
-
-#define CC1310_CONF_LOWPOWER  1
-
-#if CC1310_CONF_LOWPOWER
-
-
-#endif /* CC1310_CONF_LOWPOWER */
 
 /*-----------------external watchdog driver by xiaobing-------------------------------*/
 #define EXTER_WATCHDOG 1
@@ -433,9 +425,6 @@ typedef uint32_t rtimer_clock_t;
 #undef  ROOTNODE
 #define ROOTNODE  0
 
-#if ROOTNODE
-#define HITMAC_AUTO_START 1
-#endif
 /*---------------------------------------------------------------------------*/
 #if ROOTNODE
 #define CC26XX_UART_CONF_BAUD_RATE    115200 /**< Default UART0 baud rate */

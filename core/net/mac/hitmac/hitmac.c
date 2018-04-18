@@ -73,6 +73,8 @@ rtimer_clock_t receive_request_time;
 static uint8_t hitmac_slot;
 /*root choose eb sending when receive request cmd*/
 static int8_t rssi_threshold = HITMAC_RSSI_THRESHOLD;
+/*maintain high-precision time synchronization*/
+static uint16_t rtimer_tick_comple = 0;
 
 uint16_t hitmac_nodeid[5]={0x0e78,0x0e53,0xf0e5};
 uint8_t nodeid_slot[5] ={79,54,0xe6};
@@ -350,8 +352,10 @@ update_asn()
 {
    
    LOGIC_TEST(1);
+   LOGIC_TEST(0);
    rtimer_clock_t asn_diff;
-
+   rtimer_clock_t clock_now;
+   
    uint32_t mod_res;
    uint32_t business_res;
 
@@ -386,19 +390,25 @@ update_asn()
 
    PRINTF("mod_res:%lu\n",mod_res);
 
-   PRINTF("mod_type1:%lu\n",mod_type);
+   PRINTF("mod_type:%lu\n",mod_type);
    
    if(hitmac_is_associated == 1){
     /*for nodes passive synchronization*/
+    clock_now = RTIMER_NOW();
+    asn_diff = HITMAC_ASN_PERIOD - HITMAC_NODES_COMPLEM;
     
+    rtimer_tick_comple += 10;//10 is root lower than nodes 1.0us(average value) each time
     if(hitmac_is_root){
 
-      rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD,0,update_asn,NULL);
+      rtimer_set(&asn_rtimer,clock_now + HITMAC_ASN_PERIOD,0,update_asn,NULL);
     }else{
-      asn_diff = 14;
-      rtimer_set(&asn_rtimer,RTIMER_NOW() + HITMAC_ASN_PERIOD - asn_diff,0,update_asn,NULL);
+      
+      if(rtimer_tick_comple > 305){//305 is RTC tick
+        asn_diff -=1;
+        rtimer_tick_comple = 0;
+      }
+      rtimer_set(&asn_rtimer,clock_now + asn_diff,0,update_asn,NULL);
     }
-    LOGIC_TEST(0);
 
     process_post_synch(&hitmac_scheduler_process, PROCESS_EVENT_POLL, NULL);
     
@@ -452,6 +462,8 @@ void hitmac_receive_eb()
     leds_toggle(LEDS_RED);
 #endif
     lost_sync_num = 0;
+    /*maintain high-precision time synchronization*/
+    rtimer_tick_comple = 0;
   }
   else{
     /*disassociate from network because not receive eb packet*/  
@@ -825,10 +837,6 @@ hitmac_init()
 
   HITMAC_SCHDELER_INIT(hitmac_current_scheduler,HITMAC_UPLOAD_LENGTH, 
     HITMAC_DOWNLOAD_LENGTH,HITMAC_SLEEP_TIME_LENGTH,HITMAC_TIME_LENGTH,HITMAC_EB_PERIOD);
-
-#if HITMAC_AUTO_START
-  NETSTACK_MAC.on();
-#endif
 
   printf("start hitmac\n");
   
