@@ -72,13 +72,18 @@ static rtimer_clock_t current_asn_time;
 rtimer_clock_t receive_request_time;
 /*static nodeid to slot*/
 static uint8_t hitmac_slot;
+/*static root slot*/
+#if ROOTNODE&&DYNAMIC_SCHEDULE
+static uint8_t root_slot = 0;
+#endif
 /*root choose eb sending when receive request cmd*/
 static int8_t rssi_threshold = HITMAC_RSSI_THRESHOLD;
 /*maintain high-precision time synchronization*/
 static uint16_t rtimer_tick_comple = 0;
-
-uint16_t hitmac_nodeid[5]={0x0e78,0x0e53,0xf0e5};
-uint8_t nodeid_slot[5] ={0x79,0x54,0xe6};
+/**/
+#define SLOT_ASSIGN_NUM 4
+uint16_t hitmac_nodeid[SLOT_ASSIGN_NUM]={0x0544,0x0578,0xf0c5,0xf0e5};
+uint8_t nodeid_slot[SLOT_ASSIGN_NUM] ={0x43,0x77,0xc6,0xe6};
 
 PT_THREAD(hitmac_request(struct pt *pt));
 /*root send eb packet periodically*/
@@ -724,6 +729,11 @@ PT_THREAD(hitmac_request(struct pt *pt))
 #endif       
         /*update current nodes asn*/
         /*according surrent asn to calculate current_bussiness*/
+#if !ROOTNODE&&DYNAMIC_SCHEDULE
+        hitmac_slot = eb_ies.ie_asn.ms1b;
+        eb_ies.ie_asn.ms1b = 0 ;
+        #warning nodes dynamic slot set
+#endif
         hitmac_set_asn(eb_ies.ie_asn);
         /*wait a timeoffset until next slot to correct update*/
         t0 = RTIMER_NOW();
@@ -827,7 +837,7 @@ hitmac_init()
   current_root_addr.u8[1] = 0xFF;
 #endif
   /*static assign time slots*/
-  for(int i =0;i<3; i++){
+  for(int i =0;i<SLOT_ASSIGN_NUM; i++){
     if(node_id == hitmac_nodeid[i]){
        hitmac_slot = nodeid_slot[i] ;
        break;
@@ -955,8 +965,16 @@ packet_input(void)
         }
         
         while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + left_timeoffset)) { }
-
+#if ROOTNODE&&DYNAMIC_SCHEDULE
+        #warning root dynamic slot distribution
+        hitmac_current_asn.ms1b = root_slot;
+#endif
         hitmac_send_packet(FRAME802154_BEACONFRAME);
+#if ROOTNODE&&DYNAMIC_SCHEDULE
+        hitmac_current_asn.ms1b = 0;
+        root_slot++;
+#endif
+
         leds_toggle(LEDS_RED);
 #if DEBUG_JOIN_NET
         printf("root respond\n");

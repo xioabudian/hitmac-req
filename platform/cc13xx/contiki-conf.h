@@ -421,9 +421,10 @@ typedef uint32_t rtimer_clock_t;
 /*-----------------external watchdog driver by xiaobing-------------------------------*/
 #define EXTER_WATCHDOG 1
 #define PA_434MHZ  0 /* with AN1310 HA/UA-PA-A-434 Module,reference to board.h*/
+#define DYNAMIC_SCHEDULE  0/*dynamic slot schedule*/
 /*---------------------------------------------------------------------------*/
 #undef  ROOTNODE
-#define ROOTNODE  1
+#define ROOTNODE  0
 
 /*---------------------------------------------------------------------------*/
 #if ROOTNODE
