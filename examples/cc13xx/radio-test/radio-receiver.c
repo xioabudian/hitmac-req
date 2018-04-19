@@ -12,6 +12,7 @@ PROCESS_THREAD(radio_receiver_process,ev,data)
 	
 	PROCESS_BEGIN();
 	printf("%s\n","Startting receiver");
-
+	NETSTACK_RADIO.on();
+	
 	PROCESS_END();
 }

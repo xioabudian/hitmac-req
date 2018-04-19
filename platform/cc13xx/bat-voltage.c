@@ -7,7 +7,7 @@ get_voltage()     /* uint mV */
 
   ti_lib_aon_batmon_enable();
 
-  for(int i = 0; i < 50; i++) { /* 200*200 200*100 100*100 50*100 available */
+  for(int i = 0; i < 50; i++) { /* 200*200 200*100 100*100 '50*100' available */
     for(int j = 0; j < 100; j++) { /* 25*100 isn't available */
       __asm("nop");
     }

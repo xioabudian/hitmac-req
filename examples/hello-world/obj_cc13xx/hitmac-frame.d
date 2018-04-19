@@ -35,7 +35,10 @@ obj_cc13xx/hitmac-frame.o: ../../core/net/mac/hitmac/hitmac-frame.c \
  ../../core/./net/mac/tsch/tsch-asn.h \
  ../../core/./net/mac/frame802154e-ie.h \
  ../../core/./net/mac/hitmac/hitmac.h \
- ../../core/./net/mac/hitmac/hitmac-conf.h
+ ../../core/./net/mac/hitmac/hitmac-conf.h ../../core/./net/mac/mac.h \
+ ../../core/./dev/radio.h ../../core/./lib/ringbufindex.h \
+ ../../core/./net/queuebuf.h ../../core/./lib/memb.h \
+ ../../core/./lib/random.h
 ../../core/net/mac/hitmac/hitmac-frame.c :
  ../../core/net/mac/hitmac/hitmac-frame.h ../../core/./contiki.h :
  ../../core/./contiki-version.h ../../platform/cc13xx/./contiki-conf.h :
@@ -73,4 +76,7 @@ obj_cc13xx/hitmac-frame.o: ../../core/net/mac/hitmac/hitmac-frame.c \
  ../../core/./net/mac/tsch/tsch-asn.h :
  ../../core/./net/mac/frame802154e-ie.h :
  ../../core/./net/mac/hitmac/hitmac.h :
- ../../core/./net/mac/hitmac/hitmac-conf.h :
+ ../../core/./net/mac/hitmac/hitmac-conf.h ../../core/./net/mac/mac.h :
+ ../../core/./dev/radio.h ../../core/./lib/ringbufindex.h :
+ ../../core/./net/queuebuf.h ../../core/./lib/memb.h :
+ ../../core/./lib/random.h :

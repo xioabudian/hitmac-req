@@ -415,7 +415,7 @@ typedef uint32_t rtimer_clock_t;
 /* HITMAC related defines */
 
 /*Define upload+downlod+sleep time slot total number*/
-#define HITMAC_CONF_DEFAULT_SCHEDULER_LENGTH 18000
+#define HITMAC_CONF_DEFAULT_SCHEDULER_LENGTH 12000
 /** @} */
 
 /*-----------------external watchdog driver by xiaobing-------------------------------*/
@@ -424,7 +424,7 @@ typedef uint32_t rtimer_clock_t;
 #define DYNAMIC_SCHEDULE  0/*dynamic slot schedule*/
 /*---------------------------------------------------------------------------*/
 #undef  ROOTNODE
-#define ROOTNODE  0
+#define ROOTNODE  1
 
 /*---------------------------------------------------------------------------*/
 #if ROOTNODE
@@ -432,6 +432,7 @@ typedef uint32_t rtimer_clock_t;
 #else
 #define CC26XX_UART_CONF_BAUD_RATE    115200//115200 /**< Default UART0 baud rate */
 #define HITMAC_CHANGE_RTIMER_RESET   1
+#define AONIOC32KOUTPUT   0
 #endif
 /*---------------------------------------------------------------------------*/
 

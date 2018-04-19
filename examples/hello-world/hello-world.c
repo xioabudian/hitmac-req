@@ -39,11 +39,14 @@
 
 #include "contiki.h"
 #include "net/netstack.h"
+#include "dev/leds.h"
 
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
 //@test
 #include "dev/serial-line.h"
+#define PERIOD 2
+#define SEND_INTERVAL (PERIOD*CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
@@ -61,15 +64,20 @@ PROCESS_THREAD(hello_world_process, ev, data)
   PROCESS_BEGIN();
 
   printf("Hello, world\n");
-  
-  while(1){
+  static radio_value_t rssi=-50;
+  static struct etimer periodic;
+  NETSTACK_RADIO.on();
 
-    test_fun1();
+  etimer_set(&periodic,SEND_INTERVAL);
+
+  while(1){
+    // test_fun1();
   	PROCESS_YIELD();
   	if( ev == serial_line_event_message && data!=NULL){
-  		// printf("receive ok\n");
-  		printf("%s",(char *)data);
-
+  		NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&rssi);//get local rssi
+  		printf("RSSI %d\n",rssi);
+      leds_toggle(LEDS_RED);
+      etimer_reset(&periodic);
   	}
   }
   

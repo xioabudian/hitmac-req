@@ -454,7 +454,9 @@ hitmac_queue_get_packet(){
     p = current_queue.tx_array[get_index];
     // PRINTF("HITMAC-queue: packet is get get_index=%u, packet=%p\n",
     //                get_index, p);
+    PRINTF("%c",0300);
     PRINTF("get=%u\n",get_index);
+    PRINTF("%c",0300);
     return p;
   }
   

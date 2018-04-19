@@ -172,6 +172,12 @@ board_init()
   pa_mode(PA_RX);
 #endif
 
+#if AONIOC32KOUTPUT
+  
+  ti_lib_ioc_port_configure_set(BOARD_IOID_LOGIC, IOC_PORT_AON_CLK32K, IOC_STD_OUTPUT);
+  ti_lib_aon_ioc_32_khz_output_enable();
+
+#endif
   PRINTF("We are using " BOARD_STRING "\n");
 }
 /*---------------------------------------------------------------------------*/

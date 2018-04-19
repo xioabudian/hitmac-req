@@ -70,7 +70,9 @@ obj_cc13xx/putchar.o: ../../cpu/cc26xx-cc13xx/./putchar.c \
  ../../cpu/cc26xx-cc13xx/lib/cc13xxware/inc/hw_trng.h \
  ../../cpu/cc26xx-cc13xx/lib/cc13xxware/driverlib/uart.h \
  ../../cpu/cc26xx-cc13xx/lib/cc13xxware/driverlib/watchdog.h \
- ../../cpu/cc26xx-cc13xx/lib/cc13xxware/inc/hw_wdt.h
+ ../../cpu/cc26xx-cc13xx/lib/cc13xxware/inc/hw_wdt.h \
+ ../../platform/cc13xx/./contiki-conf.h ../../platform/cc13xx/./board.h \
+ ../../cpu/cc26xx-cc13xx/lib/cc13xxware/driverlib/ioc.h
 ../../cpu/cc26xx-cc13xx/./putchar.c :
  ../../cpu/cc26xx-cc13xx/dev/cc26xx-uart.h :
  ../../cpu/cc26xx-cc13xx/./ti-lib.h :
@@ -144,3 +146,5 @@ obj_cc13xx/putchar.o: ../../cpu/cc26xx-cc13xx/./putchar.c \
  ../../cpu/cc26xx-cc13xx/lib/cc13xxware/driverlib/uart.h :
  ../../cpu/cc26xx-cc13xx/lib/cc13xxware/driverlib/watchdog.h :
  ../../cpu/cc26xx-cc13xx/lib/cc13xxware/inc/hw_wdt.h :
+ ../../platform/cc13xx/./contiki-conf.h ../../platform/cc13xx/./board.h :
+ ../../cpu/cc26xx-cc13xx/lib/cc13xxware/driverlib/ioc.h :

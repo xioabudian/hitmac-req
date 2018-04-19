@@ -29,6 +29,7 @@ struct hitmac_input_buf{
   int len;
   linkaddr_t src_addr;
   linkaddr_t dest_addr;
+  int8_t rssi;
 };
 /*define send packet */
 struct hitmac_packet{
@@ -90,6 +91,7 @@ struct hitmac_queue
 
 /* The HIT MAC driver */
 uint8_t get_mod_type();
+rtimer_clock_t get_sync_difftick();
 void hitmac_set_asn(struct tsch_asn_t asn);
 
 extern int hitmac_is_root;
