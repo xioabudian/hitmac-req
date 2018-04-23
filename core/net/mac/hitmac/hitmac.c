@@ -250,7 +250,7 @@ void hitmac_node_parse_data(){
       memcpy(input_buf.buf,&original_dataptr[hdr_len], input_buf.len);
       memcpy(&input_buf.src_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER), LINKADDR_SIZE);
       memcpy(&input_buf.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LINKADDR_SIZE);
-      
+      input_buf.rssi =  packetbuf_attr(PACKETBUF_ATTR_RSSI);
     }
     return;
   }

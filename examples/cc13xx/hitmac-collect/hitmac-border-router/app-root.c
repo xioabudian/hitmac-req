@@ -60,7 +60,7 @@ uint8_t APP_BUF[150];
 
 PROCESS(app_root_process,"app root process");
 PROCESS(app_tcpip_process,"app tcpip process");
-AUTOSTART_PROCESSES(&app_tcpip_process);//,&,app_root_process,
+AUTOSTART_PROCESSES(&app_root_process);//,,&app_tcpip_process
 /*---------------------------------------------------------------------------*/
 void
 logic_test(uint32_t i);
@@ -358,8 +358,8 @@ PROCESS_THREAD(app_root_process,ev,data)
 	
 	/*@test upload*/
 	// uint8_t test_buf[20]="hello world\n";
-	// static struct etimer et;
-	// etimer_set(&et,CLOCK_SECOND*3);
+	static struct etimer et;
+	etimer_set(&et,CLOCK_SECOND*2);
 
 	while(1){
 		PROCESS_YIELD();
@@ -389,6 +389,15 @@ PROCESS_THREAD(app_root_process,ev,data)
 		// 	// nodes_appdata_send();
 		// 	etimer_set(&et,CLOCK_SECOND*5);
 		// }
+		/*download test*/
+		if(etimer_expired(&et)){
+
+			if(get_mod_type()== HITMAC_DOWNLOAD_TYPE){
+				root_send(0xffff);
+			}
+			etimer_set(&et,CLOCK_SECOND*2);
+		}
+
 		
 	}
 	PROCESS_END();

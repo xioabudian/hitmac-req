@@ -424,7 +424,7 @@ typedef uint32_t rtimer_clock_t;
 #define DYNAMIC_SCHEDULE  0/*dynamic slot schedule*/
 /*---------------------------------------------------------------------------*/
 #undef  ROOTNODE
-#define ROOTNODE  1
+#define ROOTNODE  0
 
 /*---------------------------------------------------------------------------*/
 #if ROOTNODE

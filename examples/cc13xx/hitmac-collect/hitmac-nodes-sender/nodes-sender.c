@@ -43,13 +43,17 @@ hitmac_set_conn_process(struct process *p){
 static void
 eventhandler(process_event_t ev, process_data_t data)
 {
+	static int i= 0;
 	switch(ev) {
   		case PACKET_INPUT:
-	  		printf("nodes receive from: %x%x,len:%d\n",input_buf.src_addr.u8[0],input_buf.src_addr.u8[1],input_buf.len);
-	  		printf("data:");
+	  		printf("nodes receive from: %x%x,len:%d ",input_buf.src_addr.u8[0],input_buf.src_addr.u8[1],input_buf.len);
+	  		// printf("data:");
 	  		for(int i=0;i<input_buf.len;i++){
 	  			printf("%c",input_buf.buf[i]);
 	  		}
+	  		i ++;
+	  		printf(",%d",i);
+	  		printf(",rssi:%d",input_buf.rssi);
 	  		printf("\n");
 	  		/*clear input_buf*/
 	  		input_buf.len = 0;
@@ -124,7 +128,7 @@ PROCESS_THREAD(nodes_sender_process,ev,data)
 		if(ev == PACKET_SENDER){//depend on hitmac scheduler
 			LOGIC_TEST(1);
 			// nodes_appdata_send();
-			nodes_monitordata_send();
+			// nodes_monitordata_send();
 			printf("nodes app send packet");
 			LOGIC_TEST(0);
 		}
