@@ -24,8 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 /*--------------------app router configure--------------------------*/
-#define PERIOD 10
-#define SCHEDULE_SEND_INTERVAL (PERIOD*CLOCK_SECOND)
+#define PERIOD 7
 #define HITMAC_DOWNLOAD_TYPE 2
 /*--------------------tcpip configure---------------------------------*/
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -390,13 +389,13 @@ PROCESS_THREAD(app_root_process,ev,data)
 		// 	etimer_set(&et,CLOCK_SECOND*5);
 		// }
 		/*download test*/
-		if(etimer_expired(&et)){
+		// if(etimer_expired(&et)){
 
-			if(get_mod_type()== HITMAC_DOWNLOAD_TYPE){
-				root_send(0xffff);
-			}
-			etimer_set(&et,CLOCK_SECOND*2);
-		}
+		// 	if(get_mod_type()== HITMAC_DOWNLOAD_TYPE){
+		// 		root_send(0xffff);
+		// 	}
+		// 	etimer_set(&et,CLOCK_SECOND*PERIOD);
+		// }
 
 		
 	}

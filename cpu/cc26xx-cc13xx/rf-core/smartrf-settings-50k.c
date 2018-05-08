@@ -55,11 +55,6 @@
 #else
 #define SMARTRF_SETTINGS_RSSI_OFFSET_431_527 0x000288A3
 #endif
-
-#if SMARTRF_SETTINGS_RSSI_OFFSET_431_527== 0x000288A3
-#else
-#error SMARTRF_SETTINGS_RSSI_OFFSET_431_527
-#endif
 /*---------------------------------------------------------------------------*/
 /* RSSI offset configuration for the 779-930MHz band */
 #ifdef SMARTRF_SETTINGS_CONF_RSSI_OFFSET_779_930
@@ -121,9 +116,11 @@ static uint32_t overrides[] =
   (uint32_t)0x00108463,
   /* Synth: Increase synth programming timeout (0x04B0 RAT ticks = 300 us) */
   (uint32_t)0x04B00243,
-
- //override_phy_rx_aaf_bw_0xd.xml
-// Rx: Set anti-aliasing filter bandwidth to 0xD (in ADI0, set IFAMPCTL3[7:4]=0xD)
+  /*
+   * override_phy_rx_aaf_bw_0xd.xml
+   * Rx: Set anti-aliasing filter bandwidth to 0xD
+   * (in ADI0, set IFAMPCTL3[7:4]=0xD)
+   */
   ADI_HALFREG_OVERRIDE(0, 61, 0xF, 0xD),
   /*
    * override_phy_gfsk_rx.xml
@@ -178,10 +175,10 @@ rfc_CMD_PROP_RADIO_DIV_SETUP_t smartrf_settings_cmd_prop_radio_div_setup =
   .condition.rule = 0x1,
   .condition.nSkip = 0x0,
   .modulation.modType = 0x1,
-  .modulation.deviation = 0x4C,
-  .symbolRate.preScale = 0x6,
-  .symbolRate.rateWord = 0xA40,
-  .rxBw = 0x23,
+  .modulation.deviation = 0x64,
+  .symbolRate.preScale = 0xf,
+  .symbolRate.rateWord = 0x8000,
+  .rxBw = 0x24,
   .preamConf.nPreamBytes = 0x3,
   .preamConf.preamMode = 0x0,
   .formatConf.nSwBits = 0x18,
@@ -198,10 +195,8 @@ rfc_CMD_PROP_RADIO_DIV_SETUP_t smartrf_settings_cmd_prop_radio_div_setup =
   .txPower = 0x00, /* Driver sets correct value */
   .pRegOverride = overrides,
   .intFreq = 0x8000,
-  .centerFreq = 0x01B1,
-  .loDivider = 0x0A,
-  // .centerFreq = 868,
-  // .loDivider = 0x05,
+  .centerFreq = 868,
+  .loDivider = 0x05,
 };
 /*---------------------------------------------------------------------------*/
 /* CMD_FS */
@@ -217,8 +212,7 @@ rfc_CMD_FS_t smartrf_settings_cmd_fs =
   .startTrigger.pastTrig = 0x0,
   .condition.rule = 0x1,
   .condition.nSkip = 0x0,
-  .frequency = 0x01B1,
-  // .frequency = 868,
+  .frequency = 868,
   .fractFreq = 0x0000,
   .synthConf.bTxMode = 0x0,
   .synthConf.refFreq = 0x0,
@@ -227,7 +221,6 @@ rfc_CMD_FS_t smartrf_settings_cmd_fs =
   .__dummy2 = 0x00,
   .__dummy3 = 0x0000,
 };
-/*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 /* CMD_PROP_TX_ADV */
 rfc_CMD_PROP_TX_ADV_t smartrf_settings_cmd_prop_tx_adv =
@@ -308,3 +301,4 @@ rfc_CMD_PROP_RX_ADV_t smartrf_settings_cmd_prop_rx_adv =
   .pQueue = 0,
   .pOutput = 0,
 };
+/*---------------------------------------------------------------------------*/

@@ -16,7 +16,7 @@ CONTIKI_TARGET_DIRS += .
 ### Will allow the inclusion of the correct CPU makefile
 CPU_FAMILY = cc13xx
 
-BOARD_SOURCEFILES +=board.c sensors.c flashdata.c node-id.c bat-voltage.c cc1310-pa.c external-watchdog.c
+BOARD_SOURCEFILES +=board.c sensors.c flashdata.c node-id.c bat-voltage.c cc1310-pa.c external-watchdog.c IMP.c
 
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
 CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)

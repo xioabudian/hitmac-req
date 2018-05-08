@@ -84,7 +84,7 @@ void get_system_monitor_msg(uint8_t array[],int length)
 
   // //采样电压 
   //hitmac need to compensate one tick
-  temp_votlage = 3000;//get_voltage();
+  temp_votlage = 3600;//get_voltage();
   array[INDEX_ADCVOLTAGE]       = (temp_votlage>>8)&0xff; 
   array[INDEX_ADCVOLTAGE+1]     = temp_votlage&0xff;
 

@@ -126,11 +126,10 @@ PROCESS_THREAD(nodes_sender_process,ev,data)
 	while(1){
 		PROCESS_YIELD();
 		if(ev == PACKET_SENDER){//depend on hitmac scheduler
-			LOGIC_TEST(1);
-			// nodes_appdata_send();
-			// nodes_monitordata_send();
+			nodes_appdata_send();
+			nodes_monitordata_send();
 			printf("nodes app send packet");
-			LOGIC_TEST(0);
+			
 		}
 		if(ev == PACKET_INPUT){
 			

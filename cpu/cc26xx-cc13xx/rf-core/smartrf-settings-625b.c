@@ -56,7 +56,7 @@
 #define SMARTRF_SETTINGS_RSSI_OFFSET_431_527 0x000288A3
 #endif
 
-#if SMARTRF_SETTINGS_RSSI_OFFSET_431_527== 0x000288A3
+#if SMARTRF_SETTINGS_RSSI_OFFSET_431_527 == 0x000288A3
 #else
 #error SMARTRF_SETTINGS_RSSI_OFFSET_431_527
 #endif
@@ -75,7 +75,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 /* Select RSSI offset value based on the frequency band */
-#if DOT_15_4G_FREQUENCY_BAND_ID==DOT_15_4G_FREQUENCY_BAND_470
+#if DOT_15_4G_FREQUENCY_BAND_ID == DOT_15_4G_FREQUENCY_BAND_470
 #define RSSI_OFFSET SMARTRF_SETTINGS_RSSI_OFFSET_431_527
 #else
 #define RSSI_OFFSET SMARTRF_SETTINGS_RSSI_OFFSET_779_930
@@ -84,15 +84,11 @@
 /* Overrides for CMD_PROP_RADIO_DIV_SETUP */
 static uint32_t overrides[] =
 {
-  /*
-   * override_use_patch_prop_genfsk.xml
-   * PHY: Use MCE ROM bank 4, RFE RAM patch
-   */
-  MCE_RFE_OVERRIDE(0, 4, 0, 1, 0, 0),
-  /*
-   * override_synth_prop_863_930_div5.xml
-   * Synth: Set recommended RTRIM to 7
-   */
+  /* override_use_patch_prop_lrm.xml */
+  /* PHY: Use MCE ROM bank 3, RFE RAM patch */
+  MCE_RFE_OVERRIDE(0, 3, 0, 1, 0, 0),
+  /* override_synth_prop_430_510_div10.xml */
+  /* Synth: Set recommended RTRIM to 7 */
   HW_REG_OVERRIDE(0x4038, 0x0037),
   /* Synth: Set Fref to 4 MHz */
   (uint32_t)0x000684A3,
@@ -108,10 +104,7 @@ static uint32_t overrides[] =
   (uint32_t)0x0A480583,
   /* Synth: Set loop bandwidth after lock to 20 kHz */
   (uint32_t)0x7AB80603,
-  /*
-   * Synth: Configure VCO LDO
-   * (in ADI1, set VCOLDOCFG=0x9F to use voltage input reference)
-   */
+  /* Synth: Configure VCO LDO (in ADI1, set VCOLDOCFG=0x9F to use voltage input reference) */
   ADI_REG_OVERRIDE(1, 4, 0x9F),
   /* Synth: Configure synth LDO (in ADI1, set SLDOCTL0.COMP_CAP=1) */
   ADI_HALFREG_OVERRIDE(1, 7, 0x4, 0x4),
@@ -121,46 +114,28 @@ static uint32_t overrides[] =
   (uint32_t)0x00108463,
   /* Synth: Increase synth programming timeout (0x04B0 RAT ticks = 300 us) */
   (uint32_t)0x04B00243,
-
- //override_phy_rx_aaf_bw_0xd.xml
-// Rx: Set anti-aliasing filter bandwidth to 0xD (in ADI0, set IFAMPCTL3[7:4]=0xD)
+  /* override_phy_rx_aaf_bw_0xd.xml */
+  /* Rx: Set anti-aliasing filter bandwidth to 0xD (in ADI0, set IFAMPCTL3[7:4]=0xD) */
   ADI_HALFREG_OVERRIDE(0, 61, 0xF, 0xD),
-  /*
-   * override_phy_gfsk_rx.xml
-   * Rx: Set LNA bias current trim offset. The board can override this
-   */
-  (uint32_t)SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET,
+  /* override_phy_gfsk_rx.xml */
+  /* Rx: Set LNA bias current trim offset to 3 */
+  (uint32_t)0x00038883,
   /* Rx: Freeze RSSI on sync found event */
   HW_REG_OVERRIDE(0x6084, 0x35F1),
-  /*
-   * override_phy_gfsk_pa_ramp_agc_reflevel_0x1a.xml
-   * Tx: Enable PA ramping (0x41). Rx: Set AGC reference level to 0x1A.
-   */
+  /* override_phy_gfsk_pa_ramp_agc_reflevel_0x1a.xml */
+  /* Tx: Configure PA ramping setting (0x41). Rx: Set AGC reference level to 0x1A. */
   HW_REG_OVERRIDE(0x6088, 0x411A),
   /* Tx: Configure PA ramping setting */
   HW_REG_OVERRIDE(0x608C, 0x8213),
-  /*
-   * Rx: Set RSSI offset to adjust reported RSSI
-   * The board can override this
-   */
-  (uint32_t)RSSI_OFFSET,
-
-  /*
-   * TX power override
-   * Tx: Set PA trim to max (in ADI0, set PACTL0=0xF8)
-   */
+  /* override_phy_lrm_rom_dsss8.xml */
+  /* PHY: Configure DSSS=8 */
+  HW_REG_OVERRIDE(0x505C, 0x073C),
+  /* override_phy_rx_rssi_offset_neg2db.xml */
+  /* Rx: Set RSSI offset to adjust reported RSSI by -2 dB */
+  (uint32_t)0x000288A3,
+  /* TX power override */
+  /* Tx: Set PA trim to max (in ADI0, set PACTL0=0xF8) */
   ADI_REG_OVERRIDE(0, 12, 0xF8),
-
-  /* Overrides for CRC16 functionality */
-  (uint32_t)0x943,
-  (uint32_t)0x963,
-
-  /* Board-specific overrides, if any */
-  SMARTRF_SETTINGS_BOARD_OVERRIDES
-
-  /* Band-specific overrides, if any */
-  SMARTRF_SETTINGS_BAND_OVERRIDES
-
   (uint32_t)0xFFFFFFFF,
 };
 /*---------------------------------------------------------------------------*/
@@ -169,7 +144,7 @@ rfc_CMD_PROP_RADIO_DIV_SETUP_t smartrf_settings_cmd_prop_radio_div_setup =
 {
   .commandNo = 0x3807,
   .status = 0x0000,
-  .pNextOp = 0,
+  .pNextOp = 0,   /* INSERT APPLICABLE POINTER: (uint8_t*)&xxx */
   .startTime = 0x00000000,
   .startTrigger.triggerType = 0x0,
   .startTrigger.bEnaCmd = 0x0,
@@ -177,31 +152,27 @@ rfc_CMD_PROP_RADIO_DIV_SETUP_t smartrf_settings_cmd_prop_radio_div_setup =
   .startTrigger.pastTrig = 0x0,
   .condition.rule = 0x1,
   .condition.nSkip = 0x0,
-  .modulation.modType = 0x1,
-  .modulation.deviation = 0x4C,
-  .symbolRate.preScale = 0x6,
-  .symbolRate.rateWord = 0xA40,
-  .rxBw = 0x23,
-  .preamConf.nPreamBytes = 0x3,
+  .modulation.modType = 0x0,
+  .modulation.deviation = 0x14,
+  .symbolRate.preScale = 0xF,
+  .symbolRate.rateWord = 0x199A,
+  .rxBw = 0x20,
+  .preamConf.nPreamBytes = 0x3,  /* number of PreamBytes */
   .preamConf.preamMode = 0x0,
-  .formatConf.nSwBits = 0x18,
+  .formatConf.nSwBits = 0x18,  /* 24-bits Sync word length */
   .formatConf.bBitReversal = 0x0,
-  .formatConf.bMsbFirst = 0x1,
-  .formatConf.fecMode = 0x0,
-
-  /* 7: .4g mode with dynamic whitening and CRC choice */
-  .formatConf.whitenMode = 0x7,
-  .config.frontEndMode = 0x00, /* Set by the driver */
-  .config.biasMode = 0x00,     /* Set by the driver */
+  .formatConf.bMsbFirst = 0x1,  /* MSB transmitted first */
+  .formatConf.fecMode = 0x8,  /* 1000:long range mode */
+  .formatConf.whitenMode = 0x7,  /* Dynamically 802.15.4g compatible whitener and 16/32-bit CRC */
+  .config.frontEndMode = 0x0, /*  */
+  .config.biasMode = 0x1,  /*  */
   .config.analogCfgMode = 0x0,
   .config.bNoFsPowerUp = 0x0,
-  .txPower = 0x00, /* Driver sets correct value */
+  .txPower = 0x003F,  /* set application power */
   .pRegOverride = overrides,
+  .centerFreq = 0x01B1,  /* set application centerFreq */
   .intFreq = 0x8000,
-  .centerFreq = 0x01B1,
   .loDivider = 0x0A,
-  // .centerFreq = 868,
-  // .loDivider = 0x05,
 };
 /*---------------------------------------------------------------------------*/
 /* CMD_FS */
@@ -217,9 +188,9 @@ rfc_CMD_FS_t smartrf_settings_cmd_fs =
   .startTrigger.pastTrig = 0x0,
   .condition.rule = 0x1,
   .condition.nSkip = 0x0,
-  .frequency = 0x01B1,
-  // .frequency = 868,
-  .fractFreq = 0x0000,
+  .frequency = 0x01B1, /*  */
+  /* .frequency = 868, */
+  .fractFreq = 0x0000, /* set application fractFreq */
   .synthConf.bTxMode = 0x0,
   .synthConf.refFreq = 0x0,
   .__dummy0 = 0x00,
@@ -246,7 +217,7 @@ rfc_CMD_PROP_TX_ADV_t smartrf_settings_cmd_prop_tx_adv =
   .pktConf.bUseCrc = 0x1,
   .pktConf.bCrcIncSw = 0x0, /* .4g mode */
   .pktConf.bCrcIncHdr = 0x0, /* .4g mode */
-  .numHdrBits = 0x10 /* 16: .4g mode */,
+  .numHdrBits = 0x10, /* 16: .4g mode */
   .pktLen = 0x0000,
   .startConf.bExtTxTrig = 0x0,
   .startConf.inputMode = 0x0,
