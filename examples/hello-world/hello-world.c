@@ -45,7 +45,7 @@
 /*---------------------------------------------------------------------------*/
 //@test
 #include "dev/serial-line.h"
-#define PERIOD 2
+#define PERIOD 1
 #define SEND_INTERVAL (PERIOD*CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
@@ -72,13 +72,13 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
   while(1){
     // test_fun1();
-  	PROCESS_YIELD();
-  	if( ev == serial_line_event_message && data!=NULL){
-  		NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&rssi);//get local rssi
-  		printf("RSSI %d\n",rssi);
+    PROCESS_YIELD();
+    if(etimer_expired(&periodic)){
+      NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&rssi);//get local rssi
+      printf("RSSI %d\n",rssi);
       leds_toggle(LEDS_RED);
-      etimer_reset(&periodic);
-  	}
+      etimer_set(&periodic,SEND_INTERVAL);
+    }
   }
   
   PROCESS_END();

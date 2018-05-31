@@ -99,7 +99,9 @@ obj_cc13xx/common-header.o: common-header.c common-header.h \
  ../../../../core/./net/mac/mac.h ../../../../core/./dev/radio.h \
  ../../../../core/./lib/ringbufindex.h \
  ../../../../core/./net/mac/tsch/tsch-private.h \
- ../../../../core/./net/mac/tsch/tsch-asn.h
+ ../../../../core/./net/mac/tsch/tsch-asn.h \
+ ../../../../core/./net/netstack.h ../../../../core/./net/llsec/llsec.h \
+ ../../../../core/./net/mac/rdc.h ../../../../core/./net/mac/framer.h
 common-header.c common-header.h :
  ../../../../core/./contiki.h ../../../../core/./contiki-version.h :
  ../../../../platform/cc13xx/./contiki-conf.h :
@@ -202,3 +204,5 @@ common-header.c common-header.h :
  ../../../../core/./lib/ringbufindex.h :
  ../../../../core/./net/mac/tsch/tsch-private.h :
  ../../../../core/./net/mac/tsch/tsch-asn.h :
+ ../../../../core/./net/netstack.h ../../../../core/./net/llsec/llsec.h :
+ ../../../../core/./net/mac/rdc.h ../../../../core/./net/mac/framer.h :

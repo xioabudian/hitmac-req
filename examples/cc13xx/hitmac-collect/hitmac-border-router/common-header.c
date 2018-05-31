@@ -84,7 +84,7 @@ void get_system_monitor_msg(uint8_t array[],int length)
 
   // //采样电压 
   //hitmac need to compensate one tick
-  temp_votlage = get_voltage();
+  temp_votlage = 3600;//get_voltage();
   array[INDEX_ADCVOLTAGE]       = (temp_votlage>>8)&0xff; 
   array[INDEX_ADCVOLTAGE+1]     = temp_votlage&0xff;
 
@@ -98,8 +98,8 @@ void get_system_monitor_msg(uint8_t array[],int length)
   
   //change to rssi
   array[INDEX_RTMETRIC]         = 0xB0;        
-
-  // array[INDEX_TIME_DIFF]        = 0;
+  //change to channel number 
+  array[INDEX_TIME_DIFF]        = 0 ;
   //reboot number
   array[INDEX_RESTART_COUNT] = restart_count;
   

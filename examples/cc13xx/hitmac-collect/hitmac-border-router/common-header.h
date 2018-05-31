@@ -13,11 +13,10 @@
 #define INDEX_ADCVOLTAGE  		    29//2	    //   1.采样电压            2 byte    true or false 
 
 #define INDEX_BEACON_INTERVAL		31//4       //   2. 时间差:to sync tick
-// #define INDEX_NUM_NEIGHBORS			33//2   
 #define INDEX_RTMETRIC				35//1       //   3.RSSI:change to rssi
-
-#define INDEX_TIME_DIFF				37//1		//  
+#define INDEX_TIME_DIFF				37//1		//   5. change to channel number
 #define INDEX_RESTART_COUNT         38//1       //   4.reboot number
+#define INDEX_NUM_NEIGHBORS			40//2       //   6. 节点环境噪声（dbm）
 
 #define INDEX_PARENTRSSI            39 //2
 #define INDEX_IRQ                   41 //6

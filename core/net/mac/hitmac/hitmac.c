@@ -36,7 +36,7 @@
 
 #define DEBUG_OTHER 0
 
-#define DEBUG_LOGIC 0
+#define DEBUG_LOGIC 1
 
 int hitmac_is_root;
 
@@ -79,7 +79,7 @@ static uint8_t root_slot = 0;
 /*root choose eb sending when receive request cmd*/
 static int8_t rssi_threshold = HITMAC_RSSI_THRESHOLD;
 /*maintain high-precision time synchronization*/
-static uint16_t rtimer_tick_comple = 0;
+// static uint16_t rtimer_tick_comple = 0;
 /*sync rtimer diff*/
 rtimer_clock_t sync_tick_diff = 0;
 
@@ -564,8 +564,8 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
         if(down_schedule==0){
           /*nodes do 2 times cca*/
           
-          static struct etimer cca_et,ccasleep_et;
-          etimer_set(&cca_et,HITMAC_CCA_START_TIME);
+          static struct etimer cca_et;
+          etimer_set(&cca_et,CLOCK_SECOND/64);
           PROCESS_WAIT_UNTIL(etimer_expired(&cca_et));
           
           NETSTACK_RADIO.on();
@@ -575,9 +575,8 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
           }
           LOGIC_TEST(0);
           NETSTACK_RADIO.off();
-
-          etimer_set(&ccasleep_et,HITMAC_CCA_SLEEP_TIME);
-          PROCESS_WAIT_UNTIL(etimer_expired(&ccasleep_et));
+          start = RTIMER_NOW();
+          while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_SLEEP_TIME))){}//need to optimization
           
           NETSTACK_RADIO.on();
           LOGIC_TEST(1);
@@ -631,9 +630,9 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
     }else{
       //nodes sender time before (HITMAC_TIME_LENGTH-100)
 #if!ROOTNODE
-      if(hitmac_current_bussiness==(HITMAC_TIME_LENGTH-500)&&conn_process!=NULL){
+      if(hitmac_current_bussiness==(HITMAC_TIME_LENGTH-10)&&conn_process!=NULL){
         process_post(conn_process, PACKET_SENDER, NULL);
-        rtimer_tick_comple = 265;   
+        // rtimer_tick_comple = 265;   
       }        
 #endif
       PRINTF("sleep phrase\n");
@@ -695,7 +694,6 @@ PT_THREAD(hitmac_request(struct pt *pt))
 #endif
       packetbuf_set_datalen(request_len);
       /*send cmd request packet*/
-      LOGIC_TEST(1);
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
 
       /* We are not coordinator, try to associate */
@@ -750,7 +748,6 @@ PT_THREAD(hitmac_request(struct pt *pt))
       }
       /*key operation*/
       NETSTACK_RADIO.off();
-      LOGIC_TEST(0);
     }
     rand_req ++;
     if(!hitmac_is_associated) {
@@ -984,12 +981,8 @@ packet_input(void)
         req_buf[9] = node_id >> 8;
         req_buf[10] = node_id ;
 
-        LOGIC_TEST(1);
         NETSTACK_RADIO.send(req_buf,REQ_LEN);
-        LOGIC_TEST(0);
-
         leds_toggle(LEDS_RED);
-        
 #if DEBUG_JOIN_NET
        printf("root respond\n");
        printf("asn: %lu\n", hitmac_current_asn.ls4b);

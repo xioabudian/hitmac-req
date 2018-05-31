@@ -2,6 +2,7 @@
 #include "bat-voltage.h"
 #include "node-id.h"
 #include "net/mac/hitmac/hitmac.h"
+#include "net/netstack.h"
 
 #define DEBUG 0
 #if DEBUG 
@@ -84,32 +85,32 @@ void get_system_monitor_msg(uint8_t array[],int length)
 
   // //采样电压 
   //hitmac need to compensate one tick
-  temp_votlage = 3600;//get_voltage();
+  temp_votlage = get_voltage();//3600 get_voltage();
   array[INDEX_ADCVOLTAGE]       = (temp_votlage>>8)&0xff; 
   array[INDEX_ADCVOLTAGE+1]     = temp_votlage&0xff;
 
   //change to sync tick
   /*record hitmac sync diff tick numbers*/
-  temp_sync_diff = get_sync_difftick()/2;
+  temp_sync_diff = get_sync_difftick()/2;//get_sync_difftick()/2;
   array[INDEX_BEACON_INTERVAL]  = (uint8_t)(temp_sync_diff>>24)&0xFF;        
   array[INDEX_BEACON_INTERVAL+1] = (uint8_t)(temp_sync_diff>>16)&0xFF;
   array[INDEX_BEACON_INTERVAL+2] = (uint8_t)(temp_sync_diff>>8)&0xFF;         
   array[INDEX_BEACON_INTERVAL+3] = (uint8_t)(temp_sync_diff)&0xFF;
   
-  //change to rssi
+  //change to receive rssi
   array[INDEX_RTMETRIC]         = 0xB0;        
-
-  // array[INDEX_TIME_DIFF]        = 0;
+  //change to surrounding noise 
+  radio_value_t local_rssi;
+  NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&local_rssi);//get local rssi
+  array[INDEX_NUM_NEIGHBORS]        = (uint8_t)(local_rssi)&0xFF;
   //reboot number
   array[INDEX_RESTART_COUNT] = restart_count;
-  
+  //change to channel number
+  radio_value_t local_channel;
+  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&local_channel);//get local channel
+  array[INDEX_TIME_DIFF] = (uint8_t)(local_channel)&0xFF;
  
-  // array[INDEX_AUTOCAL_INTERVAL] = '\0';
-  // array[INDEX_AUTOCAL_INTERVAL+1] = '\0';
-  // array[INDEX_AUTOCAL_INTERVAL+2] = '\0';
-  // array[INDEX_AUTOCAL_INTERVAL+3] = '\0';
-  
-  // array[INDEX_CAL_OFFSET] = '\0';
+
 
 #if DEBUG   
 

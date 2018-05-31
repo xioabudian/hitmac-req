@@ -415,7 +415,7 @@ typedef uint32_t rtimer_clock_t;
 /* HITMAC related defines */
 
 /*Define upload+downlod+sleep time slot total number*/
-#define HITMAC_CONF_DEFAULT_SCHEDULER_LENGTH 12000
+#define HITMAC_CONF_DEFAULT_SCHEDULER_LENGTH 18000
 /** @} */
 
 /*-----------------external watchdog driver by xiaobing-------------------------------*/

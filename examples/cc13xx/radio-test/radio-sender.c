@@ -22,7 +22,7 @@ PROCESS_THREAD(radio_sender_process,ev,data)
 	
 	static struct etimer periodic;
 	PROCESS_BEGIN();
- #define APP_PAYLOAD 75
+ #define APP_PAYLOAD 40
     printf("%s\n","Startting sender");
 	etimer_set(&periodic,SEND_INTERVAL);
     static char buf[APP_PAYLOAD]="AAAAAAAA";
@@ -40,17 +40,17 @@ PROCESS_THREAD(radio_sender_process,ev,data)
 	while(1){
 		PROCESS_YIELD_UNTIL(ev==PROCESS_EVENT_TIMER);
 		if(etimer_expired(&periodic)){
-			etimer_set(&periodic,random_rand()%SEND_INTERVAL+3*CLOCK_SECOND);
+			etimer_set(&periodic,1*CLOCK_SECOND);
 
 			{
 				NETSTACK_RADIO.on();
-	  			// NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&rssi);//get local rssi
-				// len = sprintf(buf, "rssi %d", rssi);
-				// len += sprintf(buf +len, ",Hello %d,", i);
-				// len += sprintf(buf +len, "%d", j);
-				len = sprintf(buf, "nodeid %x", node_id);
+	  			NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&rssi);//get local rssi
+				len = sprintf(buf, "rssi %d", rssi);
 				len += sprintf(buf +len, ",Hello %d,", i);
-				len += sprintf(buf +len, "%d\n", j);
+				len += sprintf(buf +len, "%d", j);
+				// len = sprintf(buf, "nodeid %x", node_id);
+				// len += sprintf(buf +len, ",Hello %d,", i);
+				// len += sprintf(buf +len, "%d\n", j);
 				buf[APP_PAYLOAD-1] = '\0';
 				
 				logic_test(1);
