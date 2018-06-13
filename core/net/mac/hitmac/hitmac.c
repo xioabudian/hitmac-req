@@ -1,4 +1,5 @@
 #include "contiki.h"
+#include "contiki-conf.h"
 
 #include "dev/radio.h"
 #include "net/netstack.h"
@@ -79,9 +80,10 @@ static uint8_t root_slot = 0;
 /*root choose eb sending when receive request cmd*/
 static int8_t rssi_threshold = HITMAC_RSSI_THRESHOLD;
 /*maintain high-precision time synchronization*/
-// static uint16_t rtimer_tick_comple = 0;
+static uint16_t rtimer_tick_comple = 0;
 /*sync rtimer diff*/
 rtimer_clock_t sync_tick_diff = 0;
+
 
 #define SLOT_ASSIGN_NUM 4
 uint16_t hitmac_nodeid[SLOT_ASSIGN_NUM]={0x0544,0x0578,0xf0c5,0xf0e5};
@@ -359,7 +361,9 @@ update_asn()
     clock_now = RTIMER_NOW();
     asn_diff = HITMAC_ASN_PERIOD - HITMAC_NODES_COMPLEM;    
     if(hitmac_is_root){
-
+      if(hitmac_is_started==0){//root hitmac shutdown
+        return ;
+      }
       rtimer_set(&asn_rtimer,clock_now + HITMAC_ASN_PERIOD,0,update_asn,NULL);
     }else{
       /*compensation voltage acquisition*/
@@ -564,8 +568,8 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
         if(down_schedule==0){
           /*nodes do 2 times cca*/
           
-          static struct etimer cca_et;
-          etimer_set(&cca_et,CLOCK_SECOND/64);
+          static struct etimer cca_et,ccasleep_et;
+          etimer_set(&cca_et,HITMAC_CCA_START_TIME);
           PROCESS_WAIT_UNTIL(etimer_expired(&cca_et));
           
           NETSTACK_RADIO.on();
@@ -575,8 +579,9 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
           }
           LOGIC_TEST(0);
           NETSTACK_RADIO.off();
-          start = RTIMER_NOW();
-          while(RTIMER_CLOCK_LT(RTIMER_NOW(),(start+HITMAC_CCA_SLEEP_TIME))){}//need to optimization
+
+          etimer_set(&ccasleep_et,HITMAC_CCA_SLEEP_TIME);
+          PROCESS_WAIT_UNTIL(etimer_expired(&ccasleep_et));
           
           NETSTACK_RADIO.on();
           LOGIC_TEST(1);
@@ -630,9 +635,9 @@ PROCESS_THREAD(hitmac_scheduler_process,ev,data)
     }else{
       //nodes sender time before (HITMAC_TIME_LENGTH-100)
 #if!ROOTNODE
-      if(hitmac_current_bussiness==(HITMAC_TIME_LENGTH-10)&&conn_process!=NULL){
+      if(hitmac_current_bussiness==(HITMAC_TIME_LENGTH-2)&&conn_process!=NULL){
         process_post(conn_process, PACKET_SENDER, NULL);
-        // rtimer_tick_comple = 265;   
+        rtimer_tick_comple = 265;   
       }        
 #endif
       PRINTF("sleep phrase\n");
@@ -668,6 +673,9 @@ PT_THREAD(hitmac_request(struct pt *pt))
 #define REQ_CCA_COUNT 2
     int cca_count = 0;
 
+    static radio_value_t channel = RF_CORE_CONF_CHANNEL;
+    NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,channel%HITMAC_MAX_CHANNEL_NUMBER);
+    channel++;
     /*Send request to root*/
     /* Prepare the REQUEST packet and schedule it to be sent */
     packetbuf_clear();
@@ -694,6 +702,7 @@ PT_THREAD(hitmac_request(struct pt *pt))
 #endif
       packetbuf_set_datalen(request_len);
       /*send cmd request packet*/
+      LOGIC_TEST(1);
       NETSTACK_RADIO.send(packetbuf_dataptr(),packetbuf_datalen());
 
       /* We are not coordinator, try to associate */
@@ -748,6 +757,7 @@ PT_THREAD(hitmac_request(struct pt *pt))
       }
       /*key operation*/
       NETSTACK_RADIO.off();
+      LOGIC_TEST(0);
     }
     rand_req ++;
     if(!hitmac_is_associated) {
@@ -930,6 +940,23 @@ packet_input(void)
     return ; 
   }
 
+#if ROOTNODE
+  if(!has_select_channel)
+  {
+    //not broadcast addr
+    uint8_t *dptr = packetbuf_dataptr();
+    input_buf.len = packetbuf_datalen()-hdr_len;
+    memcpy(input_buf.buf,&dptr[hdr_len], input_buf.len);
+    memcpy(&input_buf.src_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER), LINKADDR_SIZE);
+    memcpy(&input_buf.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LINKADDR_SIZE);  
+    input_buf.type = packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE);
+    input_buf.rssi =  packetbuf_attr(PACKETBUF_ATTR_RSSI);
+
+    process_post(&select_channel_process,select_channel_event,NULL);
+    return;
+  }
+#endif
+  
   /*root receive cmd request*/
   if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)== FRAME802154_CMDFRAME && hitmac_is_root==1
     && linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null) == 1)//broadcast
@@ -981,8 +1008,12 @@ packet_input(void)
         req_buf[9] = node_id >> 8;
         req_buf[10] = node_id ;
 
+        LOGIC_TEST(1);
         NETSTACK_RADIO.send(req_buf,REQ_LEN);
+        LOGIC_TEST(0);
+
         leds_toggle(LEDS_RED);
+        
 #if DEBUG_JOIN_NET
        printf("root respond\n");
        printf("asn: %lu\n", hitmac_current_asn.ls4b);
@@ -1033,7 +1064,7 @@ packet_input(void)
       memcpy(&input_buf.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LINKADDR_SIZE);  
 
       input_buf.rssi =  packetbuf_attr(PACKETBUF_ATTR_RSSI);
-      if(conn_process!=NULL){//root receive packet
+      if(conn_process!=NULL&&get_mod_type()==HITMAC_UPLOAD_TYPE){//root receive packet,and security 
         process_post(conn_process, PACKET_INPUT, NULL);   
       }
     }
@@ -1047,9 +1078,8 @@ static int
 turn_on(void)
 {
   if(hitmac_is_started == 0 ) {
- 
-    process_start(&hitmac_process, NULL);
     hitmac_is_started = 1;
+    process_start(&hitmac_process, NULL);
     return 1;
   }
   return 0;
@@ -1065,7 +1095,17 @@ turn_off(int keep_radio_on)
   }
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
+void
+hitmac_off(int keep_mac_on){
+  if(keep_mac_on){
+    hitmac_is_started = 1;
+    update_asn();
+  }else{
+    hitmac_is_started = 0;
+  }
+  
+}
 /*---------------------------------------------------------------------------*/
 static unsigned short
 channel_check_interval(void)

@@ -1,0 +1,17 @@
+1.this version from github.com/contiki-os,including etimer,rtimer,three RTC channel.
+2.hitmac-v.0.tar.gz is the smallest version,including the smallest board configures(uart,external watchdog,led,50k radio,2 bytes link address).But it excludes network layer,such 6lowpan,tcp/ip,only exists radio driver.
+3.hitmac-v.8 join network,leave network,eb sync and schedule partition
+4.hitmac-v.9 scheduler bug fixed
+5.hitmac-v.10 basic upload
+6.hitmac-v.11 broadcast download,unicast download
+7.hitmac-v.12 broadcast download,unicast download,and bug fixed and tested
+8.hitmac-v.13 download bug fixed
+9.hitmac-v.14 download bug fixed,logic test debug,uart current bug
+10.hitmac-v.15 optimize cca_start time
+11.hitmac-v.16 concentrator and hitmc testing
+12.hitmac-v.17 static self-corrected time synchronization
+13.hitmac-v.18 download\root failure\upload test?testing
+14.hitmac-v.19 static slot\download\root failure\upload test\join net successful rate?tested
+15.hitmac-v.20 sync && join net fixed && download slot change bug fixed
+16.hitmac-v.23-50k display environment noise,channel,sync error
+17.hitmac-v.23-10k automatic subnet partion

@@ -29,6 +29,7 @@ struct hitmac_input_buf{
   int len;
   linkaddr_t src_addr;
   linkaddr_t dest_addr;
+  uint8_t type;
   int8_t rssi;
 };
 /*define send packet */
@@ -93,10 +94,15 @@ struct hitmac_queue
 uint8_t get_mod_type();
 rtimer_clock_t get_sync_difftick();
 void hitmac_set_asn(struct tsch_asn_t asn);
+void hitmac_off(int keep_mac_on);
+
 
 extern int hitmac_is_root;
 extern const struct mac_driver hitmac_driver;
 struct hitmac_input_buf input_buf;
-
+/*multicast net channel select*/
+extern uint8_t has_select_channel;//channel select flag
+CCIF extern process_event_t select_channel_event;//global event
+PROCESS_NAME(select_channel_process);//global process
 
 #endif

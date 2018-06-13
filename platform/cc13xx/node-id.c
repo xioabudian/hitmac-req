@@ -55,7 +55,7 @@
 
 /*end define relative address*/
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -101,8 +101,8 @@ normalbyte_rfchannel_restore(void)
   read_flash(NORMALBYTE_RFCHANNEL_ADDR, normalbyte_restore, 2);
   normal_byte = normalbyte_restore[0];
   channel_byte = normalbyte_restore[1];
-  printf("normalbyte restore :%x\n", normal_byte);
-  printf("channel_byte restore %x\n", channel_byte);
+  PRINTF("normalbyte restore :%x\n", normal_byte);
+  PRINTF("channel_byte restore %x\n", channel_byte);
 }
 /*
  *  for meter reading data command burn

@@ -65,20 +65,32 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
   printf("Hello, world\n");
   static radio_value_t rssi=-50;
+  static radio_value_t channel;
+  static radio_value_t ch_num=0;
   static struct etimer periodic;
-  NETSTACK_RADIO.on();
+  uint8_t buf[30]={0,1,2};
 
   etimer_set(&periodic,SEND_INTERVAL);
 
   while(1){
     // test_fun1();
-    PROCESS_YIELD();
-    if(etimer_expired(&periodic)){
-      NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&rssi);//get local rssi
-      printf("RSSI %d\n",rssi);
+  	PROCESS_YIELD();
+  	if(etimer_expired(&periodic)){
+  		// NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI,&rssi);//get local rssi
+  		// printf("RSSI %d\n",rssi);
+      NETSTACK_RADIO.on();
+
+      NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&channel);//get local channel
+      printf("CHANNEL %d\n",channel);
+      NETSTACK_RADIO.send(buf,30);
+
       leds_toggle(LEDS_RED);
+      ch_num++;
+
+      NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,ch_num%17);
+      NETSTACK_RADIO.off();
       etimer_set(&periodic,SEND_INTERVAL);
-    }
+  	}
   }
   
   PROCESS_END();

@@ -16,12 +16,12 @@ contiki-cc13xx.a(rtimer-arch.o)
 contiki-cc13xx.a(soc-rtc.o)   contiki-cc13xx.a(contiki-main.o) (soc_rtc_init)
 contiki-cc13xx.a(contiki-watchdo)
                               contiki-cc13xx.a(contiki-main.o) (watchdog_init)
-contiki-cc13xx.a(putchar.o)   contiki-cc13xx.a(node-id.o) (putchar)
+contiki-cc13xx.a(putchar.o)   radio-receiver.co (puts)
 contiki-cc13xx.a(ieee-addr.o)
                               contiki-cc13xx.a(contiki-main.o) (ieee_addr_cpy_to)
 contiki-cc13xx.a(cc26xx-uart.o)
                               contiki-cc13xx.a(contiki-main.o) (cc26xx_uart_init)
-contiki-cc13xx.a(lpm.o)       contiki-cc13xx.a(contiki-main.o) (lpm_drop)
+contiki-cc13xx.a(lpm.o)       contiki-cc13xx.a(board.o) (lpm_register_module)
 contiki-cc13xx.a(oscillators.o)
                               contiki-cc13xx.a(contiki-main.o) (oscillators_select_lf_xosc)
 contiki-cc13xx.a(rf-core.o)   contiki-cc13xx.a(prop-mode.o) (rf_core_is_accessible)
@@ -88,8 +88,6 @@ contiki-cc13xx.a(flashdata.o)
 contiki-cc13xx.a(smartrf-setting)
                               contiki-cc13xx.a(prop-mode.o) (smartrf_settings_cmd_prop_rx_adv)
 contiki-cc13xx.a(aux-ctrl.o)  contiki-cc13xx.a(lpm.o) (aux_ctrl_power_up)
-contiki-cc13xx.a(interface.o)
-                              contiki-cc13xx.a(rf-core.o) (packet_input_test)
 contiki-cc13xx.a(ringbufindex.o)
                               contiki-cc13xx.a(hitmac-frame.o) (ringbufindex_init)
 contiki-cc13xx.a(memb.o)      contiki-cc13xx.a(queuebuf.o) (memb_init)
@@ -220,15 +218,13 @@ Discarded input sections
  .text.node_id_restore
                 0x00000000        0x4 contiki-cc13xx.a(node-id.o)
  .text.normalbyte_rfchannel_burn
-                0x00000000       0x40 contiki-cc13xx.a(node-id.o)
- .text.normalbyte_rfchannel_restore
-                0x00000000       0x48 contiki-cc13xx.a(node-id.o)
+                0x00000000       0x28 contiki-cc13xx.a(node-id.o)
  .text.restore_meter_cmd
                 0x00000000       0x14 contiki-cc13xx.a(node-id.o)
  .text.print_cmd_array
-                0x00000000       0x2c contiki-cc13xx.a(node-id.o)
+                0x00000000        0x4 contiki-cc13xx.a(node-id.o)
  .text.cmd_bytes_burn
-                0x00000000       0x5c contiki-cc13xx.a(node-id.o)
+                0x00000000       0x54 contiki-cc13xx.a(node-id.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(external-watchd)
  .data          0x00000000        0x0 contiki-cc13xx.a(external-watchd)
  .bss           0x00000000        0x0 contiki-cc13xx.a(external-watchd)
@@ -259,6 +255,8 @@ Discarded input sections
  .bss           0x00000000        0x0 contiki-cc13xx.a(soc-rtc.o)
  .text.soc_rtc_get_next_trigger
                 0x00000000       0x28 contiki-cc13xx.a(soc-rtc.o)
+ .text.soc_rtc_last_isr_time
+                0x00000000        0xc contiki-cc13xx.a(soc-rtc.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(contiki-watchdo)
  .data          0x00000000        0x0 contiki-cc13xx.a(contiki-watchdo)
  .bss           0x00000000        0x0 contiki-cc13xx.a(contiki-watchdo)
@@ -284,6 +282,8 @@ Discarded input sections
                 0x00000000      0x19c contiki-cc13xx.a(lpm.o)
  .text.lpm_sleep
                 0x00000000       0x14 contiki-cc13xx.a(lpm.o)
+ .text.lpm_drop
+                0x00000000      0x25c contiki-cc13xx.a(lpm.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(oscillators.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(oscillators.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(oscillators.o)
@@ -372,11 +372,15 @@ Discarded input sections
                 0x00000000        0xc contiki-cc13xx.a(etimer.o)
  .text.etimer_start_time
                 0x00000000        0x4 contiki-cc13xx.a(etimer.o)
+ .text.etimer_next_expiration_time
+                0x00000000       0x14 contiki-cc13xx.a(etimer.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(process.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(process.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(process.o)
  .text.process_exit
                 0x00000000        0xc contiki-cc13xx.a(process.o)
+ .text.process_nevents
+                0x00000000       0x14 contiki-cc13xx.a(process.o)
  .text.process_is_running
                 0x00000000        0xc contiki-cc13xx.a(process.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(rtimer.o)
@@ -570,15 +574,31 @@ Discarded input sections
  .text          0x00000000        0x0 contiki-cc13xx.a(pwr_ctrl.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(pwr_ctrl.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(pwr_ctrl.o)
+ .text.NOROM_PowerCtrlSourceSet
+                0x00000000       0x30 contiki-cc13xx.a(pwr_ctrl.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(pwr_ctrl.o)
+ .ARM.attributes
+                0x00000000       0x33 contiki-cc13xx.a(pwr_ctrl.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(sys_ctrl.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(sys_ctrl.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(sys_ctrl.o)
  .text.NOROM_SysCtrlPowerEverything
                 0x00000000       0xf4 contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrlSetRechargeBeforePowerDown
+                0x00000000      0x2b0 contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrlAdjustRechargeAfterPowerDown
+                0x00000000       0x64 contiki-cc13xx.a(sys_ctrl.o)
+ .text.NOROM_SysCtrl_DCDC_VoltageConditionalControl
+                0x00000000       0x7c contiki-cc13xx.a(sys_ctrl.o)
  .text.NOROM_SysCtrlResetSourceGet
                 0x00000000       0x18 contiki-cc13xx.a(sys_ctrl.o)
  .rodata.g_pui32ModuleCG
                 0x00000000       0x34 contiki-cc13xx.a(sys_ctrl.o)
+ .bss.powerQualGlobals
+                0x00000000        0x8 contiki-cc13xx.a(sys_ctrl.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(sys_ctrl.o)
+ .ARM.attributes
+                0x00000000       0x33 contiki-cc13xx.a(sys_ctrl.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(osc.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(osc.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(osc.o)
@@ -683,9 +703,11 @@ Discarded input sections
                 0x00000000       0x18 contiki-cc13xx.a(hitmac.o)
  .text.get_sync_difftick
                 0x00000000        0xc contiki-cc13xx.a(hitmac.o)
+ .text.hitmac_off
+                0x00000000       0x14 contiki-cc13xx.a(hitmac.o)
  .data.hitmac_test_process
                 0x00000000       0x10 contiki-cc13xx.a(hitmac.o)
- .bss.test_et.6970
+ .bss.test_et.6975
                 0x00000000       0x10 contiki-cc13xx.a(hitmac.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(hitmac-frame.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(hitmac-frame.o)
@@ -710,10 +732,6 @@ Discarded input sections
  .text          0x00000000        0x0 contiki-cc13xx.a(aux-ctrl.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(aux-ctrl.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(aux-ctrl.o)
- .text          0x00000000        0x0 contiki-cc13xx.a(interface.o)
- .data          0x00000000        0x0 contiki-cc13xx.a(interface.o)
- .bss           0x00000000        0x0 contiki-cc13xx.a(interface.o)
- .text.filter   0x00000000       0x34 contiki-cc13xx.a(interface.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(ringbufindex.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(ringbufindex.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(ringbufindex.o)
@@ -845,6 +863,11 @@ Discarded input sections
  .text          0x00000000        0x0 contiki-cc13xx.a(aon_batmon.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(aon_batmon.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(aon_batmon.o)
+ .text.NOROM_AONBatMonTemperatureGetDegC
+                0x00000000       0x30 contiki-cc13xx.a(aon_batmon.o)
+ .comment       0x00000000       0x71 contiki-cc13xx.a(aon_batmon.o)
+ .ARM.attributes
+                0x00000000       0x33 contiki-cc13xx.a(aon_batmon.o)
  .text          0x00000000        0x0 contiki-cc13xx.a(vims.o)
  .data          0x00000000        0x0 contiki-cc13xx.a(vims.o)
  .bss           0x00000000        0x0 contiki-cc13xx.a(vims.o)
@@ -937,7 +960,7 @@ END GROUP
                 0x00000000                _Min_Heap_Size = 0x0
                 0x00000100                _Min_Stack_Size = 0x100
 
-.text           0x00000000     0xe85c
+.text           0x00000000     0xe120
                 0x00000000                _text = .
  *(SORT(.vectors))
  .vectors       0x00000000       0xc8 obj_cc13xx/startup_gcc.o
@@ -996,1422 +1019,1387 @@ END GROUP
                 0x00000168       0x34 contiki-cc13xx.a(contiki-main.o)
                 0x00000168                set_nodeid
  .text.startup.main
-                0x0000019c      0x18c contiki-cc13xx.a(contiki-main.o)
+                0x0000019c      0x190 contiki-cc13xx.a(contiki-main.o)
                 0x0000019c                main
  .text.wakeup_handler
-                0x00000328       0x20 contiki-cc13xx.a(board.o)
+                0x0000032c       0x20 contiki-cc13xx.a(board.o)
  .text.leds_arch_init
-                0x00000348       0x28 contiki-cc13xx.a(board.o)
-                0x00000348                leds_arch_init
+                0x0000034c       0x28 contiki-cc13xx.a(board.o)
+                0x0000034c                leds_arch_init
  .text.leds_arch_set
-                0x00000370       0x1c contiki-cc13xx.a(board.o)
-                0x00000370                leds_arch_set
+                0x00000374       0x1c contiki-cc13xx.a(board.o)
+                0x00000374                leds_arch_set
  .text.logic_test
-                0x0000038c        0xc contiki-cc13xx.a(board.o)
-                0x0000038c                logic_test
+                0x00000390        0xc contiki-cc13xx.a(board.o)
+                0x00000390                logic_test
  .text.board_init
-                0x00000398       0xa4 contiki-cc13xx.a(board.o)
-                0x00000398                board_init
+                0x0000039c       0xa4 contiki-cc13xx.a(board.o)
+                0x0000039c                board_init
  .text.node_id_burn
-                0x0000043c        0xc contiki-cc13xx.a(node-id.o)
-                0x0000043c                node_id_burn
+                0x00000440        0xc contiki-cc13xx.a(node-id.o)
+                0x00000440                node_id_burn
+ .text.normalbyte_rfchannel_restore
+                0x0000044c       0x30 contiki-cc13xx.a(node-id.o)
+                0x0000044c                normalbyte_rfchannel_restore
  .text.restart_count_byte_burn
-                0x00000448       0x30 contiki-cc13xx.a(node-id.o)
-                0x00000448                restart_count_byte_burn
+                0x0000047c       0x20 contiki-cc13xx.a(node-id.o)
+                0x0000047c                restart_count_byte_burn
  .text.restart_count_byte_restore
-                0x00000478       0x30 contiki-cc13xx.a(node-id.o)
-                0x00000478                restart_count_byte_restore
+                0x0000049c       0x24 contiki-cc13xx.a(node-id.o)
+                0x0000049c                restart_count_byte_restore
  .text.process_thread_watchdog_process
-                0x000004a8       0x64 contiki-cc13xx.a(external-watchd)
+                0x000004c0       0x64 contiki-cc13xx.a(external-watchd)
  .text.get_object
-                0x0000050c        0x4 contiki-cc13xx.a(prop-mode.o)
+                0x00000524        0x4 contiki-cc13xx.a(prop-mode.o)
  .text.set_object
-                0x00000510        0x4 contiki-cc13xx.a(prop-mode.o)
- .text.request  0x00000514       0x20 contiki-cc13xx.a(prop-mode.o)
+                0x00000528        0x4 contiki-cc13xx.a(prop-mode.o)
+ .text.request  0x0000052c       0x20 contiki-cc13xx.a(prop-mode.o)
  .text.soft_off_prop
-                0x00000534       0x3c contiki-cc13xx.a(prop-mode.o)
+                0x0000054c       0x3c contiki-cc13xx.a(prop-mode.o)
  .text.rx_on_prop
-                0x00000570       0x70 contiki-cc13xx.a(prop-mode.o)
- .text.prepare  0x000005e0       0x1c contiki-cc13xx.a(prop-mode.o)
+                0x00000588       0x70 contiki-cc13xx.a(prop-mode.o)
+ .text.prepare  0x000005f8       0x1c contiki-cc13xx.a(prop-mode.o)
  .text.pending_packet
-                0x000005fc       0x34 contiki-cc13xx.a(prop-mode.o)
+                0x00000614       0x34 contiki-cc13xx.a(prop-mode.o)
  .text.read_frame
-                0x00000630       0x50 contiki-cc13xx.a(prop-mode.o)
+                0x00000648       0x50 contiki-cc13xx.a(prop-mode.o)
  .text.rx_off_prop
-                0x00000680       0x50 contiki-cc13xx.a(prop-mode.o)
+                0x00000698       0x50 contiki-cc13xx.a(prop-mode.o)
  .text.prop_div_radio_setup
-                0x000006d0       0x50 contiki-cc13xx.a(prop-mode.o)
- .text.prop_fs  0x00000720       0x34 contiki-cc13xx.a(prop-mode.o)
+                0x000006e8       0x50 contiki-cc13xx.a(prop-mode.o)
+ .text.prop_fs  0x00000738       0x34 contiki-cc13xx.a(prop-mode.o)
  .text.soft_on_prop
-                0x00000754       0x20 contiki-cc13xx.a(prop-mode.o)
- .text.off      0x00000774       0x24 contiki-cc13xx.a(prop-mode.o)
- .text.on       0x00000798      0x1fc contiki-cc13xx.a(prop-mode.o)
+                0x0000076c       0x20 contiki-cc13xx.a(prop-mode.o)
+ .text.off      0x0000078c       0x24 contiki-cc13xx.a(prop-mode.o)
+ .text.on       0x000007b0      0x1fc contiki-cc13xx.a(prop-mode.o)
  .text.set_value
-                0x00000994      0x19c contiki-cc13xx.a(prop-mode.o)
+                0x000009ac      0x19c contiki-cc13xx.a(prop-mode.o)
  .text.get_value
-                0x00000b30      0x16c contiki-cc13xx.a(prop-mode.o)
+                0x00000b48      0x16c contiki-cc13xx.a(prop-mode.o)
  .text.transmit
-                0x00000c9c       0xa4 contiki-cc13xx.a(prop-mode.o)
- .text.send     0x00000d40       0x24 contiki-cc13xx.a(prop-mode.o)
+                0x00000cb4       0xa4 contiki-cc13xx.a(prop-mode.o)
+ .text.send     0x00000d58       0x24 contiki-cc13xx.a(prop-mode.o)
  .text.channel_clear
-                0x00000d64       0x74 contiki-cc13xx.a(prop-mode.o)
+                0x00000d7c       0x74 contiki-cc13xx.a(prop-mode.o)
  .text.receiving_packet
-                0x00000dd8       0x28 contiki-cc13xx.a(prop-mode.o)
- .text.init     0x00000e00       0x94 contiki-cc13xx.a(prop-mode.o)
+                0x00000df0       0x28 contiki-cc13xx.a(prop-mode.o)
+ .text.init     0x00000e18       0x94 contiki-cc13xx.a(prop-mode.o)
  .text.power_domain_on
-                0x00000e94       0x20 contiki-cc13xx.a(clock.o)
+                0x00000eac       0x20 contiki-cc13xx.a(clock.o)
  .text.clock_init
-                0x00000eb4       0x98 contiki-cc13xx.a(clock.o)
-                0x00000eb4                clock_init
+                0x00000ecc       0x98 contiki-cc13xx.a(clock.o)
+                0x00000ecc                clock_init
  .text.clock_time
-                0x00000f4c       0x34 contiki-cc13xx.a(clock.o)
-                0x00000f4c                clock_time
+                0x00000f64       0x34 contiki-cc13xx.a(clock.o)
+                0x00000f64                clock_time
  .text.clock_update
-                0x00000f80       0x3c contiki-cc13xx.a(clock.o)
-                0x00000f80                clock_update
+                0x00000f98       0x3c contiki-cc13xx.a(clock.o)
+                0x00000f98                clock_update
  .text.clock_seconds
-                0x00000fbc       0x18 contiki-cc13xx.a(clock.o)
-                0x00000fbc                clock_seconds
+                0x00000fd4       0x18 contiki-cc13xx.a(clock.o)
+                0x00000fd4                clock_seconds
  .text.rtimer_arch_init
-                0x00000fd4        0x4 contiki-cc13xx.a(rtimer-arch.o)
-                0x00000fd4                rtimer_arch_init
+                0x00000fec        0x4 contiki-cc13xx.a(rtimer-arch.o)
+                0x00000fec                rtimer_arch_init
  .text.rtimer_arch_schedule
-                0x00000fd8        0x8 contiki-cc13xx.a(rtimer-arch.o)
-                0x00000fd8                rtimer_arch_schedule
+                0x00000ff0        0x8 contiki-cc13xx.a(rtimer-arch.o)
+                0x00000ff0                rtimer_arch_schedule
  .text.rtimer_arch_now
-                0x00000fe0        0x4 contiki-cc13xx.a(rtimer-arch.o)
-                0x00000fe0                rtimer_arch_now
+                0x00000ff8        0x4 contiki-cc13xx.a(rtimer-arch.o)
+                0x00000ff8                rtimer_arch_now
  .text.soc_rtc_init
-                0x00000fe4       0xa0 contiki-cc13xx.a(soc-rtc.o)
-                0x00000fe4                soc_rtc_init
+                0x00000ffc       0xa0 contiki-cc13xx.a(soc-rtc.o)
+                0x00000ffc                soc_rtc_init
  .text.soc_rtc_schedule_one_shot
-                0x00001084       0x70 contiki-cc13xx.a(soc-rtc.o)
-                0x00001084                soc_rtc_schedule_one_shot
- .text.soc_rtc_last_isr_time
-                0x000010f4        0xc contiki-cc13xx.a(soc-rtc.o)
-                0x000010f4                soc_rtc_last_isr_time
+                0x0000109c       0x70 contiki-cc13xx.a(soc-rtc.o)
+                0x0000109c                soc_rtc_schedule_one_shot
  .text.AONRTCIntHandler
-                0x00001100       0x88 contiki-cc13xx.a(soc-rtc.o)
-                0x00001100                AONRTCIntHandler
+                0x0000110c       0x88 contiki-cc13xx.a(soc-rtc.o)
+                0x0000110c                AONRTCIntHandler
  .text.lock_config
-                0x00001188       0x18 contiki-cc13xx.a(contiki-watchdo)
+                0x00001194       0x18 contiki-cc13xx.a(contiki-watchdo)
  .text.unlock_config
-                0x000011a0       0x2c contiki-cc13xx.a(contiki-watchdo)
+                0x000011ac       0x2c contiki-cc13xx.a(contiki-watchdo)
  .text.watchdog_init
-                0x000011cc       0x1c contiki-cc13xx.a(contiki-watchdo)
-                0x000011cc                watchdog_init
+                0x000011d8       0x1c contiki-cc13xx.a(contiki-watchdo)
+                0x000011d8                watchdog_init
  .text.watchdog_start
-                0x000011e8       0x30 contiki-cc13xx.a(contiki-watchdo)
-                0x000011e8                watchdog_start
+                0x000011f4       0x30 contiki-cc13xx.a(contiki-watchdo)
+                0x000011f4                watchdog_start
  .text.watchdog_periodic
-                0x00001218       0x1c contiki-cc13xx.a(contiki-watchdo)
-                0x00001218                watchdog_periodic
- .text.putchar  0x00001234       0x10 contiki-cc13xx.a(putchar.o)
-                0x00001234                putchar
- .text.puts     0x00001244       0x30 contiki-cc13xx.a(putchar.o)
-                0x00001244                puts
+                0x00001224       0x1c contiki-cc13xx.a(contiki-watchdo)
+                0x00001224                watchdog_periodic
+ .text.putchar  0x00001240       0x44 contiki-cc13xx.a(putchar.o)
+                0x00001240                putchar
+ .text.puts     0x00001284       0x3c contiki-cc13xx.a(putchar.o)
+                0x00001284                puts
  .text.dbg_send_bytes
-                0x00001274       0x40 contiki-cc13xx.a(putchar.o)
-                0x00001274                dbg_send_bytes
+                0x000012c0       0x40 contiki-cc13xx.a(putchar.o)
+                0x000012c0                dbg_send_bytes
  .text.ieee_addr_cpy_to
-                0x000012b4       0x40 contiki-cc13xx.a(ieee-addr.o)
-                0x000012b4                ieee_addr_cpy_to
+                0x00001300       0x40 contiki-cc13xx.a(ieee-addr.o)
+                0x00001300                ieee_addr_cpy_to
  .text.power_and_clock
-                0x000012f4       0x40 contiki-cc13xx.a(cc26xx-uart.o)
- .text.enable   0x00001334       0xf4 contiki-cc13xx.a(cc26xx-uart.o)
+                0x00001340       0x40 contiki-cc13xx.a(cc26xx-uart.o)
+ .text.enable   0x00001380       0xf4 contiki-cc13xx.a(cc26xx-uart.o)
  .text.accessible
-                0x00001428       0x24 contiki-cc13xx.a(cc26xx-uart.o)
+                0x00001474       0x24 contiki-cc13xx.a(cc26xx-uart.o)
  .text.lpm_drop_handler
-                0x0000144c       0xe4 contiki-cc13xx.a(cc26xx-uart.o)
+                0x00001498       0xcc contiki-cc13xx.a(cc26xx-uart.o)
  .text.cc26xx_uart_init
-                0x00001530       0x28 contiki-cc13xx.a(cc26xx-uart.o)
-                0x00001530                cc26xx_uart_init
+                0x00001564       0x28 contiki-cc13xx.a(cc26xx-uart.o)
+                0x00001564                cc26xx_uart_init
  .text.cc26xx_uart_write_byte
-                0x00001558       0x28 contiki-cc13xx.a(cc26xx-uart.o)
-                0x00001558                cc26xx_uart_write_byte
+                0x0000158c       0x28 contiki-cc13xx.a(cc26xx-uart.o)
+                0x0000158c                cc26xx_uart_write_byte
  .text.cc26xx_uart_busy
-                0x00001580       0x18 contiki-cc13xx.a(cc26xx-uart.o)
-                0x00001580                cc26xx_uart_busy
+                0x000015b4       0x18 contiki-cc13xx.a(cc26xx-uart.o)
+                0x000015b4                cc26xx_uart_busy
  .text.UART0IntHandler
-                0x00001598       0x54 contiki-cc13xx.a(cc26xx-uart.o)
-                0x00001598                UART0IntHandler
- .text.lpm_drop
-                0x000015ec      0x25c contiki-cc13xx.a(lpm.o)
-                0x000015ec                lpm_drop
+                0x000015cc       0x54 contiki-cc13xx.a(cc26xx-uart.o)
+                0x000015cc                UART0IntHandler
  .text.lpm_register_module
-                0x00001848        0xc contiki-cc13xx.a(lpm.o)
-                0x00001848                lpm_register_module
+                0x00001620        0xc contiki-cc13xx.a(lpm.o)
+                0x00001620                lpm_register_module
  .text.lpm_unregister_module
-                0x00001854        0xc contiki-cc13xx.a(lpm.o)
-                0x00001854                lpm_unregister_module
+                0x0000162c        0xc contiki-cc13xx.a(lpm.o)
+                0x0000162c                lpm_unregister_module
  .text.lpm_init
-                0x00001860       0x20 contiki-cc13xx.a(lpm.o)
-                0x00001860                lpm_init
+                0x00001638       0x20 contiki-cc13xx.a(lpm.o)
+                0x00001638                lpm_init
  .text.lpm_pin_set_default_state
-                0x00001880       0x2c contiki-cc13xx.a(lpm.o)
-                0x00001880                lpm_pin_set_default_state
+                0x00001658       0x2c contiki-cc13xx.a(lpm.o)
+                0x00001658                lpm_pin_set_default_state
  .text.oscillators_select_lf_xosc
-                0x000018ac       0x58 contiki-cc13xx.a(oscillators.o)
-                0x000018ac                oscillators_select_lf_xosc
+                0x00001684       0x58 contiki-cc13xx.a(oscillators.o)
+                0x00001684                oscillators_select_lf_xosc
  .text.oscillators_request_hf_xosc
-                0x00001904       0x30 contiki-cc13xx.a(oscillators.o)
-                0x00001904                oscillators_request_hf_xosc
+                0x000016dc       0x30 contiki-cc13xx.a(oscillators.o)
+                0x000016dc                oscillators_request_hf_xosc
  .text.oscillators_switch_to_hf_xosc
-                0x00001934       0x34 contiki-cc13xx.a(oscillators.o)
-                0x00001934                oscillators_switch_to_hf_xosc
+                0x0000170c       0x34 contiki-cc13xx.a(oscillators.o)
+                0x0000170c                oscillators_switch_to_hf_xosc
  .text.oscillators_switch_to_hf_rc
-                0x00001968       0x38 contiki-cc13xx.a(oscillators.o)
-                0x00001968                oscillators_switch_to_hf_rc
+                0x00001740       0x38 contiki-cc13xx.a(oscillators.o)
+                0x00001740                oscillators_switch_to_hf_rc
  .text.process_thread_rf_core_process
-                0x000019a0       0x54 contiki-cc13xx.a(rf-core.o)
+                0x00001778       0x58 contiki-cc13xx.a(rf-core.o)
  .text.rf_core_is_accessible
-                0x000019f4       0x10 contiki-cc13xx.a(rf-core.o)
-                0x000019f4                rf_core_is_accessible
+                0x000017d0       0x10 contiki-cc13xx.a(rf-core.o)
+                0x000017d0                rf_core_is_accessible
  .text.rf_core_send_cmd
-                0x00001a04       0xa4 contiki-cc13xx.a(rf-core.o)
-                0x00001a04                rf_core_send_cmd
+                0x000017e0       0xa4 contiki-cc13xx.a(rf-core.o)
+                0x000017e0                rf_core_send_cmd
  .text.rf_core_wait_cmd_done
-                0x00001aa8       0x30 contiki-cc13xx.a(rf-core.o)
-                0x00001aa8                rf_core_wait_cmd_done
+                0x00001884       0x30 contiki-cc13xx.a(rf-core.o)
+                0x00001884                rf_core_wait_cmd_done
  .text.rf_core_power_up
-                0x00001ad8       0xcc contiki-cc13xx.a(rf-core.o)
-                0x00001ad8                rf_core_power_up
+                0x000018b4       0xcc contiki-cc13xx.a(rf-core.o)
+                0x000018b4                rf_core_power_up
  .text.rf_core_start_rat
-                0x00001ba4       0x68 contiki-cc13xx.a(rf-core.o)
-                0x00001ba4                rf_core_start_rat
+                0x00001980       0x68 contiki-cc13xx.a(rf-core.o)
+                0x00001980                rf_core_start_rat
  .text.rf_core_stop_rat
-                0x00001c0c       0x7c contiki-cc13xx.a(rf-core.o)
-                0x00001c0c                rf_core_stop_rat
+                0x000019e8       0x7c contiki-cc13xx.a(rf-core.o)
+                0x000019e8                rf_core_stop_rat
  .text.rf_core_power_down
-                0x00001c88       0xec contiki-cc13xx.a(rf-core.o)
-                0x00001c88                rf_core_power_down
+                0x00001a64       0xec contiki-cc13xx.a(rf-core.o)
+                0x00001a64                rf_core_power_down
  .text.rf_core_set_modesel
-                0x00001d74       0x44 contiki-cc13xx.a(rf-core.o)
-                0x00001d74                rf_core_set_modesel
+                0x00001b50       0x44 contiki-cc13xx.a(rf-core.o)
+                0x00001b50                rf_core_set_modesel
  .text.rf_core_setup_interrupts
-                0x00001db8       0x74 contiki-cc13xx.a(rf-core.o)
-                0x00001db8                rf_core_setup_interrupts
+                0x00001b94       0x74 contiki-cc13xx.a(rf-core.o)
+                0x00001b94                rf_core_setup_interrupts
  .text.rf_core_cmd_done_en
-                0x00001e2c       0x28 contiki-cc13xx.a(rf-core.o)
-                0x00001e2c                rf_core_cmd_done_en
+                0x00001c08       0x28 contiki-cc13xx.a(rf-core.o)
+                0x00001c08                rf_core_cmd_done_en
  .text.rf_core_cmd_done_dis
-                0x00001e54       0x18 contiki-cc13xx.a(rf-core.o)
-                0x00001e54                rf_core_cmd_done_dis
+                0x00001c30       0x18 contiki-cc13xx.a(rf-core.o)
+                0x00001c30                rf_core_cmd_done_dis
  .text.rf_core_get_last_radio_op
-                0x00001e6c        0xc contiki-cc13xx.a(rf-core.o)
-                0x00001e6c                rf_core_get_last_radio_op
+                0x00001c48        0xc contiki-cc13xx.a(rf-core.o)
+                0x00001c48                rf_core_get_last_radio_op
  .text.rf_core_primary_mode_register
-                0x00001e78        0xc contiki-cc13xx.a(rf-core.o)
-                0x00001e78                rf_core_primary_mode_register
+                0x00001c54        0xc contiki-cc13xx.a(rf-core.o)
+                0x00001c54                rf_core_primary_mode_register
  .text.RFCCPE1IntHandler
-                0x00001e84       0x28 contiki-cc13xx.a(rf-core.o)
-                0x00001e84                RFCCPE1IntHandler
+                0x00001c60       0x28 contiki-cc13xx.a(rf-core.o)
+                0x00001c60                RFCCPE1IntHandler
  .text.RFCCPE0IntHandler
-                0x00001eac       0x5c contiki-cc13xx.a(rf-core.o)
-                0x00001eac                RFCCPE0IntHandler
+                0x00001c88       0x5c contiki-cc13xx.a(rf-core.o)
+                0x00001c88                RFCCPE0IntHandler
  .text.rf_ble_is_active
-                0x00001f08        0xc contiki-cc13xx.a(rf-ble.o)
-                0x00001f08                rf_ble_is_active
+                0x00001ce4        0xc contiki-cc13xx.a(rf-ble.o)
+                0x00001ce4                rf_ble_is_active
  .text.random_rand
-                0x00001f14        0xc contiki-cc13xx.a(random.o)
-                0x00001f14                random_rand
+                0x00001cf0        0xc contiki-cc13xx.a(random.o)
+                0x00001cf0                random_rand
  .text.random_init
-                0x00001f20        0x4 contiki-cc13xx.a(random.o)
-                0x00001f20                random_init
+                0x00001cfc        0x4 contiki-cc13xx.a(random.o)
+                0x00001cfc                random_init
  .text.power_up
-                0x00001f24       0x40 contiki-cc13xx.a(soc-trng.o)
- .text.request  0x00001f64       0x14 contiki-cc13xx.a(soc-trng.o)
+                0x00001d00       0x40 contiki-cc13xx.a(soc-trng.o)
+ .text.request  0x00001d40       0x14 contiki-cc13xx.a(soc-trng.o)
  .text.process_thread_soc_trng_process
-                0x00001f78       0x94 contiki-cc13xx.a(soc-trng.o)
+                0x00001d54       0x94 contiki-cc13xx.a(soc-trng.o)
  .text.accessible
-                0x0000200c       0x24 contiki-cc13xx.a(soc-trng.o)
+                0x00001de8       0x24 contiki-cc13xx.a(soc-trng.o)
  .text.soc_trng_rand_synchronous
-                0x00002030       0xc4 contiki-cc13xx.a(soc-trng.o)
-                0x00002030                soc_trng_rand_synchronous
+                0x00001e0c       0xc4 contiki-cc13xx.a(soc-trng.o)
+                0x00001e0c                soc_trng_rand_synchronous
  .text.TRNGIntHandler
-                0x000020f4       0x50 contiki-cc13xx.a(soc-trng.o)
-                0x000020f4                TRNGIntHandler
+                0x00001ed0       0x50 contiki-cc13xx.a(soc-trng.o)
+                0x00001ed0                TRNGIntHandler
  .text.soc_trng_init
-                0x00002144       0x28 contiki-cc13xx.a(soc-trng.o)
-                0x00002144                soc_trng_init
+                0x00001f20       0x28 contiki-cc13xx.a(soc-trng.o)
+                0x00001f20                soc_trng_init
  .text.write_str
-                0x0000216c       0x14 contiki-cc13xx.a(dbg-printf.o)
- .text.printf   0x00002180       0x24 contiki-cc13xx.a(dbg-printf.o)
-                0x00002180                printf
+                0x00001f48       0x14 contiki-cc13xx.a(dbg-printf.o)
+ .text.printf   0x00001f5c       0x24 contiki-cc13xx.a(dbg-printf.o)
+                0x00001f5c                printf
  .text.fill_space
-                0x000021a4       0x3c contiki-cc13xx.a(strformat.o)
+                0x00001f80       0x3c contiki-cc13xx.a(strformat.o)
  .text.format_str_v
-                0x000021e0      0x95c contiki-cc13xx.a(strformat.o)
-                0x000021e0                format_str_v
+                0x00001fbc      0x95c contiki-cc13xx.a(strformat.o)
+                0x00001fbc                format_str_v
  .text.autostart_start
-                0x00002b3c       0x18 contiki-cc13xx.a(autostart.o)
-                0x00002b3c                autostart_start
+                0x00002918       0x18 contiki-cc13xx.a(autostart.o)
+                0x00002918                autostart_start
  .text.process_thread_ctimer_process
-                0x00002b54       0x94 contiki-cc13xx.a(ctimer.o)
+                0x00002930       0x94 contiki-cc13xx.a(ctimer.o)
  .text.ctimer_init
-                0x00002be8       0x28 contiki-cc13xx.a(ctimer.o)
-                0x00002be8                ctimer_init
+                0x000029c4       0x28 contiki-cc13xx.a(ctimer.o)
+                0x000029c4                ctimer_init
  .text.ctimer_set_with_process
-                0x00002c10       0x4c contiki-cc13xx.a(ctimer.o)
-                0x00002c10                ctimer_set_with_process
+                0x000029ec       0x4c contiki-cc13xx.a(ctimer.o)
+                0x000029ec                ctimer_set_with_process
  .text.ctimer_set
-                0x00002c5c       0x18 contiki-cc13xx.a(ctimer.o)
-                0x00002c5c                ctimer_set
+                0x00002a38       0x18 contiki-cc13xx.a(ctimer.o)
+                0x00002a38                ctimer_set
  .text.ctimer_reset
-                0x00002c74       0x38 contiki-cc13xx.a(ctimer.o)
-                0x00002c74                ctimer_reset
+                0x00002a50       0x38 contiki-cc13xx.a(ctimer.o)
+                0x00002a50                ctimer_reset
  .text.ctimer_restart
-                0x00002cac       0x38 contiki-cc13xx.a(ctimer.o)
-                0x00002cac                ctimer_restart
+                0x00002a88       0x38 contiki-cc13xx.a(ctimer.o)
+                0x00002a88                ctimer_restart
  .text.ctimer_stop
-                0x00002ce4       0x34 contiki-cc13xx.a(ctimer.o)
-                0x00002ce4                ctimer_stop
+                0x00002ac0       0x34 contiki-cc13xx.a(ctimer.o)
+                0x00002ac0                ctimer_stop
  .text.energest_init
-                0x00002d18        0x4 contiki-cc13xx.a(energest.o)
-                0x00002d18                energest_init
+                0x00002af4        0x4 contiki-cc13xx.a(energest.o)
+                0x00002af4                energest_init
  .text.update_time
-                0x00002d1c       0x44 contiki-cc13xx.a(etimer.o)
+                0x00002af8       0x44 contiki-cc13xx.a(etimer.o)
  .text.process_thread_etimer_process
-                0x00002d60       0xc8 contiki-cc13xx.a(etimer.o)
+                0x00002b3c       0xc8 contiki-cc13xx.a(etimer.o)
  .text.add_timer
-                0x00002e28       0x54 contiki-cc13xx.a(etimer.o)
+                0x00002c04       0x54 contiki-cc13xx.a(etimer.o)
  .text.etimer_request_poll
-                0x00002e7c        0xc contiki-cc13xx.a(etimer.o)
-                0x00002e7c                etimer_request_poll
+                0x00002c58        0xc contiki-cc13xx.a(etimer.o)
+                0x00002c58                etimer_request_poll
  .text.etimer_set
-                0x00002e88       0x14 contiki-cc13xx.a(etimer.o)
-                0x00002e88                etimer_set
+                0x00002c64       0x14 contiki-cc13xx.a(etimer.o)
+                0x00002c64                etimer_set
  .text.etimer_reset
-                0x00002e9c       0x14 contiki-cc13xx.a(etimer.o)
-                0x00002e9c                etimer_reset
+                0x00002c78       0x14 contiki-cc13xx.a(etimer.o)
+                0x00002c78                etimer_reset
  .text.etimer_restart
-                0x00002eb0       0x14 contiki-cc13xx.a(etimer.o)
-                0x00002eb0                etimer_restart
+                0x00002c8c       0x14 contiki-cc13xx.a(etimer.o)
+                0x00002c8c                etimer_restart
  .text.etimer_expired
-                0x00002ec4        0xc contiki-cc13xx.a(etimer.o)
-                0x00002ec4                etimer_expired
+                0x00002ca0        0xc contiki-cc13xx.a(etimer.o)
+                0x00002ca0                etimer_expired
  .text.etimer_expiration_time
-                0x00002ed0        0x8 contiki-cc13xx.a(etimer.o)
-                0x00002ed0                etimer_expiration_time
+                0x00002cac        0x8 contiki-cc13xx.a(etimer.o)
+                0x00002cac                etimer_expiration_time
  .text.etimer_pending
-                0x00002ed8       0x10 contiki-cc13xx.a(etimer.o)
-                0x00002ed8                etimer_pending
- .text.etimer_next_expiration_time
-                0x00002ee8       0x14 contiki-cc13xx.a(etimer.o)
-                0x00002ee8                etimer_next_expiration_time
+                0x00002cb4       0x10 contiki-cc13xx.a(etimer.o)
+                0x00002cb4                etimer_pending
  .text.etimer_stop
-                0x00002efc       0x4c contiki-cc13xx.a(etimer.o)
-                0x00002efc                etimer_stop
+                0x00002cc4       0x4c contiki-cc13xx.a(etimer.o)
+                0x00002cc4                etimer_stop
  .text.exit_process
-                0x00002f48       0xb0 contiki-cc13xx.a(process.o)
+                0x00002d10       0xb0 contiki-cc13xx.a(process.o)
  .text.call_process.part.0
-                0x00002ff8       0x38 contiki-cc13xx.a(process.o)
- .text.do_poll  0x00003030       0x3c contiki-cc13xx.a(process.o)
+                0x00002dc0       0x38 contiki-cc13xx.a(process.o)
+ .text.do_poll  0x00002df8       0x3c contiki-cc13xx.a(process.o)
  .text.process_alloc_event
-                0x0000306c       0x10 contiki-cc13xx.a(process.o)
-                0x0000306c                process_alloc_event
+                0x00002e34       0x10 contiki-cc13xx.a(process.o)
+                0x00002e34                process_alloc_event
  .text.process_init
-                0x0000307c       0x34 contiki-cc13xx.a(process.o)
-                0x0000307c                process_init
+                0x00002e44       0x34 contiki-cc13xx.a(process.o)
+                0x00002e44                process_init
  .text.process_run
-                0x000030b0       0xac contiki-cc13xx.a(process.o)
-                0x000030b0                process_run
- .text.process_nevents
-                0x0000315c       0x14 contiki-cc13xx.a(process.o)
-                0x0000315c                process_nevents
+                0x00002e78       0xac contiki-cc13xx.a(process.o)
+                0x00002e78                process_run
  .text.process_post
-                0x00003170       0x40 contiki-cc13xx.a(process.o)
-                0x00003170                process_post
+                0x00002f24       0x40 contiki-cc13xx.a(process.o)
+                0x00002f24                process_post
  .text.process_post_synch
-                0x000031b0       0x18 contiki-cc13xx.a(process.o)
-                0x000031b0                process_post_synch
+                0x00002f64       0x18 contiki-cc13xx.a(process.o)
+                0x00002f64                process_post_synch
  .text.process_start
-                0x000031c8       0x40 contiki-cc13xx.a(process.o)
-                0x000031c8                process_start
+                0x00002f7c       0x40 contiki-cc13xx.a(process.o)
+                0x00002f7c                process_start
  .text.process_poll
-                0x00003208       0x18 contiki-cc13xx.a(process.o)
-                0x00003208                process_poll
+                0x00002fbc       0x18 contiki-cc13xx.a(process.o)
+                0x00002fbc                process_poll
  .text.rtimer_init
-                0x00003220        0x4 contiki-cc13xx.a(rtimer.o)
-                0x00003220                rtimer_init
+                0x00002fd4        0x4 contiki-cc13xx.a(rtimer.o)
+                0x00002fd4                rtimer_init
  .text.rtimer_set
-                0x00003224       0x34 contiki-cc13xx.a(rtimer.o)
-                0x00003224                rtimer_set
+                0x00002fd8       0x2c contiki-cc13xx.a(rtimer.o)
+                0x00002fd8                rtimer_set
  .text.rtimer_run_next
-                0x00003258       0x28 contiki-cc13xx.a(rtimer.o)
-                0x00003258                rtimer_run_next
+                0x00003004       0x28 contiki-cc13xx.a(rtimer.o)
+                0x00003004                rtimer_run_next
  .text.timer_set
-                0x00003280       0x10 contiki-cc13xx.a(timer.o)
-                0x00003280                timer_set
+                0x0000302c       0x10 contiki-cc13xx.a(timer.o)
+                0x0000302c                timer_set
  .text.timer_reset
-                0x00003290        0xc contiki-cc13xx.a(timer.o)
-                0x00003290                timer_reset
+                0x0000303c        0xc contiki-cc13xx.a(timer.o)
+                0x0000303c                timer_reset
  .text.timer_restart
-                0x0000329c        0xc contiki-cc13xx.a(timer.o)
-                0x0000329c                timer_restart
+                0x00003048        0xc contiki-cc13xx.a(timer.o)
+                0x00003048                timer_restart
  .text.timer_expired
-                0x000032a8       0x1c contiki-cc13xx.a(timer.o)
-                0x000032a8                timer_expired
+                0x00003054       0x1c contiki-cc13xx.a(timer.o)
+                0x00003054                timer_expired
  .text.process_thread_serial_line_process
-                0x000032c4       0xac contiki-cc13xx.a(serial-line.o)
+                0x00003070       0xac contiki-cc13xx.a(serial-line.o)
  .text.serial_line_init
-                0x00003370       0x24 contiki-cc13xx.a(serial-line.o)
-                0x00003370                serial_line_init
+                0x0000311c       0x24 contiki-cc13xx.a(serial-line.o)
+                0x0000311c                serial_line_init
  .text.leds_init
-                0x00003394       0x14 contiki-cc13xx.a(leds.o)
-                0x00003394                leds_init
- .text.leds_on  0x000033a8       0x14 contiki-cc13xx.a(leds.o)
-                0x000033a8                leds_on
+                0x00003140       0x14 contiki-cc13xx.a(leds.o)
+                0x00003140                leds_init
+ .text.leds_on  0x00003154       0x14 contiki-cc13xx.a(leds.o)
+                0x00003154                leds_on
  .text.leds_off
-                0x000033bc       0x14 contiki-cc13xx.a(leds.o)
-                0x000033bc                leds_off
+                0x00003168       0x14 contiki-cc13xx.a(leds.o)
+                0x00003168                leds_off
  .text.leds_toggle
-                0x000033d0       0x14 contiki-cc13xx.a(leds.o)
-                0x000033d0                leds_toggle
+                0x0000317c       0x14 contiki-cc13xx.a(leds.o)
+                0x0000317c                leds_toggle
  .text.list_init
-                0x000033e4        0x8 contiki-cc13xx.a(list.o)
-                0x000033e4                list_init
+                0x00003190        0x8 contiki-cc13xx.a(list.o)
+                0x00003190                list_init
  .text.list_head
-                0x000033ec        0x4 contiki-cc13xx.a(list.o)
-                0x000033ec                list_head
+                0x00003198        0x4 contiki-cc13xx.a(list.o)
+                0x00003198                list_head
  .text.list_add
-                0x000033f0       0x48 contiki-cc13xx.a(list.o)
-                0x000033f0                list_add
+                0x0000319c       0x48 contiki-cc13xx.a(list.o)
+                0x0000319c                list_add
  .text.list_push
-                0x00003438       0x40 contiki-cc13xx.a(list.o)
-                0x00003438                list_push
+                0x000031e4       0x40 contiki-cc13xx.a(list.o)
+                0x000031e4                list_push
  .text.list_remove
-                0x00003478       0x2c contiki-cc13xx.a(list.o)
-                0x00003478                list_remove
+                0x00003224       0x2c contiki-cc13xx.a(list.o)
+                0x00003224                list_remove
  .text.list_length
-                0x000034a4       0x14 contiki-cc13xx.a(list.o)
-                0x000034a4                list_length
+                0x00003250       0x14 contiki-cc13xx.a(list.o)
+                0x00003250                list_length
  .text.list_item_next
-                0x000034b8        0x8 contiki-cc13xx.a(list.o)
-                0x000034b8                list_item_next
+                0x00003264        0x8 contiki-cc13xx.a(list.o)
+                0x00003264                list_item_next
  .text.ringbuf_init
-                0x000034c0       0x10 contiki-cc13xx.a(ringbuf.o)
-                0x000034c0                ringbuf_init
+                0x0000326c       0x10 contiki-cc13xx.a(ringbuf.o)
+                0x0000326c                ringbuf_init
  .text.ringbuf_get
-                0x000034d0       0x28 contiki-cc13xx.a(ringbuf.o)
-                0x000034d0                ringbuf_get
+                0x0000327c       0x28 contiki-cc13xx.a(ringbuf.o)
+                0x0000327c                ringbuf_get
  .text.sicslowpan_init
-                0x000034f8       0x24 contiki-cc13xx.a(sicslowpan.o)
-                0x000034f8                sicslowpan_init
+                0x000032a4       0x24 contiki-cc13xx.a(sicslowpan.o)
+                0x000032a4                sicslowpan_init
  .text.compress_addr_64
-                0x0000351c       0x9c contiki-cc13xx.a(sicslowpan.o)
+                0x000032c8       0x9c contiki-cc13xx.a(sicslowpan.o)
  .text.set_packet_attrs
-                0x000035b8       0x4c contiki-cc13xx.a(sicslowpan.o)
+                0x00003364       0x4c contiki-cc13xx.a(sicslowpan.o)
  .text.addr_context_lookup_by_prefix
-                0x00003604       0x28 contiki-cc13xx.a(sicslowpan.o)
+                0x000033b0       0x28 contiki-cc13xx.a(sicslowpan.o)
  .text.send_packet
-                0x0000362c       0x24 contiki-cc13xx.a(sicslowpan.o)
+                0x000033d8       0x24 contiki-cc13xx.a(sicslowpan.o)
  .text.packet_sent
-                0x00003650       0x28 contiki-cc13xx.a(sicslowpan.o)
+                0x000033fc       0x28 contiki-cc13xx.a(sicslowpan.o)
  .text.store_fragment
-                0x00003678       0x68 contiki-cc13xx.a(sicslowpan.o)
+                0x00003424       0x68 contiki-cc13xx.a(sicslowpan.o)
  .text.add_fragment
-                0x000036e0      0x198 contiki-cc13xx.a(sicslowpan.o)
+                0x0000348c      0x198 contiki-cc13xx.a(sicslowpan.o)
  .text.uncompress_addr
-                0x00003878       0xb8 contiki-cc13xx.a(sicslowpan.o)
- .text.input    0x00003930      0x660 contiki-cc13xx.a(sicslowpan.o)
- .text.output   0x00003f90      0x730 contiki-cc13xx.a(sicslowpan.o)
+                0x00003624       0xb8 contiki-cc13xx.a(sicslowpan.o)
+ .text.input    0x000036dc      0x660 contiki-cc13xx.a(sicslowpan.o)
+ .text.output   0x00003d3c      0x730 contiki-cc13xx.a(sicslowpan.o)
  .text.start_periodic_tcp_timer
-                0x000046c0       0x1c contiki-cc13xx.a(tcpip.o)
+                0x0000446c       0x1c contiki-cc13xx.a(tcpip.o)
  .text.tcpip_set_outputfunc
-                0x000046dc        0xc contiki-cc13xx.a(tcpip.o)
-                0x000046dc                tcpip_set_outputfunc
+                0x00004488        0xc contiki-cc13xx.a(tcpip.o)
+                0x00004488                tcpip_set_outputfunc
  .text.tcpip_icmp6_call
-                0x000046e8       0x28 contiki-cc13xx.a(tcpip.o)
-                0x000046e8                tcpip_icmp6_call
+                0x00004494       0x28 contiki-cc13xx.a(tcpip.o)
+                0x00004494                tcpip_icmp6_call
  .text.tcpip_input
-                0x00004710       0x24 contiki-cc13xx.a(tcpip.o)
-                0x00004710                tcpip_input
+                0x000044bc       0x24 contiki-cc13xx.a(tcpip.o)
+                0x000044bc                tcpip_input
  .text.tcpip_ipv6_output
-                0x00004734       0xbc contiki-cc13xx.a(tcpip.o)
-                0x00004734                tcpip_ipv6_output
+                0x000044e0       0xbc contiki-cc13xx.a(tcpip.o)
+                0x000044e0                tcpip_ipv6_output
  .text.process_thread_tcpip_process
-                0x000047f0      0x1c8 contiki-cc13xx.a(tcpip.o)
+                0x0000459c      0x1c8 contiki-cc13xx.a(tcpip.o)
  .text.tcpip_uipcall
-                0x000049b8       0x70 contiki-cc13xx.a(tcpip.o)
-                0x000049b8                tcpip_uipcall
+                0x00004764       0x70 contiki-cc13xx.a(tcpip.o)
+                0x00004764                tcpip_uipcall
  .text.update_hbh_header
-                0x00004a28       0xcc contiki-cc13xx.a(rpl-ext-header.)
+                0x000047d4       0xcc contiki-cc13xx.a(rpl-ext-header.)
  .text.insert_hbh_header.isra.0
-                0x00004af4       0xac contiki-cc13xx.a(rpl-ext-header.)
+                0x000048a0       0xac contiki-cc13xx.a(rpl-ext-header.)
  .text.rpl_verify_hbh_header
-                0x00004ba0       0xf0 contiki-cc13xx.a(rpl-ext-header.)
-                0x00004ba0                rpl_verify_hbh_header
+                0x0000494c       0xf0 contiki-cc13xx.a(rpl-ext-header.)
+                0x0000494c                rpl_verify_hbh_header
  .text.rpl_remove_header
-                0x00004c90       0x7c contiki-cc13xx.a(rpl-ext-header.)
-                0x00004c90                rpl_remove_header
+                0x00004a3c       0x7c contiki-cc13xx.a(rpl-ext-header.)
+                0x00004a3c                rpl_remove_header
  .text.rpl_update_header
-                0x00004d0c       0x74 contiki-cc13xx.a(rpl-ext-header.)
-                0x00004d0c                rpl_update_header
+                0x00004ab8       0x74 contiki-cc13xx.a(rpl-ext-header.)
+                0x00004ab8                rpl_update_header
  .text.rpl_get_mode
-                0x00004d80        0xc contiki-cc13xx.a(rpl.o)
-                0x00004d80                rpl_get_mode
+                0x00004b2c        0xc contiki-cc13xx.a(rpl.o)
+                0x00004b2c                rpl_get_mode
  .text.rpl_purge_routes
-                0x00004d8c       0x7c contiki-cc13xx.a(rpl.o)
-                0x00004d8c                rpl_purge_routes
+                0x00004b38       0x7c contiki-cc13xx.a(rpl.o)
+                0x00004b38                rpl_purge_routes
  .text.rpl_remove_routes
-                0x00004e08       0x24 contiki-cc13xx.a(rpl.o)
-                0x00004e08                rpl_remove_routes
+                0x00004bb4       0x24 contiki-cc13xx.a(rpl.o)
+                0x00004bb4                rpl_remove_routes
  .text.rpl_remove_routes_by_nexthop
-                0x00004e2c       0x34 contiki-cc13xx.a(rpl.o)
-                0x00004e2c                rpl_remove_routes_by_nexthop
+                0x00004bd8       0x34 contiki-cc13xx.a(rpl.o)
+                0x00004bd8                rpl_remove_routes_by_nexthop
  .text.rpl_add_route
-                0x00004e60       0x38 contiki-cc13xx.a(rpl.o)
-                0x00004e60                rpl_add_route
+                0x00004c0c       0x38 contiki-cc13xx.a(rpl.o)
+                0x00004c0c                rpl_add_route
  .text.rpl_link_neighbor_callback
-                0x00004e98       0x60 contiki-cc13xx.a(rpl.o)
-                0x00004e98                rpl_link_neighbor_callback
+                0x00004c44       0x60 contiki-cc13xx.a(rpl.o)
+                0x00004c44                rpl_link_neighbor_callback
  .text.rpl_ipv6_neighbor_callback
-                0x00004ef8       0x30 contiki-cc13xx.a(rpl.o)
-                0x00004ef8                rpl_ipv6_neighbor_callback
+                0x00004ca4       0x30 contiki-cc13xx.a(rpl.o)
+                0x00004ca4                rpl_ipv6_neighbor_callback
  .text.rpl_purge_dags
-                0x00004f28       0x40 contiki-cc13xx.a(rpl.o)
-                0x00004f28                rpl_purge_dags
+                0x00004cd4       0x40 contiki-cc13xx.a(rpl.o)
+                0x00004cd4                rpl_purge_dags
  .text.rpl_init
-                0x00004f68       0x4c contiki-cc13xx.a(rpl.o)
-                0x00004f68                rpl_init
- .text.get32    0x00004fb4       0x20 contiki-cc13xx.a(rpl-icmp6.o)
+                0x00004d14       0x4c contiki-cc13xx.a(rpl.o)
+                0x00004d14                rpl_init
+ .text.get32    0x00004d60       0x20 contiki-cc13xx.a(rpl-icmp6.o)
  .text.dao_ack_input
-                0x00004fd4       0x14 contiki-cc13xx.a(rpl-icmp6.o)
+                0x00004d80       0x14 contiki-cc13xx.a(rpl-icmp6.o)
  .text.dao_output_target_seq
-                0x00004fe8      0x12c contiki-cc13xx.a(rpl-icmp6.o)
+                0x00004d94      0x12c contiki-cc13xx.a(rpl-icmp6.o)
  .text.dio_input
-                0x00005114      0x270 contiki-cc13xx.a(rpl-icmp6.o)
+                0x00004ec0      0x270 contiki-cc13xx.a(rpl-icmp6.o)
  .text.rpl_icmp6_update_nbr_table
-                0x00005384       0x38 contiki-cc13xx.a(rpl-icmp6.o)
-                0x00005384                rpl_icmp6_update_nbr_table
+                0x00005130       0x38 contiki-cc13xx.a(rpl-icmp6.o)
+                0x00005130                rpl_icmp6_update_nbr_table
  .text.dao_input
-                0x000053bc      0x2ec contiki-cc13xx.a(rpl-icmp6.o)
+                0x00005168      0x2ec contiki-cc13xx.a(rpl-icmp6.o)
  .text.dis_output
-                0x000056a8       0x58 contiki-cc13xx.a(rpl-icmp6.o)
-                0x000056a8                dis_output
+                0x00005454       0x58 contiki-cc13xx.a(rpl-icmp6.o)
+                0x00005454                dis_output
  .text.dio_output
-                0x00005700      0x2e4 contiki-cc13xx.a(rpl-icmp6.o)
-                0x00005700                dio_output
+                0x000054ac      0x2e4 contiki-cc13xx.a(rpl-icmp6.o)
+                0x000054ac                dio_output
  .text.dis_input
-                0x000059e4       0x54 contiki-cc13xx.a(rpl-icmp6.o)
+                0x00005790       0x54 contiki-cc13xx.a(rpl-icmp6.o)
  .text.dao_output
-                0x00005a38       0x90 contiki-cc13xx.a(rpl-icmp6.o)
-                0x00005a38                dao_output
+                0x000057e4       0x90 contiki-cc13xx.a(rpl-icmp6.o)
+                0x000057e4                dao_output
  .text.dao_output_target
-                0x00005ac8        0xc contiki-cc13xx.a(rpl-icmp6.o)
-                0x00005ac8                dao_output_target
+                0x00005874        0xc contiki-cc13xx.a(rpl-icmp6.o)
+                0x00005874                dao_output_target
  .text.rpl_icmp6_register_handlers
-                0x00005ad4       0x30 contiki-cc13xx.a(rpl-icmp6.o)
-                0x00005ad4                rpl_icmp6_register_handlers
+                0x00005880       0x30 contiki-cc13xx.a(rpl-icmp6.o)
+                0x00005880                rpl_icmp6_register_handlers
  .text.lollipop_greater_than
-                0x00005b04       0x3c contiki-cc13xx.a(rpl-dag.o)
+                0x000058b0       0x3c contiki-cc13xx.a(rpl-dag.o)
  .text.rpl_set_preferred_parent
-                0x00005b40       0x2c contiki-cc13xx.a(rpl-dag.o)
+                0x000058ec       0x2c contiki-cc13xx.a(rpl-dag.o)
  .text.set_ip_from_prefix
-                0x00005b6c       0x2c contiki-cc13xx.a(rpl-dag.o)
+                0x00005918       0x2c contiki-cc13xx.a(rpl-dag.o)
  .text.check_prefix
-                0x00005b98       0x78 contiki-cc13xx.a(rpl-dag.o)
+                0x00005944       0x78 contiki-cc13xx.a(rpl-dag.o)
  .text.find_parent_any_dag_any_instance
-                0x00005c10       0x1c contiki-cc13xx.a(rpl-dag.o)
+                0x000059bc       0x1c contiki-cc13xx.a(rpl-dag.o)
  .text.rpl_dag_init
-                0x00005c2c       0x14 contiki-cc13xx.a(rpl-dag.o)
-                0x00005c2c                rpl_dag_init
+                0x000059d8       0x14 contiki-cc13xx.a(rpl-dag.o)
+                0x000059d8                rpl_dag_init
  .text.rpl_get_parent
-                0x00005c40       0x10 contiki-cc13xx.a(rpl-dag.o)
-                0x00005c40                rpl_get_parent
+                0x000059ec       0x10 contiki-cc13xx.a(rpl-dag.o)
+                0x000059ec                rpl_get_parent
  .text.rpl_rank_via_parent
-                0x00005c50       0x1c contiki-cc13xx.a(rpl-dag.o)
-                0x00005c50                rpl_rank_via_parent
+                0x000059fc       0x1c contiki-cc13xx.a(rpl-dag.o)
+                0x000059fc                rpl_rank_via_parent
  .text.rpl_get_parent_ipaddr
-                0x00005c6c       0x18 contiki-cc13xx.a(rpl-dag.o)
-                0x00005c6c                rpl_get_parent_ipaddr
+                0x00005a18       0x18 contiki-cc13xx.a(rpl-dag.o)
+                0x00005a18                rpl_get_parent_ipaddr
  .text.rpl_get_parent_link_stats
-                0x00005c84       0x18 contiki-cc13xx.a(rpl-dag.o)
-                0x00005c84                rpl_get_parent_link_stats
+                0x00005a30       0x18 contiki-cc13xx.a(rpl-dag.o)
+                0x00005a30                rpl_get_parent_link_stats
  .text.best_parent
-                0x00005c9c       0x98 contiki-cc13xx.a(rpl-dag.o)
+                0x00005a48       0x98 contiki-cc13xx.a(rpl-dag.o)
  .text.rpl_parent_is_fresh
-                0x00005d34       0x10 contiki-cc13xx.a(rpl-dag.o)
-                0x00005d34                rpl_parent_is_fresh
+                0x00005ae0       0x10 contiki-cc13xx.a(rpl-dag.o)
+                0x00005ae0                rpl_parent_is_fresh
  .text.rpl_parent_is_reachable
-                0x00005d44       0x40 contiki-cc13xx.a(rpl-dag.o)
-                0x00005d44                rpl_parent_is_reachable
+                0x00005af0       0x40 contiki-cc13xx.a(rpl-dag.o)
+                0x00005af0                rpl_parent_is_reachable
  .text.rpl_repair_root
-                0x00005d84       0x5c contiki-cc13xx.a(rpl-dag.o)
-                0x00005d84                rpl_repair_root
+                0x00005b30       0x5c contiki-cc13xx.a(rpl-dag.o)
+                0x00005b30                rpl_repair_root
  .text.rpl_set_prefix
-                0x00005de0       0x98 contiki-cc13xx.a(rpl-dag.o)
-                0x00005de0                rpl_set_prefix
+                0x00005b8c       0x98 contiki-cc13xx.a(rpl-dag.o)
+                0x00005b8c                rpl_set_prefix
  .text.rpl_set_default_route
-                0x00005e78       0x30 contiki-cc13xx.a(rpl-dag.o)
-                0x00005e78                rpl_set_default_route
+                0x00005c24       0x30 contiki-cc13xx.a(rpl-dag.o)
+                0x00005c24                rpl_set_default_route
  .text.rpl_alloc_instance
-                0x00005ea8       0x34 contiki-cc13xx.a(rpl-dag.o)
-                0x00005ea8                rpl_alloc_instance
+                0x00005c54       0x34 contiki-cc13xx.a(rpl-dag.o)
+                0x00005c54                rpl_alloc_instance
  .text.rpl_alloc_dag
-                0x00005edc       0x5c contiki-cc13xx.a(rpl-dag.o)
-                0x00005edc                rpl_alloc_dag
+                0x00005c88       0x5c contiki-cc13xx.a(rpl-dag.o)
+                0x00005c88                rpl_alloc_dag
  .text.rpl_add_parent
-                0x00005f38       0x30 contiki-cc13xx.a(rpl-dag.o)
-                0x00005f38                rpl_add_parent
+                0x00005ce4       0x30 contiki-cc13xx.a(rpl-dag.o)
+                0x00005ce4                rpl_add_parent
  .text.rpl_find_parent
-                0x00005f68       0x18 contiki-cc13xx.a(rpl-dag.o)
-                0x00005f68                rpl_find_parent
+                0x00005d14       0x18 contiki-cc13xx.a(rpl-dag.o)
+                0x00005d14                rpl_find_parent
  .text.rpl_find_parent_any_dag
-                0x00005f80       0x20 contiki-cc13xx.a(rpl-dag.o)
-                0x00005f80                rpl_find_parent_any_dag
+                0x00005d2c       0x20 contiki-cc13xx.a(rpl-dag.o)
+                0x00005d2c                rpl_find_parent_any_dag
  .text.rpl_select_parent
-                0x00005fa0       0x58 contiki-cc13xx.a(rpl-dag.o)
-                0x00005fa0                rpl_select_parent
+                0x00005d4c       0x58 contiki-cc13xx.a(rpl-dag.o)
+                0x00005d4c                rpl_select_parent
  .text.rpl_select_dag
-                0x00005ff8      0x184 contiki-cc13xx.a(rpl-dag.o)
-                0x00005ff8                rpl_select_dag
+                0x00005da4      0x184 contiki-cc13xx.a(rpl-dag.o)
+                0x00005da4                rpl_select_dag
  .text.rpl_nullify_parent
-                0x0000617c       0x58 contiki-cc13xx.a(rpl-dag.o)
-                0x0000617c                rpl_nullify_parent
+                0x00005f28       0x58 contiki-cc13xx.a(rpl-dag.o)
+                0x00005f28                rpl_nullify_parent
  .text.rpl_remove_parent
-                0x000061d4       0x1c contiki-cc13xx.a(rpl-dag.o)
-                0x000061d4                rpl_remove_parent
+                0x00005f80       0x1c contiki-cc13xx.a(rpl-dag.o)
+                0x00005f80                rpl_remove_parent
  .text.nbr_callback
-                0x000061f0        0x4 contiki-cc13xx.a(rpl-dag.o)
+                0x00005f9c        0x4 contiki-cc13xx.a(rpl-dag.o)
  .text.remove_parents.constprop.6
-                0x000061f4       0x44 contiki-cc13xx.a(rpl-dag.o)
+                0x00005fa0       0x44 contiki-cc13xx.a(rpl-dag.o)
  .text.rpl_free_dag
-                0x00006238       0x3c contiki-cc13xx.a(rpl-dag.o)
-                0x00006238                rpl_free_dag
+                0x00005fe4       0x3c contiki-cc13xx.a(rpl-dag.o)
+                0x00005fe4                rpl_free_dag
  .text.rpl_move_parent
-                0x00006274       0x58 contiki-cc13xx.a(rpl-dag.o)
-                0x00006274                rpl_move_parent
+                0x00006020       0x58 contiki-cc13xx.a(rpl-dag.o)
+                0x00006020                rpl_move_parent
  .text.rpl_get_dag
-                0x000062cc       0x3c contiki-cc13xx.a(rpl-dag.o)
-                0x000062cc                rpl_get_dag
+                0x00006078       0x3c contiki-cc13xx.a(rpl-dag.o)
+                0x00006078                rpl_get_dag
  .text.rpl_get_any_dag
-                0x00006308       0x18 contiki-cc13xx.a(rpl-dag.o)
-                0x00006308                rpl_get_any_dag
+                0x000060b4       0x18 contiki-cc13xx.a(rpl-dag.o)
+                0x000060b4                rpl_get_any_dag
  .text.rpl_get_instance
-                0x00006320       0x20 contiki-cc13xx.a(rpl-dag.o)
-                0x00006320                rpl_get_instance
+                0x000060cc       0x20 contiki-cc13xx.a(rpl-dag.o)
+                0x000060cc                rpl_get_instance
  .text.rpl_join_instance
-                0x00006340      0x168 contiki-cc13xx.a(rpl-dag.o)
-                0x00006340                rpl_join_instance
+                0x000060ec      0x168 contiki-cc13xx.a(rpl-dag.o)
+                0x000060ec                rpl_join_instance
  .text.rpl_local_repair
-                0x000064a8       0x90 contiki-cc13xx.a(rpl-dag.o)
-                0x000064a8                rpl_local_repair
+                0x00006254       0x90 contiki-cc13xx.a(rpl-dag.o)
+                0x00006254                rpl_local_repair
  .text.rpl_process_parent_event
-                0x00006538       0x9c contiki-cc13xx.a(rpl-dag.o)
-                0x00006538                rpl_process_parent_event
+                0x000062e4       0x9c contiki-cc13xx.a(rpl-dag.o)
+                0x000062e4                rpl_process_parent_event
  .text.rpl_add_dag
-                0x000065d4      0x154 contiki-cc13xx.a(rpl-dag.o)
-                0x000065d4                rpl_add_dag
+                0x00006380      0x154 contiki-cc13xx.a(rpl-dag.o)
+                0x00006380                rpl_add_dag
  .text.rpl_recalculate_ranks
-                0x00006728       0x50 contiki-cc13xx.a(rpl-dag.o)
-                0x00006728                rpl_recalculate_ranks
+                0x000064d4       0x50 contiki-cc13xx.a(rpl-dag.o)
+                0x000064d4                rpl_recalculate_ranks
  .text.rpl_process_dio
-                0x00006778      0x334 contiki-cc13xx.a(rpl-dag.o)
-                0x00006778                rpl_process_dio
+                0x00006524      0x334 contiki-cc13xx.a(rpl-dag.o)
+                0x00006524                rpl_process_dio
  .text.TrimAfterColdResetWakeupFromShutDown
-                0x00006aac       0xd8 contiki-cc13xx.a(setup.o)
+                0x00006858       0xd8 contiki-cc13xx.a(setup.o)
  .text.NOROM_SetupTrimDevice
-                0x00006b84       0xa4 contiki-cc13xx.a(setup.o)
-                0x00006b84                NOROM_SetupTrimDevice
+                0x00006930       0xa4 contiki-cc13xx.a(setup.o)
+                0x00006930                NOROM_SetupTrimDevice
  .text.NOROM_SetupGetTrimForXoscHfCtl.part.3
-                0x00006c28       0x20 contiki-cc13xx.a(setup_rom.o)
+                0x000069d4       0x20 contiki-cc13xx.a(setup_rom.o)
  .text.NOROM_SetupGetTrimForRadcExtCfg.part.4
-                0x00006c48       0x20 contiki-cc13xx.a(setup_rom.o)
+                0x000069f4       0x20 contiki-cc13xx.a(setup_rom.o)
  .text.NOROM_SetupSetVddrLevel
-                0x00006c68       0xa4 contiki-cc13xx.a(setup_rom.o)
-                0x00006c68                NOROM_SetupSetVddrLevel
+                0x00006a14       0xa4 contiki-cc13xx.a(setup_rom.o)
+                0x00006a14                NOROM_SetupSetVddrLevel
  .text.NOROM_SetupAfterColdResetWakeupFromShutDownCfg1
-                0x00006d0c       0xc0 contiki-cc13xx.a(setup_rom.o)
-                0x00006d0c                NOROM_SetupAfterColdResetWakeupFromShutDownCfg1
+                0x00006ab8       0xc0 contiki-cc13xx.a(setup_rom.o)
+                0x00006ab8                NOROM_SetupAfterColdResetWakeupFromShutDownCfg1
  .text.NOROM_SetupAfterColdResetWakeupFromShutDownCfg3
-                0x00006dcc      0x194 contiki-cc13xx.a(setup_rom.o)
-                0x00006dcc                NOROM_SetupAfterColdResetWakeupFromShutDownCfg3
+                0x00006b78      0x194 contiki-cc13xx.a(setup_rom.o)
+                0x00006b78                NOROM_SetupAfterColdResetWakeupFromShutDownCfg3
  .text.NOROM_SetupGetTrimForAnabypassValue1
-                0x00006f60       0x64 contiki-cc13xx.a(setup_rom.o)
-                0x00006f60                NOROM_SetupGetTrimForAnabypassValue1
+                0x00006d0c       0x64 contiki-cc13xx.a(setup_rom.o)
+                0x00006d0c                NOROM_SetupGetTrimForAnabypassValue1
  .text.NOROM_SetupGetTrimForAmpcompCtrl
-                0x00006fc4       0x74 contiki-cc13xx.a(setup_rom.o)
-                0x00006fc4                NOROM_SetupGetTrimForAmpcompCtrl
+                0x00006d70       0x74 contiki-cc13xx.a(setup_rom.o)
+                0x00006d70                NOROM_SetupGetTrimForAmpcompCtrl
  .text.NOROM_SetupAfterColdResetWakeupFromShutDownCfg2
-                0x00007038      0x19c contiki-cc13xx.a(setup_rom.o)
-                0x00007038                NOROM_SetupAfterColdResetWakeupFromShutDownCfg2
+                0x00006de4      0x19c contiki-cc13xx.a(setup_rom.o)
+                0x00006de4                NOROM_SetupAfterColdResetWakeupFromShutDownCfg2
  .text.NOROM_SetupSetCacheModeAccordingToCcfgSetting
-                0x000071d4       0x6c contiki-cc13xx.a(setup_rom.o)
-                0x000071d4                NOROM_SetupSetCacheModeAccordingToCcfgSetting
+                0x00006f80       0x6c contiki-cc13xx.a(setup_rom.o)
+                0x00006f80                NOROM_SetupSetCacheModeAccordingToCcfgSetting
  .text.NOROM_TRNGConfigure
-                0x00007240       0x38 contiki-cc13xx.a(trng.o)
-                0x00007240                NOROM_TRNGConfigure
+                0x00006fec       0x38 contiki-cc13xx.a(trng.o)
+                0x00006fec                NOROM_TRNGConfigure
  .text.SafeHapiVoid
-                0x00007278       0x2c contiki-cc13xx.a(adi.o)
-                0x00007278                SafeHapiVoid
+                0x00007024       0x2c contiki-cc13xx.a(adi.o)
+                0x00007024                SafeHapiVoid
  .text.NOROM_DDI32RegWrite
-                0x000072a4       0x34 contiki-cc13xx.a(ddi.o)
-                0x000072a4                NOROM_DDI32RegWrite
+                0x00007050       0x34 contiki-cc13xx.a(ddi.o)
+                0x00007050                NOROM_DDI32RegWrite
  .text.NOROM_ChipInfo_GetChipFamily
-                0x000072d8       0x50 contiki-cc13xx.a(chipinfo.o)
-                0x000072d8                NOROM_ChipInfo_GetChipFamily
+                0x00007084       0x50 contiki-cc13xx.a(chipinfo.o)
+                0x00007084                NOROM_ChipInfo_GetChipFamily
  .text.NOROM_ChipInfo_GetChipType
-                0x00007328       0x30 contiki-cc13xx.a(chipinfo.o)
-                0x00007328                NOROM_ChipInfo_GetChipType
+                0x000070d4       0x30 contiki-cc13xx.a(chipinfo.o)
+                0x000070d4                NOROM_ChipInfo_GetChipType
  .text.NOROM_ChipInfo_GetHwRevision
-                0x00007358       0x70 contiki-cc13xx.a(chipinfo.o)
-                0x00007358                NOROM_ChipInfo_GetHwRevision
+                0x00007104       0x70 contiki-cc13xx.a(chipinfo.o)
+                0x00007104                NOROM_ChipInfo_GetHwRevision
  .text.NOROM_ThisCodeIsBuiltForCC13xxHwRev20AndLater_HaltIfViolated
-                0x000073c8       0x18 contiki-cc13xx.a(chipinfo.o)
-                0x000073c8                NOROM_ThisCodeIsBuiltForCC13xxHwRev20AndLater_HaltIfViolated
+                0x00007174       0x18 contiki-cc13xx.a(chipinfo.o)
+                0x00007174                NOROM_ThisCodeIsBuiltForCC13xxHwRev20AndLater_HaltIfViolated
  .text.NOROM_CPUcpsid
-                0x000073e0        0x8 contiki-cc13xx.a(cpu.o)
-                0x000073e0                NOROM_CPUcpsid
+                0x0000718c        0x8 contiki-cc13xx.a(cpu.o)
+                0x0000718c                NOROM_CPUcpsid
  .text.NOROM_CPUcpsie
-                0x000073e8        0x8 contiki-cc13xx.a(cpu.o)
-                0x000073e8                NOROM_CPUcpsie
- .text.NOROM_PowerCtrlSourceSet
-                0x000073f0       0x30 contiki-cc13xx.a(pwr_ctrl.o)
-                0x000073f0                NOROM_PowerCtrlSourceSet
- .text.NOROM_SysCtrlSetRechargeBeforePowerDown
-                0x00007420      0x2b0 contiki-cc13xx.a(sys_ctrl.o)
-                0x00007420                NOROM_SysCtrlSetRechargeBeforePowerDown
- .text.NOROM_SysCtrlAdjustRechargeAfterPowerDown
-                0x000076d0       0x64 contiki-cc13xx.a(sys_ctrl.o)
-                0x000076d0                NOROM_SysCtrlAdjustRechargeAfterPowerDown
- .text.NOROM_SysCtrl_DCDC_VoltageConditionalControl
-                0x00007734       0x7c contiki-cc13xx.a(sys_ctrl.o)
-                0x00007734                NOROM_SysCtrl_DCDC_VoltageConditionalControl
+                0x00007194        0x8 contiki-cc13xx.a(cpu.o)
+                0x00007194                NOROM_CPUcpsie
  .text.NOROM_OSCClockSourceSet
-                0x000077b0       0x60 contiki-cc13xx.a(osc.o)
-                0x000077b0                NOROM_OSCClockSourceSet
+                0x0000719c       0x60 contiki-cc13xx.a(osc.o)
+                0x0000719c                NOROM_OSCClockSourceSet
  .text.NOROM_OSCClockSourceGet
-                0x00007810       0x2c contiki-cc13xx.a(osc.o)
-                0x00007810                NOROM_OSCClockSourceGet
+                0x000071fc       0x2c contiki-cc13xx.a(osc.o)
+                0x000071fc                NOROM_OSCClockSourceGet
  .text.NOROM_AONRTCCurrentCompareValueGet
-                0x0000783c       0x24 contiki-cc13xx.a(aon_rtc.o)
-                0x0000783c                NOROM_AONRTCCurrentCompareValueGet
+                0x00007228       0x24 contiki-cc13xx.a(aon_rtc.o)
+                0x00007228                NOROM_AONRTCCurrentCompareValueGet
  .text.NOROM_RFCRTrim
-                0x00007860      0x138 contiki-cc13xx.a(rfc.o)
-                0x00007860                NOROM_RFCRTrim
+                0x0000724c      0x138 contiki-cc13xx.a(rfc.o)
+                0x0000724c                NOROM_RFCRTrim
  .text.NOROM_RFCAdi3VcoLdoVoltageMode
-                0x00007998       0x20 contiki-cc13xx.a(rfc.o)
-                0x00007998                NOROM_RFCAdi3VcoLdoVoltageMode
+                0x00007384       0x20 contiki-cc13xx.a(rfc.o)
+                0x00007384                NOROM_RFCAdi3VcoLdoVoltageMode
  .text.queuebuf_numfree
-                0x000079b8        0xc contiki-cc13xx.a(queuebuf.o)
-                0x000079b8                queuebuf_numfree
+                0x000073a4        0xc contiki-cc13xx.a(queuebuf.o)
+                0x000073a4                queuebuf_numfree
  .text.queuebuf_new_from_packetbuf
-                0x000079c4       0x48 contiki-cc13xx.a(queuebuf.o)
-                0x000079c4                queuebuf_new_from_packetbuf
+                0x000073b0       0x48 contiki-cc13xx.a(queuebuf.o)
+                0x000073b0                queuebuf_new_from_packetbuf
  .text.queuebuf_free
-                0x00007a0c       0x2c contiki-cc13xx.a(queuebuf.o)
-                0x00007a0c                queuebuf_free
+                0x000073f8       0x2c contiki-cc13xx.a(queuebuf.o)
+                0x000073f8                queuebuf_free
  .text.queuebuf_to_packetbuf
-                0x00007a38       0x30 contiki-cc13xx.a(queuebuf.o)
-                0x00007a38                queuebuf_to_packetbuf
+                0x00007424       0x30 contiki-cc13xx.a(queuebuf.o)
+                0x00007424                queuebuf_to_packetbuf
  .text.nbr_set_bit
-                0x00007a68       0x4c contiki-cc13xx.a(nbr-table.o)
+                0x00007454       0x4c contiki-cc13xx.a(nbr-table.o)
  .text.index_from_lladdr
-                0x00007ab4       0x48 contiki-cc13xx.a(nbr-table.o)
+                0x000074a0       0x48 contiki-cc13xx.a(nbr-table.o)
  .text.nbr_get_bit.constprop.0
-                0x00007afc       0x2c contiki-cc13xx.a(nbr-table.o)
+                0x000074e8       0x2c contiki-cc13xx.a(nbr-table.o)
  .text.remove_key
-                0x00007b28       0x8c contiki-cc13xx.a(nbr-table.o)
+                0x00007514       0x8c contiki-cc13xx.a(nbr-table.o)
  .text.nbr_table_register
-                0x00007bb4       0x2c contiki-cc13xx.a(nbr-table.o)
-                0x00007bb4                nbr_table_register
+                0x000075a0       0x2c contiki-cc13xx.a(nbr-table.o)
+                0x000075a0                nbr_table_register
  .text.nbr_table_next
-                0x00007be0       0x64 contiki-cc13xx.a(nbr-table.o)
-                0x00007be0                nbr_table_next
+                0x000075cc       0x64 contiki-cc13xx.a(nbr-table.o)
+                0x000075cc                nbr_table_next
  .text.nbr_table_head
-                0x00007c44       0x50 contiki-cc13xx.a(nbr-table.o)
-                0x00007c44                nbr_table_head
+                0x00007630       0x50 contiki-cc13xx.a(nbr-table.o)
+                0x00007630                nbr_table_head
  .text.nbr_table_add_lladdr
-                0x00007c94      0x124 contiki-cc13xx.a(nbr-table.o)
-                0x00007c94                nbr_table_add_lladdr
+                0x00007680      0x124 contiki-cc13xx.a(nbr-table.o)
+                0x00007680                nbr_table_add_lladdr
  .text.nbr_table_get_from_lladdr
-                0x00007db8       0x34 contiki-cc13xx.a(nbr-table.o)
-                0x00007db8                nbr_table_get_from_lladdr
+                0x000077a4       0x34 contiki-cc13xx.a(nbr-table.o)
+                0x000077a4                nbr_table_get_from_lladdr
  .text.nbr_table_remove
-                0x00007dec       0x2c contiki-cc13xx.a(nbr-table.o)
-                0x00007dec                nbr_table_remove
+                0x000077d8       0x2c contiki-cc13xx.a(nbr-table.o)
+                0x000077d8                nbr_table_remove
  .text.nbr_table_lock
-                0x00007e18       0x14 contiki-cc13xx.a(nbr-table.o)
-                0x00007e18                nbr_table_lock
+                0x00007804       0x14 contiki-cc13xx.a(nbr-table.o)
+                0x00007804                nbr_table_lock
  .text.nbr_table_unlock
-                0x00007e2c       0x14 contiki-cc13xx.a(nbr-table.o)
-                0x00007e2c                nbr_table_unlock
+                0x00007818       0x14 contiki-cc13xx.a(nbr-table.o)
+                0x00007818                nbr_table_unlock
  .text.nbr_table_get_lladdr
-                0x00007e40       0x2c contiki-cc13xx.a(nbr-table.o)
-                0x00007e40                nbr_table_get_lladdr
+                0x0000782c       0x2c contiki-cc13xx.a(nbr-table.o)
+                0x0000782c                nbr_table_get_lladdr
  .text.nbr_table_update_lladdr
-                0x00007e6c       0x48 contiki-cc13xx.a(nbr-table.o)
-                0x00007e6c                nbr_table_update_lladdr
+                0x00007858       0x48 contiki-cc13xx.a(nbr-table.o)
+                0x00007858                nbr_table_update_lladdr
  .text.packetbuf_copyto
-                0x00007eb4       0x50 contiki-cc13xx.a(packetbuf.o)
-                0x00007eb4                packetbuf_copyto
+                0x000078a0       0x50 contiki-cc13xx.a(packetbuf.o)
+                0x000078a0                packetbuf_copyto
  .text.packetbuf_hdralloc
-                0x00007f04       0x58 contiki-cc13xx.a(packetbuf.o)
-                0x00007f04                packetbuf_hdralloc
+                0x000078f0       0x58 contiki-cc13xx.a(packetbuf.o)
+                0x000078f0                packetbuf_hdralloc
  .text.packetbuf_set_datalen
-                0x00007f5c        0xc contiki-cc13xx.a(packetbuf.o)
-                0x00007f5c                packetbuf_set_datalen
+                0x00007948        0xc contiki-cc13xx.a(packetbuf.o)
+                0x00007948                packetbuf_set_datalen
  .text.packetbuf_dataptr
-                0x00007f68       0x20 contiki-cc13xx.a(packetbuf.o)
-                0x00007f68                packetbuf_dataptr
+                0x00007954       0x20 contiki-cc13xx.a(packetbuf.o)
+                0x00007954                packetbuf_dataptr
  .text.packetbuf_hdrptr
-                0x00007f88        0x8 contiki-cc13xx.a(packetbuf.o)
-                0x00007f88                packetbuf_hdrptr
+                0x00007974        0x8 contiki-cc13xx.a(packetbuf.o)
+                0x00007974                packetbuf_hdrptr
  .text.packetbuf_datalen
-                0x00007f90        0xc contiki-cc13xx.a(packetbuf.o)
-                0x00007f90                packetbuf_datalen
+                0x0000797c        0xc contiki-cc13xx.a(packetbuf.o)
+                0x0000797c                packetbuf_datalen
  .text.packetbuf_totlen
-                0x00007f9c       0x24 contiki-cc13xx.a(packetbuf.o)
-                0x00007f9c                packetbuf_totlen
+                0x00007988       0x24 contiki-cc13xx.a(packetbuf.o)
+                0x00007988                packetbuf_totlen
  .text.packetbuf_attr_clear
-                0x00007fc0       0x30 contiki-cc13xx.a(packetbuf.o)
-                0x00007fc0                packetbuf_attr_clear
+                0x000079ac       0x30 contiki-cc13xx.a(packetbuf.o)
+                0x000079ac                packetbuf_attr_clear
  .text.packetbuf_clear
-                0x00007ff0       0x20 contiki-cc13xx.a(packetbuf.o)
-                0x00007ff0                packetbuf_clear
+                0x000079dc       0x20 contiki-cc13xx.a(packetbuf.o)
+                0x000079dc                packetbuf_clear
  .text.packetbuf_copyfrom
-                0x00008010       0x40 contiki-cc13xx.a(packetbuf.o)
-                0x00008010                packetbuf_copyfrom
+                0x000079fc       0x40 contiki-cc13xx.a(packetbuf.o)
+                0x000079fc                packetbuf_copyfrom
  .text.packetbuf_attr_copyto
-                0x00008050       0x38 contiki-cc13xx.a(packetbuf.o)
-                0x00008050                packetbuf_attr_copyto
+                0x00007a3c       0x38 contiki-cc13xx.a(packetbuf.o)
+                0x00007a3c                packetbuf_attr_copyto
  .text.packetbuf_attr_copyfrom
-                0x00008088       0x38 contiki-cc13xx.a(packetbuf.o)
-                0x00008088                packetbuf_attr_copyfrom
+                0x00007a74       0x38 contiki-cc13xx.a(packetbuf.o)
+                0x00007a74                packetbuf_attr_copyfrom
  .text.packetbuf_set_attr
-                0x000080c0       0x10 contiki-cc13xx.a(packetbuf.o)
-                0x000080c0                packetbuf_set_attr
+                0x00007aac       0x10 contiki-cc13xx.a(packetbuf.o)
+                0x00007aac                packetbuf_set_attr
  .text.packetbuf_attr
-                0x000080d0        0xc contiki-cc13xx.a(packetbuf.o)
-                0x000080d0                packetbuf_attr
+                0x00007abc        0xc contiki-cc13xx.a(packetbuf.o)
+                0x00007abc                packetbuf_attr
  .text.packetbuf_set_addr
-                0x000080dc       0x18 contiki-cc13xx.a(packetbuf.o)
-                0x000080dc                packetbuf_set_addr
+                0x00007ac8       0x18 contiki-cc13xx.a(packetbuf.o)
+                0x00007ac8                packetbuf_set_addr
  .text.packetbuf_addr
-                0x000080f4       0x10 contiki-cc13xx.a(packetbuf.o)
-                0x000080f4                packetbuf_addr
+                0x00007ae0       0x10 contiki-cc13xx.a(packetbuf.o)
+                0x00007ae0                packetbuf_addr
  .text.packetbuf_holds_broadcast
-                0x00008104       0x10 contiki-cc13xx.a(packetbuf.o)
-                0x00008104                packetbuf_holds_broadcast
+                0x00007af0       0x10 contiki-cc13xx.a(packetbuf.o)
+                0x00007af0                packetbuf_holds_broadcast
  .text.netstack_init
-                0x00008114       0x1c contiki-cc13xx.a(netstack.o)
-                0x00008114                netstack_init
+                0x00007b00       0x1c contiki-cc13xx.a(netstack.o)
+                0x00007b00                netstack_init
  .text.linkaddr_copy
-                0x00008130        0x8 contiki-cc13xx.a(linkaddr.o)
-                0x00008130                linkaddr_copy
+                0x00007b1c        0x8 contiki-cc13xx.a(linkaddr.o)
+                0x00007b1c                linkaddr_copy
  .text.linkaddr_cmp
-                0x00008138       0x10 contiki-cc13xx.a(linkaddr.o)
-                0x00008138                linkaddr_cmp
+                0x00007b24       0x10 contiki-cc13xx.a(linkaddr.o)
+                0x00007b24                linkaddr_cmp
  .text.periodic
-                0x00008148       0x2c contiki-cc13xx.a(link-stats.o)
+                0x00007b34       0x2c contiki-cc13xx.a(link-stats.o)
  .text.link_stats_from_lladdr
-                0x00008174        0xc contiki-cc13xx.a(link-stats.o)
-                0x00008174                link_stats_from_lladdr
+                0x00007b60        0xc contiki-cc13xx.a(link-stats.o)
+                0x00007b60                link_stats_from_lladdr
  .text.link_stats_is_fresh
-                0x00008180       0x28 contiki-cc13xx.a(link-stats.o)
-                0x00008180                link_stats_is_fresh
+                0x00007b6c       0x28 contiki-cc13xx.a(link-stats.o)
+                0x00007b6c                link_stats_is_fresh
  .text.link_stats_packet_sent
-                0x000081a8       0xbc contiki-cc13xx.a(link-stats.o)
-                0x000081a8                link_stats_packet_sent
+                0x00007b94       0xbc contiki-cc13xx.a(link-stats.o)
+                0x00007b94                link_stats_packet_sent
  .text.link_stats_input_callback
-                0x00008264       0x5c contiki-cc13xx.a(link-stats.o)
-                0x00008264                link_stats_input_callback
+                0x00007c50       0x5c contiki-cc13xx.a(link-stats.o)
+                0x00007c50                link_stats_input_callback
  .text.link_stats_init
-                0x000082c0       0x28 contiki-cc13xx.a(link-stats.o)
-                0x000082c0                link_stats_init
- .text.parse    0x000082e8       0x7c contiki-cc13xx.a(framer-802154.o)
+                0x00007cac       0x28 contiki-cc13xx.a(link-stats.o)
+                0x00007cac                link_stats_init
+ .text.parse    0x00007cd4       0x7c contiki-cc13xx.a(framer-802154.o)
  .text.create_frame.isra.0
-                0x00008364      0x140 contiki-cc13xx.a(framer-802154.o)
- .text.create   0x000084a4        0x8 contiki-cc13xx.a(framer-802154.o)
+                0x00007d50      0x140 contiki-cc13xx.a(framer-802154.o)
+ .text.create   0x00007e90        0x8 contiki-cc13xx.a(framer-802154.o)
  .text.hdr_length
-                0x000084ac        0x8 contiki-cc13xx.a(framer-802154.o)
- .text.on       0x000084b4        0xc contiki-cc13xx.a(nullrdc.o)
+                0x00007e98        0x8 contiki-cc13xx.a(framer-802154.o)
+ .text.on       0x00007ea0        0xc contiki-cc13xx.a(nullrdc.o)
  .text.channel_check_interval
-                0x000084c0        0x4 contiki-cc13xx.a(nullrdc.o)
- .text.init     0x000084c4        0xc contiki-cc13xx.a(nullrdc.o)
+                0x00007eac        0x4 contiki-cc13xx.a(nullrdc.o)
+ .text.init     0x00007eb0        0xc contiki-cc13xx.a(nullrdc.o)
  .text.packet_input
-                0x000084d0       0xc4 contiki-cc13xx.a(nullrdc.o)
+                0x00007ebc       0xc4 contiki-cc13xx.a(nullrdc.o)
  .text.send_one_packet
-                0x00008594      0x114 contiki-cc13xx.a(nullrdc.o)
+                0x00007f80      0x114 contiki-cc13xx.a(nullrdc.o)
  .text.send_list
-                0x000086a8       0x24 contiki-cc13xx.a(nullrdc.o)
+                0x00008094       0x24 contiki-cc13xx.a(nullrdc.o)
  .text.send_packet
-                0x000086cc        0x4 contiki-cc13xx.a(nullrdc.o)
- .text.off      0x000086d0       0x1c contiki-cc13xx.a(nullrdc.o)
+                0x000080b8        0x4 contiki-cc13xx.a(nullrdc.o)
+ .text.off      0x000080bc       0x1c contiki-cc13xx.a(nullrdc.o)
  .text.channel_check_interval
-                0x000086ec        0x4 contiki-cc13xx.a(hitmac.o)
+                0x000080d8        0x4 contiki-cc13xx.a(hitmac.o)
  .text.update_asn
-                0x000086f0       0xd4 contiki-cc13xx.a(hitmac.o)
-                0x000086f0                update_asn
+                0x000080dc       0xe8 contiki-cc13xx.a(hitmac.o)
+                0x000080dc                update_asn
  .text.packet_input
-                0x000087c4      0x1bc contiki-cc13xx.a(hitmac.o)
+                0x000081c4      0x238 contiki-cc13xx.a(hitmac.o)
  .text.hitmac_init
-                0x00008980       0xc8 contiki-cc13xx.a(hitmac.o)
+                0x000083fc       0xb4 contiki-cc13xx.a(hitmac.o)
  .text.turn_off
-                0x00008a48       0x1c contiki-cc13xx.a(hitmac.o)
- .text.turn_on  0x00008a64       0x20 contiki-cc13xx.a(hitmac.o)
+                0x000084b0       0x1c contiki-cc13xx.a(hitmac.o)
+ .text.turn_on  0x000084cc       0x24 contiki-cc13xx.a(hitmac.o)
  .text.hitmac_send_packet.part.2
-                0x00008a84       0x54 contiki-cc13xx.a(hitmac.o)
+                0x000084f0       0x54 contiki-cc13xx.a(hitmac.o)
  .text.process_thread_hitmac_root_eb_process
-                0x00008ad8       0x44 contiki-cc13xx.a(hitmac.o)
+                0x00008544       0x44 contiki-cc13xx.a(hitmac.o)
  .text.hitmac_send_packet
-                0x00008b1c       0x70 contiki-cc13xx.a(hitmac.o)
-                0x00008b1c                hitmac_send_packet
+                0x00008588       0x5c contiki-cc13xx.a(hitmac.o)
+                0x00008588                hitmac_send_packet
  .text.send_packet
-                0x00008b8c       0x54 contiki-cc13xx.a(hitmac.o)
+                0x000085e4       0x54 contiki-cc13xx.a(hitmac.o)
  .text.hitmac_nodes_send_data
-                0x00008be0       0xbc contiki-cc13xx.a(hitmac.o)
-                0x00008be0                hitmac_nodes_send_data
+                0x00008638       0xbc contiki-cc13xx.a(hitmac.o)
+                0x00008638                hitmac_nodes_send_data
  .text.hitmac_node_parse_data
-                0x00008c9c       0x88 contiki-cc13xx.a(hitmac.o)
-                0x00008c9c                hitmac_node_parse_data
+                0x000086f4       0x88 contiki-cc13xx.a(hitmac.o)
+                0x000086f4                hitmac_node_parse_data
  .text.hitmac_root_send_data
-                0x00008d24       0x58 contiki-cc13xx.a(hitmac.o)
-                0x00008d24                hitmac_root_send_data
+                0x0000877c       0x58 contiki-cc13xx.a(hitmac.o)
+                0x0000877c                hitmac_root_send_data
  .text.hitmac_receive_eb
-                0x00008d7c      0x14c contiki-cc13xx.a(hitmac.o)
-                0x00008d7c                hitmac_receive_eb
+                0x000087d4      0x140 contiki-cc13xx.a(hitmac.o)
+                0x000087d4                hitmac_receive_eb
  .text.process_thread_hitmac_scheduler_process
-                0x00008ec8      0x2c4 contiki-cc13xx.a(hitmac.o)
+                0x00008914      0x2a0 contiki-cc13xx.a(hitmac.o)
  .text.hitmac_request
-                0x0000918c      0x208 contiki-cc13xx.a(hitmac.o)
-                0x0000918c                hitmac_request
+                0x00008bb4      0x230 contiki-cc13xx.a(hitmac.o)
+                0x00008bb4                hitmac_request
  .text.process_thread_hitmac_process
-                0x00009394       0x98 contiki-cc13xx.a(hitmac.o)
+                0x00008de4       0x98 contiki-cc13xx.a(hitmac.o)
  .text.hitmac_packet_create_eb
-                0x0000942c       0xa8 contiki-cc13xx.a(hitmac-frame.o)
-                0x0000942c                hitmac_packet_create_eb
+                0x00008e7c       0xa8 contiki-cc13xx.a(hitmac-frame.o)
+                0x00008e7c                hitmac_packet_create_eb
  .text.hitmac_packet_create_request_associate
-                0x000094d4       0x80 contiki-cc13xx.a(hitmac-frame.o)
-                0x000094d4                hitmac_packet_create_request_associate
+                0x00008f24       0x80 contiki-cc13xx.a(hitmac-frame.o)
+                0x00008f24                hitmac_packet_create_request_associate
  .text.hitmac_packet_create_dataframe
-                0x00009554       0xb0 contiki-cc13xx.a(hitmac-frame.o)
-                0x00009554                hitmac_packet_create_dataframe
+                0x00008fa4       0xb0 contiki-cc13xx.a(hitmac-frame.o)
+                0x00008fa4                hitmac_packet_create_dataframe
  .text.hitmac_parse_information_elements
-                0x00009604       0x3c contiki-cc13xx.a(hitmac-frame.o)
-                0x00009604                hitmac_parse_information_elements
+                0x00009054       0x3c contiki-cc13xx.a(hitmac-frame.o)
+                0x00009054                hitmac_parse_information_elements
  .text.hitmac_packet_parse_eb
-                0x00009640       0x6c contiki-cc13xx.a(hitmac-frame.o)
-                0x00009640                hitmac_packet_parse_eb
+                0x00009090       0x6c contiki-cc13xx.a(hitmac-frame.o)
+                0x00009090                hitmac_packet_parse_eb
  .text.hitmac_packet_parse_cmd
-                0x000096ac       0x44 contiki-cc13xx.a(hitmac-frame.o)
-                0x000096ac                hitmac_packet_parse_cmd
+                0x000090fc       0x44 contiki-cc13xx.a(hitmac-frame.o)
+                0x000090fc                hitmac_packet_parse_cmd
  .text.get_asn_mod_val
-                0x000096f0       0x4c contiki-cc13xx.a(hitmac-frame.o)
-                0x000096f0                get_asn_mod_val
+                0x00009140       0x4c contiki-cc13xx.a(hitmac-frame.o)
+                0x00009140                get_asn_mod_val
  .text.hitmac_queue_init
-                0x0000973c       0x30 contiki-cc13xx.a(hitmac-frame.o)
-                0x0000973c                hitmac_queue_init
+                0x0000918c       0x30 contiki-cc13xx.a(hitmac-frame.o)
+                0x0000918c                hitmac_queue_init
  .text.hitmac_queue_reset
-                0x0000976c        0x4 contiki-cc13xx.a(hitmac-frame.o)
-                0x0000976c                hitmac_queue_reset
+                0x000091bc        0x4 contiki-cc13xx.a(hitmac-frame.o)
+                0x000091bc                hitmac_queue_reset
  .text.hitmac_queue_add_packet
-                0x00009770       0x74 contiki-cc13xx.a(hitmac-frame.o)
-                0x00009770                hitmac_queue_add_packet
+                0x000091c0       0x74 contiki-cc13xx.a(hitmac-frame.o)
+                0x000091c0                hitmac_queue_add_packet
  .text.hitmac_queue_remove_packet
-                0x000097e4       0x34 contiki-cc13xx.a(hitmac-frame.o)
-                0x000097e4                hitmac_queue_remove_packet
+                0x00009234       0x34 contiki-cc13xx.a(hitmac-frame.o)
+                0x00009234                hitmac_queue_remove_packet
  .text.hitmac_queue_get_packet
-                0x00009818       0x20 contiki-cc13xx.a(hitmac-frame.o)
-                0x00009818                hitmac_queue_get_packet
- .text.init     0x00009838        0x4 contiki-cc13xx.a(nullsec.o)
- .text.send     0x0000983c        0x4 contiki-cc13xx.a(nullsec.o)
- .text.input    0x00009840        0x4 contiki-cc13xx.a(nullsec.o)
+                0x00009268       0x20 contiki-cc13xx.a(hitmac-frame.o)
+                0x00009268                hitmac_queue_get_packet
+ .text.init     0x00009288        0x4 contiki-cc13xx.a(nullsec.o)
+ .text.send     0x0000928c        0x4 contiki-cc13xx.a(nullsec.o)
+ .text.input    0x00009290        0x4 contiki-cc13xx.a(nullsec.o)
  .text.read_flash
-                0x00009844       0x3c contiki-cc13xx.a(flashdata.o)
-                0x00009844                read_flash
+                0x00009294       0x3c contiki-cc13xx.a(flashdata.o)
+                0x00009294                read_flash
  .text.write_to_flash
-                0x00009880      0x118 contiki-cc13xx.a(flashdata.o)
-                0x00009880                write_to_flash
+                0x000092d0      0x118 contiki-cc13xx.a(flashdata.o)
+                0x000092d0                write_to_flash
  .text.aux_ctrl_power_up
-                0x00009998       0x28 contiki-cc13xx.a(aux-ctrl.o)
-                0x00009998                aux_ctrl_power_up
+                0x000093e8       0x28 contiki-cc13xx.a(aux-ctrl.o)
+                0x000093e8                aux_ctrl_power_up
  .text.aux_ctrl_register_consumer
-                0x000099c0       0x40 contiki-cc13xx.a(aux-ctrl.o)
-                0x000099c0                aux_ctrl_register_consumer
+                0x00009410       0x40 contiki-cc13xx.a(aux-ctrl.o)
+                0x00009410                aux_ctrl_register_consumer
  .text.aux_ctrl_power_down
-                0x00009a00       0x6c contiki-cc13xx.a(aux-ctrl.o)
-                0x00009a00                aux_ctrl_power_down
+                0x00009450       0x6c contiki-cc13xx.a(aux-ctrl.o)
+                0x00009450                aux_ctrl_power_down
  .text.aux_ctrl_unregister_consumer
-                0x00009a6c       0x28 contiki-cc13xx.a(aux-ctrl.o)
-                0x00009a6c                aux_ctrl_unregister_consumer
- .text.packet_input_test
-                0x00009a94       0x54 contiki-cc13xx.a(interface.o)
-                0x00009a94                packet_input_test
+                0x000094bc       0x28 contiki-cc13xx.a(aux-ctrl.o)
+                0x000094bc                aux_ctrl_unregister_consumer
  .text.ringbufindex_init
-                0x00009ae8        0xc contiki-cc13xx.a(ringbufindex.o)
-                0x00009ae8                ringbufindex_init
+                0x000094e4        0xc contiki-cc13xx.a(ringbufindex.o)
+                0x000094e4                ringbufindex_init
  .text.ringbufindex_put
-                0x00009af4       0x1c contiki-cc13xx.a(ringbufindex.o)
-                0x00009af4                ringbufindex_put
+                0x000094f0       0x1c contiki-cc13xx.a(ringbufindex.o)
+                0x000094f0                ringbufindex_put
  .text.ringbufindex_peek_put
-                0x00009b10       0x18 contiki-cc13xx.a(ringbufindex.o)
-                0x00009b10                ringbufindex_peek_put
+                0x0000950c       0x18 contiki-cc13xx.a(ringbufindex.o)
+                0x0000950c                ringbufindex_peek_put
  .text.ringbufindex_get
-                0x00009b28       0x1c contiki-cc13xx.a(ringbufindex.o)
-                0x00009b28                ringbufindex_get
+                0x00009524       0x1c contiki-cc13xx.a(ringbufindex.o)
+                0x00009524                ringbufindex_get
  .text.ringbufindex_peek_get
-                0x00009b44       0x14 contiki-cc13xx.a(ringbufindex.o)
-                0x00009b44                ringbufindex_peek_get
+                0x00009540       0x14 contiki-cc13xx.a(ringbufindex.o)
+                0x00009540                ringbufindex_peek_get
  .text.memb_init
-                0x00009b58       0x24 contiki-cc13xx.a(memb.o)
-                0x00009b58                memb_init
+                0x00009554       0x24 contiki-cc13xx.a(memb.o)
+                0x00009554                memb_init
  .text.memb_alloc
-                0x00009b7c       0x3c contiki-cc13xx.a(memb.o)
-                0x00009b7c                memb_alloc
+                0x00009578       0x3c contiki-cc13xx.a(memb.o)
+                0x00009578                memb_alloc
  .text.memb_free
-                0x00009bb8       0x44 contiki-cc13xx.a(memb.o)
-                0x00009bb8                memb_free
+                0x000095b4       0x44 contiki-cc13xx.a(memb.o)
+                0x000095b4                memb_free
  .text.memb_inmemb
-                0x00009bfc       0x1c contiki-cc13xx.a(memb.o)
-                0x00009bfc                memb_inmemb
+                0x000095f8       0x1c contiki-cc13xx.a(memb.o)
+                0x000095f8                memb_inmemb
  .text.memb_numfree
-                0x00009c18       0x1c contiki-cc13xx.a(memb.o)
-                0x00009c18                memb_numfree
+                0x00009614       0x1c contiki-cc13xx.a(memb.o)
+                0x00009614                memb_numfree
  .text.echo_reply_input
-                0x00009c34       0xb0 contiki-cc13xx.a(uip-icmp6.o)
+                0x00009630       0xb0 contiki-cc13xx.a(uip-icmp6.o)
  .text.echo_request_input
-                0x00009ce4       0xb8 contiki-cc13xx.a(uip-icmp6.o)
+                0x000096e0       0xb8 contiki-cc13xx.a(uip-icmp6.o)
  .text.uip_icmp6_input
-                0x00009d9c       0x3c contiki-cc13xx.a(uip-icmp6.o)
-                0x00009d9c                uip_icmp6_input
+                0x00009798       0x3c contiki-cc13xx.a(uip-icmp6.o)
+                0x00009798                uip_icmp6_input
  .text.uip_icmp6_register_input_handler
-                0x00009dd8        0xc contiki-cc13xx.a(uip-icmp6.o)
-                0x00009dd8                uip_icmp6_register_input_handler
+                0x000097d4        0xc contiki-cc13xx.a(uip-icmp6.o)
+                0x000097d4                uip_icmp6_register_input_handler
  .text.uip_icmp6_error_output
-                0x00009de4      0x150 contiki-cc13xx.a(uip-icmp6.o)
-                0x00009de4                uip_icmp6_error_output
+                0x000097e0      0x150 contiki-cc13xx.a(uip-icmp6.o)
+                0x000097e0                uip_icmp6_error_output
  .text.uip_icmp6_send
-                0x00009f34       0x84 contiki-cc13xx.a(uip-icmp6.o)
-                0x00009f34                uip_icmp6_send
+                0x00009930       0x84 contiki-cc13xx.a(uip-icmp6.o)
+                0x00009930                uip_icmp6_send
  .text.uip_icmp6_init
-                0x00009fb8       0x24 contiki-cc13xx.a(uip-icmp6.o)
-                0x00009fb8                uip_icmp6_init
+                0x000099b4       0x24 contiki-cc13xx.a(uip-icmp6.o)
+                0x000099b4                uip_icmp6_init
  .text.uip_ds6_list_loop
-                0x00009fdc       0x60 contiki-cc13xx.a(uip-ds6.o)
-                0x00009fdc                uip_ds6_list_loop
+                0x000099d8       0x60 contiki-cc13xx.a(uip-ds6.o)
+                0x000099d8                uip_ds6_list_loop
  .text.uip_ds6_prefix_add
-                0x0000a03c       0x6c contiki-cc13xx.a(uip-ds6.o)
-                0x0000a03c                uip_ds6_prefix_add
+                0x00009a38       0x6c contiki-cc13xx.a(uip-ds6.o)
+                0x00009a38                uip_ds6_prefix_add
  .text.uip_ds6_is_addr_onlink
-                0x0000a0a8       0x3c contiki-cc13xx.a(uip-ds6.o)
-                0x0000a0a8                uip_ds6_is_addr_onlink
+                0x00009aa4       0x3c contiki-cc13xx.a(uip-ds6.o)
+                0x00009aa4                uip_ds6_is_addr_onlink
  .text.uip_ds6_addr_lookup
-                0x0000a0e4       0x30 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a0e4                uip_ds6_addr_lookup
+                0x00009ae0       0x30 contiki-cc13xx.a(uip-ds6.o)
+                0x00009ae0                uip_ds6_addr_lookup
  .text.uip_ds6_get_link_local
-                0x0000a114       0x44 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a114                uip_ds6_get_link_local
+                0x00009b10       0x44 contiki-cc13xx.a(uip-ds6.o)
+                0x00009b10                uip_ds6_get_link_local
  .text.uip_ds6_maddr_add
-                0x0000a158       0x50 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a158                uip_ds6_maddr_add
+                0x00009b54       0x50 contiki-cc13xx.a(uip-ds6.o)
+                0x00009b54                uip_ds6_maddr_add
  .text.uip_ds6_addr_add
-                0x0000a1a8       0xa8 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a1a8                uip_ds6_addr_add
+                0x00009ba4       0xa8 contiki-cc13xx.a(uip-ds6.o)
+                0x00009ba4                uip_ds6_addr_add
  .text.uip_ds6_maddr_lookup
-                0x0000a250       0x30 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a250                uip_ds6_maddr_lookup
+                0x00009c4c       0x30 contiki-cc13xx.a(uip-ds6.o)
+                0x00009c4c                uip_ds6_maddr_lookup
  .text.uip_ds6_addr_rm
-                0x0000a280       0x48 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a280                uip_ds6_addr_rm
+                0x00009c7c       0x48 contiki-cc13xx.a(uip-ds6.o)
+                0x00009c7c                uip_ds6_addr_rm
  .text.uip_ds6_periodic
-                0x0000a2c8       0x5c contiki-cc13xx.a(uip-ds6.o)
-                0x0000a2c8                uip_ds6_periodic
+                0x00009cc4       0x5c contiki-cc13xx.a(uip-ds6.o)
+                0x00009cc4                uip_ds6_periodic
  .text.uip_ds6_select_src
-                0x0000a324       0xf4 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a324                uip_ds6_select_src
+                0x00009d20       0xf4 contiki-cc13xx.a(uip-ds6.o)
+                0x00009d20                uip_ds6_select_src
  .text.uip_ds6_set_addr_iid
-                0x0000a418       0x14 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a418                uip_ds6_set_addr_iid
+                0x00009e14       0x14 contiki-cc13xx.a(uip-ds6.o)
+                0x00009e14                uip_ds6_set_addr_iid
  .text.uip_ds6_compute_reachable_time
-                0x0000a42c       0x28 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a42c                uip_ds6_compute_reachable_time
+                0x00009e28       0x28 contiki-cc13xx.a(uip-ds6.o)
+                0x00009e28                uip_ds6_compute_reachable_time
  .text.uip_ds6_init
-                0x0000a454       0xf8 contiki-cc13xx.a(uip-ds6.o)
-                0x0000a454                uip_ds6_init
+                0x00009e50       0xf8 contiki-cc13xx.a(uip-ds6.o)
+                0x00009e50                uip_ds6_init
  .text.call_route_callback
-                0x0000a54c       0x50 contiki-cc13xx.a(uip-ds6-route.o)
+                0x00009f48       0x50 contiki-cc13xx.a(uip-ds6-route.o)
  .text.uip_ds6_route_init
-                0x0000a59c       0x4c contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a59c                uip_ds6_route_init
+                0x00009f98       0x4c contiki-cc13xx.a(uip-ds6-route.o)
+                0x00009f98                uip_ds6_route_init
  .text.uip_ds6_route_nexthop
-                0x0000a5e8       0x1c contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a5e8                uip_ds6_route_nexthop
+                0x00009fe4       0x1c contiki-cc13xx.a(uip-ds6-route.o)
+                0x00009fe4                uip_ds6_route_nexthop
  .text.uip_ds6_route_head
-                0x0000a604        0xc contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a604                uip_ds6_route_head
+                0x0000a000        0xc contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a000                uip_ds6_route_head
  .text.uip_ds6_route_next
-                0x0000a610        0x8 contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a610                uip_ds6_route_next
+                0x0000a00c        0x8 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a00c                uip_ds6_route_next
  .text.uip_ds6_route_is_nexthop
-                0x0000a618       0x20 contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a618                uip_ds6_route_is_nexthop
+                0x0000a014       0x20 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a014                uip_ds6_route_is_nexthop
  .text.uip_ds6_route_lookup
-                0x0000a638       0x78 contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a638                uip_ds6_route_lookup
+                0x0000a034       0x78 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a034                uip_ds6_route_lookup
  .text.uip_ds6_route_rm
-                0x0000a6b0       0xac contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a6b0                uip_ds6_route_rm
+                0x0000a0ac       0xac contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a0ac                uip_ds6_route_rm
  .text.rm_routelist
-                0x0000a75c       0x38 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a158       0x38 contiki-cc13xx.a(uip-ds6-route.o)
  .text.rm_routelist_callback
-                0x0000a794        0x4 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a190        0x4 contiki-cc13xx.a(uip-ds6-route.o)
  .text.uip_ds6_route_add
-                0x0000a798      0x12c contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a798                uip_ds6_route_add
+                0x0000a194      0x12c contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a194                uip_ds6_route_add
  .text.uip_ds6_defrt_rm
-                0x0000a8c4       0x48 contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a8c4                uip_ds6_defrt_rm
+                0x0000a2c0       0x48 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a2c0                uip_ds6_defrt_rm
  .text.uip_ds6_defrt_lookup
-                0x0000a90c       0x34 contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a90c                uip_ds6_defrt_lookup
+                0x0000a308       0x34 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a308                uip_ds6_defrt_lookup
  .text.uip_ds6_defrt_add
-                0x0000a940       0x5c contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a940                uip_ds6_defrt_add
+                0x0000a33c       0x5c contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a33c                uip_ds6_defrt_add
  .text.uip_ds6_defrt_choose
-                0x0000a99c       0x34 contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a99c                uip_ds6_defrt_choose
+                0x0000a398       0x34 contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a398                uip_ds6_defrt_choose
  .text.uip_ds6_defrt_periodic
-                0x0000a9d0       0x3c contiki-cc13xx.a(uip-ds6-route.o)
-                0x0000a9d0                uip_ds6_defrt_periodic
- .text.chksum   0x0000aa0c       0x50 contiki-cc13xx.a(uip6.o)
+                0x0000a3cc       0x3c contiki-cc13xx.a(uip-ds6-route.o)
+                0x0000a3cc                uip_ds6_defrt_periodic
+ .text.chksum   0x0000a408       0x50 contiki-cc13xx.a(uip6.o)
  .text.upper_layer_chksum
-                0x0000aa5c       0x58 contiki-cc13xx.a(uip6.o)
+                0x0000a458       0x58 contiki-cc13xx.a(uip6.o)
  .text.ext_hdr_options_process
-                0x0000aab4       0xc8 contiki-cc13xx.a(uip6.o)
+                0x0000a4b0       0xc8 contiki-cc13xx.a(uip6.o)
  .text.uip_add32
-                0x0000ab7c       0x58 contiki-cc13xx.a(uip6.o)
-                0x0000ab7c                uip_add32
+                0x0000a578       0x58 contiki-cc13xx.a(uip6.o)
+                0x0000a578                uip_add32
  .text.unlikely.uip_add_rcv_nxt
-                0x0000abd4       0x2c contiki-cc13xx.a(uip6.o)
+                0x0000a5d0       0x2c contiki-cc13xx.a(uip6.o)
  .text.uip_icmp6chksum
-                0x0000ac00        0x8 contiki-cc13xx.a(uip6.o)
-                0x0000ac00                uip_icmp6chksum
+                0x0000a5fc        0x8 contiki-cc13xx.a(uip6.o)
+                0x0000a5fc                uip_icmp6chksum
  .text.uip_init
-                0x0000ac08       0x5c contiki-cc13xx.a(uip6.o)
-                0x0000ac08                uip_init
+                0x0000a604       0x5c contiki-cc13xx.a(uip6.o)
+                0x0000a604                uip_init
  .text.remove_ext_hdr
-                0x0000ac64       0x60 contiki-cc13xx.a(uip6.o)
-                0x0000ac64                remove_ext_hdr
+                0x0000a660       0x60 contiki-cc13xx.a(uip6.o)
+                0x0000a660                remove_ext_hdr
  .text.uip_unlisten
-                0x0000acc4       0x28 contiki-cc13xx.a(uip6.o)
-                0x0000acc4                uip_unlisten
+                0x0000a6c0       0x28 contiki-cc13xx.a(uip6.o)
+                0x0000a6c0                uip_unlisten
  .text.uip_process
-                0x0000acec     0x10fc contiki-cc13xx.a(uip6.o)
-                0x0000acec                uip_process
+                0x0000a6e8     0x10fc contiki-cc13xx.a(uip6.o)
+                0x0000a6e8                uip_process
  .text.uip_htonl
-                0x0000bde8       0x14 contiki-cc13xx.a(uip6.o)
-                0x0000bde8                uip_htonl
+                0x0000b7e4       0x14 contiki-cc13xx.a(uip6.o)
+                0x0000b7e4                uip_htonl
  .text.uip_ds6_nbr_rm
-                0x0000bdfc       0x20 contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000bdfc                uip_ds6_nbr_rm
+                0x0000b7f8       0x20 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b7f8                uip_ds6_nbr_rm
  .text.uip_ds6_neighbors_init
-                0x0000be1c       0x1c contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000be1c                uip_ds6_neighbors_init
+                0x0000b818       0x1c contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b818                uip_ds6_neighbors_init
  .text.uip_ds6_nbr_add
-                0x0000be38       0x38 contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000be38                uip_ds6_nbr_add
+                0x0000b834       0x38 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b834                uip_ds6_nbr_add
  .text.uip_ds6_nbr_get_ll
-                0x0000be70       0x10 contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000be70                uip_ds6_nbr_get_ll
+                0x0000b86c       0x10 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b86c                uip_ds6_nbr_get_ll
  .text.uip_ds6_nbr_lookup
-                0x0000be80       0x3c contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000be80                uip_ds6_nbr_lookup
+                0x0000b87c       0x3c contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b87c                uip_ds6_nbr_lookup
  .text.uip_ds6_nbr_ipaddr_from_lladdr
-                0x0000bebc       0x10 contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000bebc                uip_ds6_nbr_ipaddr_from_lladdr
+                0x0000b8b8       0x10 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b8b8                uip_ds6_nbr_ipaddr_from_lladdr
  .text.uip_ds6_nbr_lladdr_from_ipaddr
-                0x0000becc       0x1c contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000becc                uip_ds6_nbr_lladdr_from_ipaddr
+                0x0000b8c8       0x1c contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b8c8                uip_ds6_nbr_lladdr_from_ipaddr
  .text.uip_ds6_link_neighbor_callback
-                0x0000bee8       0x34 contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x0000bee8                uip_ds6_link_neighbor_callback
+                0x0000b8e4       0x34 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x0000b8e4                uip_ds6_link_neighbor_callback
  .text.ns_input
-                0x0000bf1c      0x2a0 contiki-cc13xx.a(uip-nd6.o)
+                0x0000b918      0x2a0 contiki-cc13xx.a(uip-nd6.o)
  .text.uip_nd6_init
-                0x0000c1bc        0xc contiki-cc13xx.a(uip-nd6.o)
-                0x0000c1bc                uip_nd6_init
+                0x0000bbb8        0xc contiki-cc13xx.a(uip-nd6.o)
+                0x0000bbb8                uip_nd6_init
  .text.uip_debug_ipaddr_print
-                0x0000c1c8       0xb0 contiki-cc13xx.a(uip-debug.o)
-                0x0000c1c8                uip_debug_ipaddr_print
+                0x0000bbc4       0xb0 contiki-cc13xx.a(uip-debug.o)
+                0x0000bbc4                uip_debug_ipaddr_print
  .text.update_nbr
-                0x0000c278      0x11c contiki-cc13xx.a(rpl-nbr-policy.)
+                0x0000bc74      0x11c contiki-cc13xx.a(rpl-nbr-policy.)
  .text.handle_periodic_timer
-                0x0000c394       0x14 contiki-cc13xx.a(rpl-nbr-policy.)
+                0x0000bd90       0x14 contiki-cc13xx.a(rpl-nbr-policy.)
  .text.find_removable_dio
-                0x0000c3a8       0x40 contiki-cc13xx.a(rpl-nbr-policy.)
-                0x0000c3a8                find_removable_dio
+                0x0000bda4       0x40 contiki-cc13xx.a(rpl-nbr-policy.)
+                0x0000bda4                find_removable_dio
  .text.find_removable_dao
-                0x0000c3e8       0x38 contiki-cc13xx.a(rpl-nbr-policy.)
-                0x0000c3e8                find_removable_dao
+                0x0000bde4       0x38 contiki-cc13xx.a(rpl-nbr-policy.)
+                0x0000bde4                find_removable_dao
  .text.rpl_nbr_policy_find_removable
-                0x0000c420       0x40 contiki-cc13xx.a(rpl-nbr-policy.)
-                0x0000c420                rpl_nbr_policy_find_removable
+                0x0000be1c       0x40 contiki-cc13xx.a(rpl-nbr-policy.)
+                0x0000be1c                rpl_nbr_policy_find_removable
  .text.new_dio_interval
-                0x0000c460       0x60 contiki-cc13xx.a(rpl-timers.o)
+                0x0000be5c       0x60 contiki-cc13xx.a(rpl-timers.o)
  .text.handle_periodic_timer
-                0x0000c4c0       0x58 contiki-cc13xx.a(rpl-timers.o)
+                0x0000bebc       0x58 contiki-cc13xx.a(rpl-timers.o)
  .text.set_dao_lifetime_timer
-                0x0000c518       0x48 contiki-cc13xx.a(rpl-timers.o)
+                0x0000bf14       0x48 contiki-cc13xx.a(rpl-timers.o)
  .text.handle_unicast_dio_timer
-                0x0000c560       0x1c contiki-cc13xx.a(rpl-timers.o)
+                0x0000bf5c       0x1c contiki-cc13xx.a(rpl-timers.o)
  .text.handle_dio_timer
-                0x0000c57c       0x8c contiki-cc13xx.a(rpl-timers.o)
+                0x0000bf78       0x8c contiki-cc13xx.a(rpl-timers.o)
  .text.schedule_dao
-                0x0000c608       0x54 contiki-cc13xx.a(rpl-timers.o)
+                0x0000c004       0x54 contiki-cc13xx.a(rpl-timers.o)
  .text.handle_dao_timer
-                0x0000c65c       0x5c contiki-cc13xx.a(rpl-timers.o)
+                0x0000c058       0x5c contiki-cc13xx.a(rpl-timers.o)
  .text.rpl_reset_periodic_timer
-                0x0000c6b8       0x3c contiki-cc13xx.a(rpl-timers.o)
-                0x0000c6b8                rpl_reset_periodic_timer
+                0x0000c0b4       0x3c contiki-cc13xx.a(rpl-timers.o)
+                0x0000c0b4                rpl_reset_periodic_timer
  .text.rpl_reset_dio_timer
-                0x0000c6f4       0x1c contiki-cc13xx.a(rpl-timers.o)
-                0x0000c6f4                rpl_reset_dio_timer
+                0x0000c0f0       0x1c contiki-cc13xx.a(rpl-timers.o)
+                0x0000c0f0                rpl_reset_dio_timer
  .text.rpl_schedule_dao
-                0x0000c710        0x8 contiki-cc13xx.a(rpl-timers.o)
-                0x0000c710                rpl_schedule_dao
+                0x0000c10c        0x8 contiki-cc13xx.a(rpl-timers.o)
+                0x0000c10c                rpl_schedule_dao
  .text.rpl_schedule_unicast_dio_immediately
-                0x0000c718       0x14 contiki-cc13xx.a(rpl-timers.o)
-                0x0000c718                rpl_schedule_unicast_dio_immediately
+                0x0000c114       0x14 contiki-cc13xx.a(rpl-timers.o)
+                0x0000c114                rpl_schedule_unicast_dio_immediately
  .text.get_probing_delay
-                0x0000c72c       0x4c contiki-cc13xx.a(rpl-timers.o)
-                0x0000c72c                get_probing_delay
+                0x0000c128       0x4c contiki-cc13xx.a(rpl-timers.o)
+                0x0000c128                get_probing_delay
  .text.get_probing_target
-                0x0000c778       0xdc contiki-cc13xx.a(rpl-timers.o)
-                0x0000c778                get_probing_target
+                0x0000c174       0xdc contiki-cc13xx.a(rpl-timers.o)
+                0x0000c174                get_probing_target
  .text.rpl_schedule_probing
-                0x0000c854       0x20 contiki-cc13xx.a(rpl-timers.o)
-                0x0000c854                rpl_schedule_probing
+                0x0000c250       0x20 contiki-cc13xx.a(rpl-timers.o)
+                0x0000c250                rpl_schedule_probing
  .text.handle_probing_timer
-                0x0000c874       0x34 contiki-cc13xx.a(rpl-timers.o)
- .text.reset    0x0000c8a8        0x4 contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c270       0x34 contiki-cc13xx.a(rpl-timers.o)
+ .text.reset    0x0000c2a4        0x4 contiki-cc13xx.a(rpl-mrhof.o)
  .text.update_metric_container
-                0x0000c8ac        0x8 contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c2a8        0x8 contiki-cc13xx.a(rpl-mrhof.o)
  .text.parent_link_metric
-                0x0000c8b4       0x14 contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c2b0       0x14 contiki-cc13xx.a(rpl-mrhof.o)
  .text.parent_has_usable_link
-                0x0000c8c8       0x18 contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c2c4       0x18 contiki-cc13xx.a(rpl-mrhof.o)
  .text.best_dag
-                0x0000c8e0       0x2c contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c2dc       0x2c contiki-cc13xx.a(rpl-mrhof.o)
  .text.parent_path_cost
-                0x0000c90c       0x4c contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c308       0x4c contiki-cc13xx.a(rpl-mrhof.o)
  .text.parent_is_acceptable
-                0x0000c958       0x34 contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c354       0x34 contiki-cc13xx.a(rpl-mrhof.o)
  .text.rank_via_parent
-                0x0000c98c       0x3c contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c388       0x3c contiki-cc13xx.a(rpl-mrhof.o)
  .text.best_parent
-                0x0000c9c8       0x70 contiki-cc13xx.a(rpl-mrhof.o)
+                0x0000c3c4       0x70 contiki-cc13xx.a(rpl-mrhof.o)
  .text.NOROM_FlashSectorErase
-                0x0000ca38       0x1c contiki-cc13xx.a(flash.o)
-                0x0000ca38                NOROM_FlashSectorErase
+                0x0000c434       0x1c contiki-cc13xx.a(flash.o)
+                0x0000c434                NOROM_FlashSectorErase
  .text.NOROM_FlashProgram
-                0x0000ca54       0x1c contiki-cc13xx.a(flash.o)
-                0x0000ca54                NOROM_FlashProgram
- .text.NOROM_AONBatMonTemperatureGetDegC
-                0x0000ca70       0x30 contiki-cc13xx.a(aon_batmon.o)
-                0x0000ca70                NOROM_AONBatMonTemperatureGetDegC
+                0x0000c450       0x1c contiki-cc13xx.a(flash.o)
+                0x0000c450                NOROM_FlashProgram
  .text.NOROM_VIMSModeGet
-                0x0000caa0       0x10 contiki-cc13xx.a(vims.o)
-                0x0000caa0                NOROM_VIMSModeGet
+                0x0000c46c       0x10 contiki-cc13xx.a(vims.o)
+                0x0000c46c                NOROM_VIMSModeGet
  .text.mac_sequence_is_duplicate
-                0x0000cab0       0x50 contiki-cc13xx.a(mac-sequence.o)
-                0x0000cab0                mac_sequence_is_duplicate
+                0x0000c47c       0x50 contiki-cc13xx.a(mac-sequence.o)
+                0x0000c47c                mac_sequence_is_duplicate
  .text.mac_sequence_register_seqno
-                0x0000cb00       0x6c contiki-cc13xx.a(mac-sequence.o)
-                0x0000cb00                mac_sequence_register_seqno
+                0x0000c4cc       0x6c contiki-cc13xx.a(mac-sequence.o)
+                0x0000c4cc                mac_sequence_register_seqno
  .text.frame802154_get_pan_id
-                0x0000cb6c        0xc contiki-cc13xx.a(frame802154.o)
-                0x0000cb6c                frame802154_get_pan_id
+                0x0000c538        0xc contiki-cc13xx.a(frame802154.o)
+                0x0000c538                frame802154_get_pan_id
  .text.frame802154_has_panid
-                0x0000cb78       0xb8 contiki-cc13xx.a(frame802154.o)
-                0x0000cb78                frame802154_has_panid
+                0x0000c544       0xb8 contiki-cc13xx.a(frame802154.o)
+                0x0000c544                frame802154_has_panid
  .text.field_len
-                0x0000cc30       0x9c contiki-cc13xx.a(frame802154.o)
+                0x0000c5fc       0x9c contiki-cc13xx.a(frame802154.o)
  .text.frame802154_is_broadcast_addr
-                0x0000cccc       0x20 contiki-cc13xx.a(frame802154.o)
-                0x0000cccc                frame802154_is_broadcast_addr
+                0x0000c698       0x20 contiki-cc13xx.a(frame802154.o)
+                0x0000c698                frame802154_is_broadcast_addr
  .text.frame802154_hdrlen
-                0x0000ccec       0x34 contiki-cc13xx.a(frame802154.o)
-                0x0000ccec                frame802154_hdrlen
+                0x0000c6b8       0x34 contiki-cc13xx.a(frame802154.o)
+                0x0000c6b8                frame802154_hdrlen
  .text.frame802154_create_fcf
-                0x0000cd20       0x64 contiki-cc13xx.a(frame802154.o)
-                0x0000cd20                frame802154_create_fcf
+                0x0000c6ec       0x64 contiki-cc13xx.a(frame802154.o)
+                0x0000c6ec                frame802154_create_fcf
  .text.frame802154_create
-                0x0000cd84       0xb8 contiki-cc13xx.a(frame802154.o)
-                0x0000cd84                frame802154_create
+                0x0000c750       0xb8 contiki-cc13xx.a(frame802154.o)
+                0x0000c750                frame802154_create
  .text.frame802154_parse_fcf
-                0x0000ce3c       0x4c contiki-cc13xx.a(frame802154.o)
-                0x0000ce3c                frame802154_parse_fcf
+                0x0000c808       0x4c contiki-cc13xx.a(frame802154.o)
+                0x0000c808                frame802154_parse_fcf
  .text.frame802154_parse
-                0x0000ce88      0x134 contiki-cc13xx.a(frame802154.o)
-                0x0000ce88                frame802154_parse
+                0x0000c854      0x134 contiki-cc13xx.a(frame802154.o)
+                0x0000c854                frame802154_parse
  .text.mac_call_sent_callback
-                0x0000cfbc       0x10 contiki-cc13xx.a(mac.o)
-                0x0000cfbc                mac_call_sent_callback
+                0x0000c988       0x10 contiki-cc13xx.a(mac.o)
+                0x0000c988                mac_call_sent_callback
  .text.stimer_set
-                0x0000cfcc       0x10 contiki-cc13xx.a(stimer.o)
-                0x0000cfcc                stimer_set
+                0x0000c998       0x10 contiki-cc13xx.a(stimer.o)
+                0x0000c998                stimer_set
  .text.stimer_expired
-                0x0000cfdc       0x20 contiki-cc13xx.a(stimer.o)
-                0x0000cfdc                stimer_expired
- .text          0x0000cffc       0x2c /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
-                0x0000cffc                __aeabi_uldivmod
- .text          0x0000d028       0x60 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
-                0x0000d028                __gnu_ldivmod_helper
-                0x0000d058                __gnu_uldivmod_helper
- .text          0x0000d088        0x4 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
-                0x0000d088                __aeabi_ldiv0
-                0x0000d088                __aeabi_idiv0
- .text          0x0000d08c      0x2ac /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
-                0x0000d08c                __divdi3
- .text          0x0000d338      0x270 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
-                0x0000d338                __udivdi3
- .text.memcmp   0x0000d5a8       0x64 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
-                0x0000d5a8                memcmp
- .text          0x0000d60c       0xec /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
-                0x0000d60c                memcpy
- .text.memmove  0x0000d6f8       0xc8 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memmove.o)
-                0x0000d6f8                memmove
- .text.memset   0x0000d7c0       0x9c /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
-                0x0000d7c0                memset
- .text.strlen   0x0000d85c       0x5c /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
-                0x0000d85c                strlen
+                0x0000c9a8       0x20 contiki-cc13xx.a(stimer.o)
+                0x0000c9a8                stimer_expired
+ .text          0x0000c9c8       0x2c /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+                0x0000c9c8                __aeabi_uldivmod
+ .text          0x0000c9f4       0x60 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+                0x0000c9f4                __gnu_ldivmod_helper
+                0x0000ca24                __gnu_uldivmod_helper
+ .text          0x0000ca54        0x4 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+                0x0000ca54                __aeabi_ldiv0
+                0x0000ca54                __aeabi_idiv0
+ .text          0x0000ca58      0x2ac /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+                0x0000ca58                __divdi3
+ .text          0x0000cd04      0x270 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+                0x0000cd04                __udivdi3
+ .text.memcmp   0x0000cf74       0x64 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
+                0x0000cf74                memcmp
+ .text          0x0000cfd8       0xec /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
+                0x0000cfd8                memcpy
+ .text.memmove  0x0000d0c4       0xc8 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memmove.o)
+                0x0000d0c4                memmove
+ .text.memset   0x0000d18c       0x9c /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
+                0x0000d18c                memset
+ .text.strlen   0x0000d228       0x5c /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+                0x0000d228                strlen
  *(SORT(.rodata*))
  .rodata.autostart_processes
-                0x0000d8b8        0x8 radio-receiver.co
-                0x0000d8b8                autostart_processes
+                0x0000d284        0x8 radio-receiver.co
+                0x0000d284                autostart_processes
  .rodata.str1.4
-                0x0000d8c0       0x2b radio-receiver.co
+                0x0000d28c       0x2b radio-receiver.co
                                  0x2c (size before relaxing)
- *fill*         0x0000d8eb        0x1 00000000
+ *fill*         0x0000d2b7        0x1 00000000
  .rodata.str1.4
-                0x0000d8ec       0x91 contiki-cc13xx.a(contiki-main.o)
+                0x0000d2b8       0x91 contiki-cc13xx.a(contiki-main.o)
                                  0x94 (size before relaxing)
- *fill*         0x0000d97d        0x3 00000000
- .rodata        0x0000d980       0x68 contiki-cc13xx.a(board.o)
+ *fill*         0x0000d349        0x3 00000000
+ .rodata        0x0000d34c       0x68 contiki-cc13xx.a(board.o)
  .rodata.str1.4
-                0x0000d9e8       0xe2 contiki-cc13xx.a(node-id.o)
-                                 0xe4 (size before relaxing)
- *fill*         0x0000daca        0x2 00000000
- .rodata.str1.4
-                0x0000dacc       0x1a contiki-cc13xx.a(external-watchd)
+                0x0000d3b4       0x1a contiki-cc13xx.a(external-watchd)
                                  0x1c (size before relaxing)
- *fill*         0x0000dae6        0x2 00000000
+ *fill*         0x0000d3ce        0x2 00000000
  .rodata.mode_prop
-                0x0000dae8        0x8 contiki-cc13xx.a(prop-mode.o)
+                0x0000d3d0        0x8 contiki-cc13xx.a(prop-mode.o)
  .rodata.prop_mode_driver
-                0x0000daf0       0x38 contiki-cc13xx.a(prop-mode.o)
-                0x0000daf0                prop_mode_driver
+                0x0000d3d8       0x38 contiki-cc13xx.a(prop-mode.o)
+                0x0000d3d8                prop_mode_driver
  .rodata.patchGenfskRfe
-                0x0000db28      0x6b4 contiki-cc13xx.a(prop-mode.o)
+                0x0000d410      0x6b4 contiki-cc13xx.a(prop-mode.o)
  .rodata.patchImageGenfsk
-                0x0000e1dc      0x28c contiki-cc13xx.a(prop-mode.o)
+                0x0000dac4      0x28c contiki-cc13xx.a(prop-mode.o)
  .rodata.prop_mode_tx_power_431_527
-                0x0000e468       0x30 contiki-cc13xx.a(prop-mode-tx-po)
-                0x0000e468                prop_mode_tx_power_431_527
+                0x0000dd50       0x30 contiki-cc13xx.a(prop-mode-tx-po)
+                0x0000dd50                prop_mode_tx_power_431_527
  .rodata.str1.4
-                0x0000e498       0x46 contiki-cc13xx.a(rf-core.o)
+                0x0000dd80       0x46 contiki-cc13xx.a(rf-core.o)
                                  0x48 (size before relaxing)
- *fill*         0x0000e4de        0x2 00000000
+ *fill*         0x0000ddc6        0x2 00000000
  .rodata.str1.4
-                0x0000e4e0       0x1b contiki-cc13xx.a(soc-trng.o)
+                0x0000ddc8       0x1b contiki-cc13xx.a(soc-trng.o)
                                  0x1c (size before relaxing)
- *fill*         0x0000e4fb        0x1 00000000
+ *fill*         0x0000dde3        0x1 00000000
  .rodata.str1.4
-                0x0000e4fc       0x46 contiki-cc13xx.a(strformat.o)
+                0x0000dde4       0x46 contiki-cc13xx.a(strformat.o)
                                  0x48 (size before relaxing)
- *fill*         0x0000e542        0x2 00000000
+ *fill*         0x0000de2a        0x2 00000000
  .rodata.buffer.4019
-                0x0000e544       0x10 contiki-cc13xx.a(strformat.o)
+                0x0000de2c       0x10 contiki-cc13xx.a(strformat.o)
  .rodata.buffer.4028
-                0x0000e554       0x10 contiki-cc13xx.a(strformat.o)
+                0x0000de3c       0x10 contiki-cc13xx.a(strformat.o)
  .rodata.str1.4
-                0x0000e564        0xf contiki-cc13xx.a(ctimer.o)
+                0x0000de4c        0xf contiki-cc13xx.a(ctimer.o)
                                  0x10 (size before relaxing)
- *fill*         0x0000e573        0x1 00000000
+ *fill*         0x0000de5b        0x1 00000000
  .rodata.str1.4
-                0x0000e574        0xc contiki-cc13xx.a(etimer.o)
+                0x0000de5c        0xc contiki-cc13xx.a(etimer.o)
  .rodata.str1.4
-                0x0000e580        0xe contiki-cc13xx.a(serial-line.o)
+                0x0000de68        0xe contiki-cc13xx.a(serial-line.o)
                                  0x10 (size before relaxing)
- *fill*         0x0000e58e        0x2 00000000
- .rodata        0x0000e590        0x4 contiki-cc13xx.a(sicslowpan.o)
+ *fill*         0x0000de76        0x2 00000000
+ .rodata        0x0000de78        0x4 contiki-cc13xx.a(sicslowpan.o)
  .rodata.ttl_values
-                0x0000e594        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x0000de7c        0x4 contiki-cc13xx.a(sicslowpan.o)
  .rodata.unc_llconf
-                0x0000e598        0x4 contiki-cc13xx.a(sicslowpan.o)
-                0x0000e598                unc_llconf
+                0x0000de80        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x0000de80                unc_llconf
  .rodata.llprefix
-                0x0000e59c        0x4 contiki-cc13xx.a(sicslowpan.o)
-                0x0000e59c                llprefix
+                0x0000de84        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x0000de84                llprefix
  .rodata.sicslowpan_driver
-                0x0000e5a0        0xc contiki-cc13xx.a(sicslowpan.o)
-                0x0000e5a0                sicslowpan_driver
+                0x0000de88        0xc contiki-cc13xx.a(sicslowpan.o)
+                0x0000de88                sicslowpan_driver
  .rodata.unc_mxconf
-                0x0000e5ac        0x4 contiki-cc13xx.a(sicslowpan.o)
-                0x0000e5ac                unc_mxconf
+                0x0000de94        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x0000de94                unc_mxconf
  .rodata.unc_ctxconf
-                0x0000e5b0        0x4 contiki-cc13xx.a(sicslowpan.o)
-                0x0000e5b0                unc_ctxconf
+                0x0000de98        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x0000de98                unc_ctxconf
  .rodata.str1.4
-                0x0000e5b4        0xb contiki-cc13xx.a(sicslowpan.o)
+                0x0000de9c        0xb contiki-cc13xx.a(sicslowpan.o)
                                   0xc (size before relaxing)
- *fill*         0x0000e5bf        0x1 00000000
+ *fill*         0x0000dea7        0x1 00000000
  .rodata.str1.4
-                0x0000e5c0        0xd contiki-cc13xx.a(tcpip.o)
+                0x0000dea8        0xd contiki-cc13xx.a(tcpip.o)
                                  0x10 (size before relaxing)
- *fill*         0x0000e5cd        0x3 00000000
+ *fill*         0x0000deb5        0x3 00000000
  .rodata.linkaddr_null
-                0x0000e5d0        0x4 contiki-cc13xx.a(linkaddr.o)
-                0x0000e5d0                linkaddr_null
+                0x0000deb8        0x4 contiki-cc13xx.a(linkaddr.o)
+                0x0000deb8                linkaddr_null
  .rodata.framer_802154
-                0x0000e5d4        0xc contiki-cc13xx.a(framer-802154.o)
-                0x0000e5d4                framer_802154
+                0x0000debc        0xc contiki-cc13xx.a(framer-802154.o)
+                0x0000debc                framer_802154
  .rodata.str1.4
-                0x0000e5e0        0x8 contiki-cc13xx.a(nullrdc.o)
+                0x0000dec8        0x8 contiki-cc13xx.a(nullrdc.o)
  .rodata.nullrdc_driver
-                0x0000e5e8       0x20 contiki-cc13xx.a(nullrdc.o)
-                0x0000e5e8                nullrdc_driver
+                0x0000ded0       0x20 contiki-cc13xx.a(nullrdc.o)
+                0x0000ded0                nullrdc_driver
  .rodata.str1.4
-                0x0000e608      0x143 contiki-cc13xx.a(hitmac.o)
+                0x0000def0      0x143 contiki-cc13xx.a(hitmac.o)
                                 0x144 (size before relaxing)
- *fill*         0x0000e74b        0x1 00000000
+ *fill*         0x0000e033        0x1 00000000
  .rodata.hitmac_driver
-                0x0000e74c       0x1c contiki-cc13xx.a(hitmac.o)
-                0x0000e74c                hitmac_driver
+                0x0000e034       0x1c contiki-cc13xx.a(hitmac.o)
+                0x0000e034                hitmac_driver
  .rodata.str1.4
-                0x0000e768        0x8 contiki-cc13xx.a(nullsec.o)
+                0x0000e050        0x8 contiki-cc13xx.a(nullsec.o)
  .rodata.nullsec_driver
-                0x0000e770       0x10 contiki-cc13xx.a(nullsec.o)
-                0x0000e770                nullsec_driver
+                0x0000e058       0x10 contiki-cc13xx.a(nullsec.o)
+                0x0000e058                nullsec_driver
  .rodata.str1.4
-                0x0000e780       0x8c contiki-cc13xx.a(flashdata.o)
+                0x0000e068       0x8c contiki-cc13xx.a(flashdata.o)
  .rodata.str1.4
-                0x0000e80c       0x21 contiki-cc13xx.a(interface.o)
-                                 0x24 (size before relaxing)
- *fill*         0x0000e82d        0x3 00000000
- .rodata.str1.4
-                0x0000e830       0x2c contiki-cc13xx.a(uip-debug.o)
-                0x0000e85c                _etext = .
+                0x0000e0f4       0x2c contiki-cc13xx.a(uip-debug.o)
+                0x0000e120                _etext = .
 
-.glue_7         0x0000e85c        0x0
+.glue_7         0x0000e120        0x0
  .glue_7        0x00000000        0x0 linker stubs
 
-.glue_7t        0x0000e85c        0x0
+.glue_7t        0x0000e120        0x0
  .glue_7t       0x00000000        0x0 linker stubs
 
-.vfp11_veneer   0x0000e85c        0x0
+.vfp11_veneer   0x0000e120        0x0
  .vfp11_veneer  0x00000000        0x0 linker stubs
 
-.v4_bx          0x0000e85c        0x0
+.v4_bx          0x0000e120        0x0
  .v4_bx         0x00000000        0x0 linker stubs
 
-.iplt           0x0000e85c        0x0
+.iplt           0x0000e120        0x0
  .iplt          0x00000000        0x0 obj_cc13xx/startup_gcc.o
 
-.data           0x20000000      0x34d load address 0x0000e85c
+.data           0x20000000      0x35d load address 0x0000e120
                 0x20000000                _data = .
  *(SORT(vtable))
  *(SORT(.data*))
@@ -2474,392 +2462,390 @@ END GROUP
  .data.hitmac_process
                 0x20000154       0x10 contiki-cc13xx.a(hitmac.o)
                 0x20000154                hitmac_process
- .data.hitmac_nodeid
-                0x20000164        0x8 contiki-cc13xx.a(hitmac.o)
-                0x20000164                hitmac_nodeid
  .data.hitmac_root_eb_process
-                0x2000016c       0x10 contiki-cc13xx.a(hitmac.o)
-                0x2000016c                hitmac_root_eb_process
+                0x20000164       0x10 contiki-cc13xx.a(hitmac.o)
+                0x20000164                hitmac_root_eb_process
  .data.hitmac_scheduler_process
-                0x2000017c       0x10 contiki-cc13xx.a(hitmac.o)
-                0x2000017c                hitmac_scheduler_process
+                0x20000174       0x10 contiki-cc13xx.a(hitmac.o)
+                0x20000174                hitmac_scheduler_process
+ .data.channel.6938
+                0x20000184        0x4 contiki-cc13xx.a(hitmac.o)
+ .data.hitmac_nodeid
+                0x20000188        0x8 contiki-cc13xx.a(hitmac.o)
+                0x20000188                hitmac_nodeid
  .data.nodeid_slot
-                0x2000018c        0x4 contiki-cc13xx.a(hitmac.o)
-                0x2000018c                nodeid_slot
- .data.down_buf.6902
-                0x20000190       0x28 contiki-cc13xx.a(hitmac.o)
+                0x20000190        0x4 contiki-cc13xx.a(hitmac.o)
+                0x20000190                nodeid_slot
+ .data.down_buf.6907
+                0x20000194       0x34 contiki-cc13xx.a(hitmac.o)
  .data.packet_memb
-                0x200001b8        0xc contiki-cc13xx.a(hitmac-frame.o)
+                0x200001c8        0xc contiki-cc13xx.a(hitmac-frame.o)
  .data.smartrf_settings_cmd_prop_rx_adv
-                0x200001c4       0x30 contiki-cc13xx.a(smartrf-setting)
-                0x200001c4                smartrf_settings_cmd_prop_rx_adv
+                0x200001d4       0x30 contiki-cc13xx.a(smartrf-setting)
+                0x200001d4                smartrf_settings_cmd_prop_rx_adv
  .data.smartrf_settings_cmd_fs
-                0x200001f4       0x18 contiki-cc13xx.a(smartrf-setting)
-                0x200001f4                smartrf_settings_cmd_fs
+                0x20000204       0x18 contiki-cc13xx.a(smartrf-setting)
+                0x20000204                smartrf_settings_cmd_fs
  .data.smartrf_settings_cmd_prop_radio_div_setup
-                0x2000020c       0x28 contiki-cc13xx.a(smartrf-setting)
-                0x2000020c                smartrf_settings_cmd_prop_radio_div_setup
+                0x2000021c       0x28 contiki-cc13xx.a(smartrf-setting)
+                0x2000021c                smartrf_settings_cmd_prop_radio_div_setup
  .data.smartrf_settings_cmd_prop_tx_adv
-                0x20000234       0x20 contiki-cc13xx.a(smartrf-setting)
-                0x20000234                smartrf_settings_cmd_prop_tx_adv
+                0x20000244       0x20 contiki-cc13xx.a(smartrf-setting)
+                0x20000244                smartrf_settings_cmd_prop_tx_adv
  .data.overrides
-                0x20000254       0x60 contiki-cc13xx.a(smartrf-setting)
+                0x20000264       0x60 contiki-cc13xx.a(smartrf-setting)
  .data.echo_request_handler
-                0x200002b4        0xc contiki-cc13xx.a(uip-icmp6.o)
+                0x200002c4        0xc contiki-cc13xx.a(uip-icmp6.o)
  .data.echo_reply_handler
-                0x200002c0        0xc contiki-cc13xx.a(uip-icmp6.o)
+                0x200002d0        0xc contiki-cc13xx.a(uip-icmp6.o)
  .data.defaultroutermemb
-                0x200002cc        0xc contiki-cc13xx.a(uip-ds6-route.o)
+                0x200002dc        0xc contiki-cc13xx.a(uip-ds6-route.o)
  .data.nbr_routes_struct
-                0x200002d8       0x10 contiki-cc13xx.a(uip-ds6-route.o)
+                0x200002e8       0x10 contiki-cc13xx.a(uip-ds6-route.o)
  .data.nbr_routes
-                0x200002e8        0x4 contiki-cc13xx.a(uip-ds6-route.o)
-                0x200002e8                nbr_routes
+                0x200002f8        0x4 contiki-cc13xx.a(uip-ds6-route.o)
+                0x200002f8                nbr_routes
  .data.routememb
-                0x200002ec        0xc contiki-cc13xx.a(uip-ds6-route.o)
+                0x200002fc        0xc contiki-cc13xx.a(uip-ds6-route.o)
  .data.neighborroutememb
-                0x200002f8        0xc contiki-cc13xx.a(uip-ds6-route.o)
+                0x20000308        0xc contiki-cc13xx.a(uip-ds6-route.o)
  .data.ds6_neighbors
-                0x20000304        0x4 contiki-cc13xx.a(uip-ds6-nbr.o)
-                0x20000304                ds6_neighbors
+                0x20000314        0x4 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x20000314                ds6_neighbors
  .data.ds6_neighbors_struct
-                0x20000308       0x10 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x20000318       0x10 contiki-cc13xx.a(uip-ds6-nbr.o)
  .data.ns_input_handler
-                0x20000318        0xc contiki-cc13xx.a(uip-nd6.o)
+                0x20000328        0xc contiki-cc13xx.a(uip-nd6.o)
  .data.rpl_mrhof
-                0x20000324       0x24 contiki-cc13xx.a(rpl-mrhof.o)
-                0x20000324                rpl_mrhof
+                0x20000334       0x24 contiki-cc13xx.a(rpl-mrhof.o)
+                0x20000334                rpl_mrhof
  .data.mac_pan_id
-                0x20000348        0x2 contiki-cc13xx.a(frame802154.o)
+                0x20000358        0x2 contiki-cc13xx.a(frame802154.o)
  .data.rssi_threshold
-                0x2000034a        0x1 contiki-cc13xx.a(prop-mode.o)
+                0x2000035a        0x1 contiki-cc13xx.a(prop-mode.o)
  .data.rng_ready_event
-                0x2000034b        0x1 contiki-cc13xx.a(soc-trng.o)
+                0x2000035b        0x1 contiki-cc13xx.a(soc-trng.o)
  .data.dao_sequence
-                0x2000034c        0x1 contiki-cc13xx.a(rpl-icmp6.o)
-                0x2000034d                _edata = .
+                0x2000035c        0x1 contiki-cc13xx.a(rpl-icmp6.o)
+                0x2000035d                _edata = .
 
-.igot.plt       0x20000350        0x0 load address 0x0000eba9
+.igot.plt       0x20000360        0x0 load address 0x0000e47d
  .igot.plt      0x00000000        0x0 obj_cc13xx/startup_gcc.o
 
-.ARM.exidx      0x0000ebac        0x8
+.ARM.exidx      0x0000e480        0x8
  *(SORT(.ARM.exidx*))
- .ARM.exidx     0x0000ebac        0x8 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
- .ARM.exidx     0x0000ebb4        0x0 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+ .ARM.exidx     0x0000e480        0x8 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+ .ARM.exidx     0x0000e488        0x0 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
                                   0x8 (size before relaxing)
 
-.bss            0x20000350     0x2f0f
-                0x20000350                _bss = .
+.bss            0x20000360     0x2f0f
+                0x20000360                _bss = .
  *(SORT(.bss*))
- .bss.count     0x20000350        0x8 contiki-cc13xx.a(clock.o)
+ .bss.count     0x20000360        0x8 contiki-cc13xx.a(clock.o)
  .bss.rands_cache
-                0x20000358       0x20 contiki-cc13xx.a(soc-trng.o)
- .bss.inited    0x20000378        0x4 contiki-cc13xx.a(board.o)
- .bss.dog       0x2000037c       0x10 contiki-cc13xx.a(external-watchd)
- .bss.rx_stats  0x2000038c        0xc contiki-cc13xx.a(prop-mode.o)
+                0x20000368       0x20 contiki-cc13xx.a(soc-trng.o)
+ .bss.inited    0x20000388        0x4 contiki-cc13xx.a(board.o)
+ .bss.dog       0x2000038c       0x10 contiki-cc13xx.a(external-watchd)
+ .bss.rx_stats  0x2000039c        0xc contiki-cc13xx.a(prop-mode.o)
  .bss.rx_data_queue
-                0x20000398        0x8 contiki-cc13xx.a(prop-mode.o)
+                0x200003a8        0x8 contiki-cc13xx.a(prop-mode.o)
  .bss.rx_read_entry
-                0x200003a0        0x4 contiki-cc13xx.a(prop-mode.o)
- .bss.tx_buf    0x200003a4       0xb8 contiki-cc13xx.a(prop-mode.o)
- .bss.rx_buf    0x2000045c      0x230 contiki-cc13xx.a(prop-mode.o)
+                0x200003b0        0x4 contiki-cc13xx.a(prop-mode.o)
+ .bss.tx_buf    0x200003b4       0xb8 contiki-cc13xx.a(prop-mode.o)
+ .bss.rx_buf    0x2000046c      0x230 contiki-cc13xx.a(prop-mode.o)
  .bss.last_isr_time
-                0x2000068c        0x4 contiki-cc13xx.a(soc-rtc.o)
+                0x2000069c        0x4 contiki-cc13xx.a(soc-rtc.o)
  .bss.input_handler
-                0x20000690        0x4 contiki-cc13xx.a(cc26xx-uart.o)
+                0x200006a0        0x4 contiki-cc13xx.a(cc26xx-uart.o)
  .bss.modules_list_list
-                0x20000694        0x4 contiki-cc13xx.a(lpm.o)
+                0x200006a4        0x4 contiki-cc13xx.a(lpm.o)
  .bss.last_radio_op
-                0x20000698        0x4 contiki-cc13xx.a(rf-core.o)
+                0x200006a8        0x4 contiki-cc13xx.a(rf-core.o)
  .bss.primary_mode
-                0x2000069c        0x4 contiki-cc13xx.a(rf-core.o)
+                0x200006ac        0x4 contiki-cc13xx.a(rf-core.o)
  .bss.rat_offset
-                0x200006a0        0x4 contiki-cc13xx.a(rf-core.o)
-                0x200006a0                rat_offset
+                0x200006b0        0x4 contiki-cc13xx.a(rf-core.o)
+                0x200006b0                rat_offset
  .bss.notify_cb
-                0x200006a4        0x4 contiki-cc13xx.a(soc-trng.o)
+                0x200006b4        0x4 contiki-cc13xx.a(soc-trng.o)
  .bss.rands_mask
-                0x200006a8        0x4 contiki-cc13xx.a(soc-trng.o)
+                0x200006b8        0x4 contiki-cc13xx.a(soc-trng.o)
  .bss.ctimer_list_list
-                0x200006ac        0x4 contiki-cc13xx.a(ctimer.o)
+                0x200006bc        0x4 contiki-cc13xx.a(ctimer.o)
  .bss.timerlist
-                0x200006b0        0x4 contiki-cc13xx.a(etimer.o)
+                0x200006c0        0x4 contiki-cc13xx.a(etimer.o)
  .bss.next_expiration
-                0x200006b4        0x4 contiki-cc13xx.a(etimer.o)
+                0x200006c4        0x4 contiki-cc13xx.a(etimer.o)
  .bss.process_current
-                0x200006b8        0x4 contiki-cc13xx.a(process.o)
-                0x200006b8                process_current
+                0x200006c8        0x4 contiki-cc13xx.a(process.o)
+                0x200006c8                process_current
  .bss.process_list
-                0x200006bc        0x4 contiki-cc13xx.a(process.o)
-                0x200006bc                process_list
- .bss.events    0x200006c0      0x180 contiki-cc13xx.a(process.o)
+                0x200006cc        0x4 contiki-cc13xx.a(process.o)
+                0x200006cc                process_list
+ .bss.events    0x200006d0      0x180 contiki-cc13xx.a(process.o)
  .bss.next_rtimer
-                0x20000840        0x4 contiki-cc13xx.a(rtimer.o)
+                0x20000850        0x4 contiki-cc13xx.a(rtimer.o)
  .bss.rxbuf_data
-                0x20000844       0x80 contiki-cc13xx.a(serial-line.o)
- .bss.buf.4853  0x200008c4       0x80 contiki-cc13xx.a(serial-line.o)
- .bss.rxbuf     0x20000944        0x8 contiki-cc13xx.a(serial-line.o)
- .bss.ptr.4854  0x2000094c        0x4 contiki-cc13xx.a(serial-line.o)
- .bss.context   0x20000950        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x20000854       0x80 contiki-cc13xx.a(serial-line.o)
+ .bss.buf.4853  0x200008d4       0x80 contiki-cc13xx.a(serial-line.o)
+ .bss.rxbuf     0x20000954        0x8 contiki-cc13xx.a(serial-line.o)
+ .bss.ptr.4854  0x2000095c        0x4 contiki-cc13xx.a(serial-line.o)
+ .bss.context   0x20000960        0x4 contiki-cc13xx.a(sicslowpan.o)
  .bss.last_rssi
-                0x20000954        0x4 contiki-cc13xx.a(sicslowpan.o)
- .bss.hc06_ptr  0x20000958        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x20000964        0x4 contiki-cc13xx.a(sicslowpan.o)
+ .bss.hc06_ptr  0x20000968        0x4 contiki-cc13xx.a(sicslowpan.o)
  .bss.frag_info
-                0x2000095c      0x158 contiki-cc13xx.a(sicslowpan.o)
+                0x2000096c      0x158 contiki-cc13xx.a(sicslowpan.o)
  .bss.addr_contexts
-                0x20000ab4        0xc contiki-cc13xx.a(sicslowpan.o)
+                0x20000ac4        0xc contiki-cc13xx.a(sicslowpan.o)
  .bss.packetbuf_ptr
-                0x20000ac0        0x4 contiki-cc13xx.a(sicslowpan.o)
+                0x20000ad0        0x4 contiki-cc13xx.a(sicslowpan.o)
  .bss.last_tx_status
-                0x20000ac4        0x4 contiki-cc13xx.a(sicslowpan.o)
- .bss.frag_buf  0x20000ac8      0x54c contiki-cc13xx.a(sicslowpan.o)
+                0x20000ad4        0x4 contiki-cc13xx.a(sicslowpan.o)
+ .bss.frag_buf  0x20000ad8      0x54c contiki-cc13xx.a(sicslowpan.o)
  .bss.packetbuf_payload_len
-                0x20001014        0x4 contiki-cc13xx.a(sicslowpan.o)
- .bss.callback  0x20001018        0x4 contiki-cc13xx.a(sicslowpan.o)
- .bss.s         0x2000101c       0xa4 contiki-cc13xx.a(tcpip.o)
- .bss.periodic  0x200010c0       0x10 contiki-cc13xx.a(tcpip.o)
+                0x20001024        0x4 contiki-cc13xx.a(sicslowpan.o)
+ .bss.callback  0x20001028        0x4 contiki-cc13xx.a(sicslowpan.o)
+ .bss.s         0x2000102c       0xa4 contiki-cc13xx.a(tcpip.o)
+ .bss.periodic  0x200010d0       0x10 contiki-cc13xx.a(tcpip.o)
  .bss.outputfunc
-                0x200010d0        0x4 contiki-cc13xx.a(tcpip.o)
+                0x200010e0        0x4 contiki-cc13xx.a(tcpip.o)
  .bss._rpl_parents_mem
-                0x200010d4       0xa0 contiki-cc13xx.a(rpl-dag.o)
- .bss.powerQualGlobals
-                0x20001174        0x8 contiki-cc13xx.a(sys_ctrl.o)
+                0x200010e4       0xa0 contiki-cc13xx.a(rpl-dag.o)
  .bss.buframmem_memb_count
-                0x2000117c        0x8 contiki-cc13xx.a(queuebuf.o)
+                0x20001184        0x8 contiki-cc13xx.a(queuebuf.o)
  .bss.bufmem_memb_mem
-                0x20001184       0x20 contiki-cc13xx.a(queuebuf.o)
+                0x2000118c       0x20 contiki-cc13xx.a(queuebuf.o)
  .bss.buframmem_memb_mem
-                0x200011a4      0x520 contiki-cc13xx.a(queuebuf.o)
+                0x200011ac      0x520 contiki-cc13xx.a(queuebuf.o)
  .bss.bufmem_memb_count
-                0x200016c4        0x8 contiki-cc13xx.a(queuebuf.o)
+                0x200016cc        0x8 contiki-cc13xx.a(queuebuf.o)
  .bss.neighbor_addr_mem_memb_count
-                0x200016cc       0x14 contiki-cc13xx.a(nbr-table.o)
+                0x200016d4       0x14 contiki-cc13xx.a(nbr-table.o)
  .bss.locked_map
-                0x200016e0       0x14 contiki-cc13xx.a(nbr-table.o)
+                0x200016e8       0x14 contiki-cc13xx.a(nbr-table.o)
  .bss.nbr_table_keys_list
-                0x200016f4        0x4 contiki-cc13xx.a(nbr-table.o)
+                0x200016fc        0x4 contiki-cc13xx.a(nbr-table.o)
  .bss.neighbor_addr_mem_memb_mem
-                0x200016f8       0xa0 contiki-cc13xx.a(nbr-table.o)
- .bss.used_map  0x20001798       0x14 contiki-cc13xx.a(nbr-table.o)
+                0x20001700       0xa0 contiki-cc13xx.a(nbr-table.o)
+ .bss.used_map  0x200017a0       0x14 contiki-cc13xx.a(nbr-table.o)
  .bss.all_tables
-                0x200017ac       0x20 contiki-cc13xx.a(nbr-table.o)
+                0x200017b4       0x20 contiki-cc13xx.a(nbr-table.o)
  .bss.num_tables
-                0x200017cc        0x4 contiki-cc13xx.a(nbr-table.o)
+                0x200017d4        0x4 contiki-cc13xx.a(nbr-table.o)
  .bss.packetbuf_aligned
-                0x200017d0       0x80 contiki-cc13xx.a(packetbuf.o)
+                0x200017d8       0x80 contiki-cc13xx.a(packetbuf.o)
  .bss._link_stats_mem
-                0x20001850       0xf0 contiki-cc13xx.a(link-stats.o)
- .bss.scan_timer.6925
-                0x20001940       0x10 contiki-cc13xx.a(hitmac.o)
+                0x20001858       0xf0 contiki-cc13xx.a(link-stats.o)
+ .bss.start.6905
+                0x20001948        0x4 contiki-cc13xx.a(hitmac.o)
  .bss.hitmac_current_scheduler
-                0x20001950       0x14 contiki-cc13xx.a(hitmac.o)
+                0x2000194c       0x14 contiki-cc13xx.a(hitmac.o)
  .bss.hitmac_is_associated
+                0x20001960        0x4 contiki-cc13xx.a(hitmac.o)
+ .bss.request_pt.6961
                 0x20001964        0x4 contiki-cc13xx.a(hitmac.o)
- .bss.cca_et.6911
-                0x20001968       0x10 contiki-cc13xx.a(hitmac.o)
- .bss.request_pt.6956
-                0x20001978        0x4 contiki-cc13xx.a(hitmac.o)
  .bss.down_schedule_num
-                0x2000197c        0x4 contiki-cc13xx.a(hitmac.o)
+                0x20001968        0x4 contiki-cc13xx.a(hitmac.o)
  .bss.asn_rtimer
-                0x20001980        0xc contiki-cc13xx.a(hitmac.o)
+                0x2000196c        0xc contiki-cc13xx.a(hitmac.o)
+ .bss.scan_timer.6929
+                0x20001978       0x10 contiki-cc13xx.a(hitmac.o)
+ .bss.ccasleep_et.6917
+                0x20001988       0x10 contiki-cc13xx.a(hitmac.o)
  .bss.hitmac_current_asn
-                0x2000198c        0x8 contiki-cc13xx.a(hitmac.o)
+                0x20001998        0x8 contiki-cc13xx.a(hitmac.o)
  .bss.current_asn_time
-                0x20001994        0x4 contiki-cc13xx.a(hitmac.o)
- .bss.current_tick.6871
-                0x20001998        0x4 contiki-cc13xx.a(hitmac.o)
- .bss.hitmac_current_bussiness
-                0x2000199c        0x4 contiki-cc13xx.a(hitmac.o)
- .bss.current_root_addr
                 0x200019a0        0x4 contiki-cc13xx.a(hitmac.o)
+ .bss.cca_et.6916
+                0x200019a4       0x10 contiki-cc13xx.a(hitmac.o)
+ .bss.hitmac_current_bussiness
+                0x200019b4        0x4 contiki-cc13xx.a(hitmac.o)
+ .bss.current_tick.6876
+                0x200019b8        0x4 contiki-cc13xx.a(hitmac.o)
  .bss.sync_tick_diff
-                0x200019a4        0x4 contiki-cc13xx.a(hitmac.o)
-                0x200019a4                sync_tick_diff
- .bss.start.6900
-                0x200019a8        0x4 contiki-cc13xx.a(hitmac.o)
+                0x200019bc        0x4 contiki-cc13xx.a(hitmac.o)
+                0x200019bc                sync_tick_diff
  .bss.packet_memb_memb_count
-                0x200019ac        0x8 contiki-cc13xx.a(hitmac-frame.o)
+                0x200019c0        0x8 contiki-cc13xx.a(hitmac-frame.o)
  .bss.packet_memb_memb_mem
-                0x200019b4      0x460 contiki-cc13xx.a(hitmac-frame.o)
+                0x200019c8      0x460 contiki-cc13xx.a(hitmac-frame.o)
  .bss.consumers_list_list
-                0x20001e14        0x4 contiki-cc13xx.a(aux-ctrl.o)
- .bss.original_dataptr
-                0x20001e18        0x4 contiki-cc13xx.a(interface.o)
+                0x20001e28        0x4 contiki-cc13xx.a(aux-ctrl.o)
  .bss.tmp_ipaddr
-                0x20001e1c       0x10 contiki-cc13xx.a(uip-icmp6.o)
+                0x20001e2c       0x10 contiki-cc13xx.a(uip-icmp6.o)
  .bss.echo_reply_callback_list_list
-                0x20001e2c        0x4 contiki-cc13xx.a(uip-icmp6.o)
+                0x20001e3c        0x4 contiki-cc13xx.a(uip-icmp6.o)
  .bss.input_handler_list_list
-                0x20001e30        0x4 contiki-cc13xx.a(uip-icmp6.o)
- .bss.locmaddr  0x20001e34        0x4 contiki-cc13xx.a(uip-ds6.o)
+                0x20001e40        0x4 contiki-cc13xx.a(uip-icmp6.o)
+ .bss.locmaddr  0x20001e44        0x4 contiki-cc13xx.a(uip-ds6.o)
  .bss.locprefix
-                0x20001e38        0x4 contiki-cc13xx.a(uip-ds6.o)
- .bss.locaddr   0x20001e3c        0x4 contiki-cc13xx.a(uip-ds6.o)
+                0x20001e48        0x4 contiki-cc13xx.a(uip-ds6.o)
+ .bss.locaddr   0x20001e4c        0x4 contiki-cc13xx.a(uip-ds6.o)
  .bss.loc_fipaddr
-                0x20001e40       0x10 contiki-cc13xx.a(uip-ds6.o)
+                0x20001e50       0x10 contiki-cc13xx.a(uip-ds6.o)
  .bss.defaultroutermemb_memb_mem
-                0x20001e50       0x40 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20001e60       0x40 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.num_routes
-                0x20001e90        0x4 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20001ea0        0x4 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.defaultroutermemb_memb_count
-                0x20001e94        0x4 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20001ea4        0x4 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.defaultrouterlist_list
-                0x20001e98        0x4 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20001ea8        0x4 contiki-cc13xx.a(uip-ds6-route.o)
  .bss._nbr_routes_mem
-                0x20001e9c       0xa0 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20001eac       0xa0 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.routelist_list
-                0x20001f3c        0x4 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20001f4c        0x4 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.routememb_memb_mem
-                0x20001f40      0x320 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20001f50      0x320 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.neighborroutememb_memb_mem
-                0x20002260       0xa0 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20002270       0xa0 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.notificationlist_list
-                0x20002300        0x4 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20002310        0x4 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.neighborroutememb_memb_count
-                0x20002304       0x14 contiki-cc13xx.a(uip-ds6-route.o)
+                0x20002314       0x14 contiki-cc13xx.a(uip-ds6-route.o)
  .bss.routememb_memb_count
-                0x20002318       0x14 contiki-cc13xx.a(uip-ds6-route.o)
- .bss.iss       0x2000232c        0x4 contiki-cc13xx.a(uip6.o)
+                0x20002328       0x14 contiki-cc13xx.a(uip-ds6-route.o)
+ .bss.iss       0x2000233c        0x4 contiki-cc13xx.a(uip6.o)
  .bss._ds6_neighbors_mem
-                0x20002330      0x168 contiki-cc13xx.a(uip-ds6-nbr.o)
- .bss.nbr       0x20002498        0x4 contiki-cc13xx.a(uip-nd6.o)
+                0x20002340      0x168 contiki-cc13xx.a(uip-ds6-nbr.o)
+ .bss.nbr       0x200024a8        0x4 contiki-cc13xx.a(uip-nd6.o)
  .bss.nd6_opt_llao
-                0x2000249c        0x4 contiki-cc13xx.a(uip-nd6.o)
- .bss.addr      0x200024a0        0x4 contiki-cc13xx.a(uip-nd6.o)
+                0x200024ac        0x4 contiki-cc13xx.a(uip-nd6.o)
+ .bss.addr      0x200024b0        0x4 contiki-cc13xx.a(uip-nd6.o)
  .bss.periodic_timer
-                0x200024a4       0x20 contiki-cc13xx.a(rpl-nbr-policy.)
+                0x200024b4       0x20 contiki-cc13xx.a(rpl-nbr-policy.)
  .bss.timer_init
-                0x200024c4        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
- .bss.num_children
-                0x200024c8        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
- .bss.worst_rank_nbr
-                0x200024cc        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
- .bss.num_free  0x200024d0        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
- .bss.num_parents
                 0x200024d4        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
+ .bss.num_children
+                0x200024d8        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
+ .bss.worst_rank_nbr
+                0x200024dc        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
+ .bss.num_free  0x200024e0        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
+ .bss.num_parents
+                0x200024e4        0x4 contiki-cc13xx.a(rpl-nbr-policy.)
  .bss.periodic_timer
-                0x200024d8       0x20 contiki-cc13xx.a(rpl-timers.o)
+                0x200024e8       0x20 contiki-cc13xx.a(rpl-timers.o)
  .bss.received_seqnos
-                0x200024f8       0xc0 contiki-cc13xx.a(mac-sequence.o)
- .bss.node_id   0x200025b8        0x2 contiki-cc13xx.a(node-id.o)
-                0x200025b8                node_id
- .bss.my_tag    0x200025ba        0x2 contiki-cc13xx.a(sicslowpan.o)
- .bss.buflen    0x200025bc        0x2 contiki-cc13xx.a(packetbuf.o)
- .bss.bufptr    0x200025be        0x2 contiki-cc13xx.a(packetbuf.o)
- .bss.rtimer_tick_comple
-                0x200025c0        0x2 contiki-cc13xx.a(hitmac.o)
- .bss.lastport  0x200025c2        0x2 contiki-cc13xx.a(uip6.o)
+                0x20002508       0xc0 contiki-cc13xx.a(mac-sequence.o)
+ .bss.node_id   0x200025c8        0x2 contiki-cc13xx.a(node-id.o)
+                0x200025c8                node_id
+ .bss.my_tag    0x200025ca        0x2 contiki-cc13xx.a(sicslowpan.o)
+ .bss.buflen    0x200025cc        0x2 contiki-cc13xx.a(packetbuf.o)
+ .bss.bufptr    0x200025ce        0x2 contiki-cc13xx.a(packetbuf.o)
+ .bss.lastport  0x200025d0        0x2 contiki-cc13xx.a(uip6.o)
  .bss.worst_rank
-                0x200025c4        0x2 contiki-cc13xx.a(rpl-nbr-policy.)
- .bss.next_dis  0x200025c6        0x2 contiki-cc13xx.a(rpl-timers.o)
- .bss.c         0x200025c8        0x1 contiki-cc13xx.a(board.o)
+                0x200025d2        0x2 contiki-cc13xx.a(rpl-nbr-policy.)
+ .bss.next_dis  0x200025d4        0x2 contiki-cc13xx.a(rpl-timers.o)
+ .bss.c         0x200025d6        0x1 contiki-cc13xx.a(board.o)
+ .bss.debug_frame.6979
+                0x200025d7        0x1 contiki-cc13xx.a(putchar.o)
  .bss.rat_offset_known
-                0x200025c9        0x1 contiki-cc13xx.a(rf-core.o)
+                0x200025d8        0x1 contiki-cc13xx.a(rf-core.o)
  .bss.ble_mode_on
-                0x200025ca        0x1 contiki-cc13xx.a(rf-ble.o)
+                0x200025d9        0x1 contiki-cc13xx.a(rf-ble.o)
  .bss.initialized
-                0x200025cb        0x1 contiki-cc13xx.a(ctimer.o)
- .bss.fevent    0x200025cc        0x1 contiki-cc13xx.a(process.o)
- .bss.nevents   0x200025cd        0x1 contiki-cc13xx.a(process.o)
+                0x200025da        0x1 contiki-cc13xx.a(ctimer.o)
+ .bss.fevent    0x200025db        0x1 contiki-cc13xx.a(process.o)
+ .bss.nevents   0x200025dc        0x1 contiki-cc13xx.a(process.o)
  .bss.poll_requested
-                0x200025ce        0x1 contiki-cc13xx.a(process.o)
+                0x200025dd        0x1 contiki-cc13xx.a(process.o)
  .bss.lastevent
-                0x200025cf        0x1 contiki-cc13xx.a(process.o)
- .bss.leds      0x200025d0        0x1 contiki-cc13xx.a(leds.o)
+                0x200025de        0x1 contiki-cc13xx.a(process.o)
+ .bss.leds      0x200025df        0x1 contiki-cc13xx.a(leds.o)
  .bss.uncomp_hdr_len
-                0x200025d1        0x1 contiki-cc13xx.a(sicslowpan.o)
+                0x200025e0        0x1 contiki-cc13xx.a(sicslowpan.o)
  .bss.packetbuf_hdr_len
-                0x200025d2        0x1 contiki-cc13xx.a(sicslowpan.o)
- .bss.mode      0x200025d3        0x1 contiki-cc13xx.a(rpl.o)
- .bss.hdrlen    0x200025d4        0x1 contiki-cc13xx.a(packetbuf.o)
- .bss.mac_dsn   0x200025d5        0x1 contiki-cc13xx.a(framer-802154.o)
+                0x200025e1        0x1 contiki-cc13xx.a(sicslowpan.o)
+ .bss.mode      0x200025e2        0x1 contiki-cc13xx.a(rpl.o)
+ .bss.hdrlen    0x200025e3        0x1 contiki-cc13xx.a(packetbuf.o)
+ .bss.mac_dsn   0x200025e4        0x1 contiki-cc13xx.a(framer-802154.o)
  .bss.initialized
-                0x200025d6        0x1 contiki-cc13xx.a(framer-802154.o)
- .bss.next_slot_packet_seen.6897
-                0x200025d7        0x1 contiki-cc13xx.a(hitmac.o)
+                0x200025e5        0x1 contiki-cc13xx.a(framer-802154.o)
  .bss.lost_sync_num
-                0x200025d8        0x1 contiki-cc13xx.a(hitmac.o)
-                0x200025d8                lost_sync_num
- .bss.strobes.6901
-                0x200025d9        0x1 contiki-cc13xx.a(hitmac.o)
- .bss.rand_req.6926
-                0x200025da        0x1 contiki-cc13xx.a(hitmac.o)
- .bss.mod_type  0x200025db        0x1 contiki-cc13xx.a(hitmac.o)
+                0x200025e6        0x1 contiki-cc13xx.a(hitmac.o)
+                0x200025e6                lost_sync_num
+ .bss.strobes.6906
+                0x200025e7        0x1 contiki-cc13xx.a(hitmac.o)
+ .bss.next_slot_packet_seen.6902
+                0x200025e8        0x1 contiki-cc13xx.a(hitmac.o)
+ .bss.mod_type  0x200025e9        0x1 contiki-cc13xx.a(hitmac.o)
+ .bss.rand_req.6930
+                0x200025ea        0x1 contiki-cc13xx.a(hitmac.o)
  .bss.hitmac_slot
-                0x200025dc        0x1 contiki-cc13xx.a(hitmac.o)
- .bss.hitmac_packet_seqno.6265
-                0x200025dd        0x1 contiki-cc13xx.a(hitmac-frame.o)
+                0x200025eb        0x1 contiki-cc13xx.a(hitmac.o)
+ .bss.hitmac_packet_seqno.6271
+                0x200025ec        0x1 contiki-cc13xx.a(hitmac-frame.o)
  .bss.uip_ext_len
-                0x200025de        0x1 contiki-cc13xx.a(uip6.o)
-                0x200025de                uip_ext_len
+                0x200025ed        0x1 contiki-cc13xx.a(uip6.o)
+                0x200025ed                uip_ext_len
  .bss.uip_ext_bitmap
-                0x200025df        0x1 contiki-cc13xx.a(uip6.o)
-                0x200025df                uip_ext_bitmap
+                0x200025ee        0x1 contiki-cc13xx.a(uip6.o)
+                0x200025ee                uip_ext_bitmap
  .bss.uip_ext_opt_offset
-                0x200025e0        0x1 contiki-cc13xx.a(uip6.o)
-                0x200025e0                uip_ext_opt_offset
+                0x200025ef        0x1 contiki-cc13xx.a(uip6.o)
+                0x200025ef                uip_ext_opt_offset
  .bss.nd6_opt_offset
-                0x200025e1        0x1 contiki-cc13xx.a(uip-nd6.o)
+                0x200025f0        0x1 contiki-cc13xx.a(uip-nd6.o)
  .bss.dio_send_ok
-                0x200025e2        0x1 contiki-cc13xx.a(rpl-timers.o)
+                0x200025f1        0x1 contiki-cc13xx.a(rpl-timers.o)
  *(SORT(COMMON))
- *fill*         0x200025e3        0x1 
- COMMON         0x200025e4       0x26 contiki-cc13xx.a(contiki-main.o)
-                0x200025e4                normal_byte
-                0x200025e6                channel_byte
-                0x200025e8                restart_count
-                0x200025ec                cmd_read_meter
- *fill*         0x2000260a        0x2 
- COMMON         0x2000260c      0x158 contiki-cc13xx.a(rpl-dag.o)
-                0x2000260c                default_instance
-                0x20002610                instance_table
- COMMON         0x20002764       0x22 contiki-cc13xx.a(packetbuf.o)
-                0x20002764                packetbuf_addrs
-                0x20002768                packetbuf_attrs
- *fill*         0x20002786        0x2 
- COMMON         0x20002788        0x2 contiki-cc13xx.a(linkaddr.o)
-                0x20002788                linkaddr_node_addr
- *fill*         0x2000278a        0x2 
- COMMON         0x2000278c       0x20 contiki-cc13xx.a(link-stats.o)
-                0x2000278c                periodic_timer
- COMMON         0x200027ac       0x9c contiki-cc13xx.a(hitmac.o)
-                0x200027ac                hitmac_is_started
-                0x200027b0                hitmac_is_root
-                0x200027b4                conn_process
-                0x200027b8                input_buf
-                0x20002844                receive_request_time
- COMMON         0x20002848       0x24 contiki-cc13xx.a(hitmac-frame.o)
-                0x20002848                current_queue
- COMMON         0x2000286c      0x174 contiki-cc13xx.a(uip-ds6.o)
-                0x2000286c                uip_ds6_timer_ra
-                0x20002874                uip_ds6_if
-                0x2000296c                uip_ds6_netif_addr_list_offset
-                0x2000296d                uip_ds6_addr_size
-                0x20002970                uip_ds6_prefix_list
-                0x200029d0                uip_ds6_timer_periodic
- COMMON         0x200029e0      0x87c contiki-cc13xx.a(uip6.o)
-                0x200029e0                uip_len
-                0x200029e4                uip_sappdata
-                0x200029e8                uip_acc32
-                0x200029ec                uip_lladdr
-                0x200029f4                uip_aligned_buf
-                0x20002ef4                uip_flags
-                0x20002ef8                uip_next_hdr
-                0x20002efc                uip_udp_conn
-                0x20002f00                uip_appdata
-                0x20002f04                uip_conn
-                0x20002f08                uip_conns
-                0x200030e8                uip_icmp6_conns
-                0x200030f0                uip_listenports
-                0x20003118                uip_slen
-                0x2000311c                uip_udp_conns
- COMMON         0x2000325c        0x1 contiki-cc13xx.a(serial-line.o)
-                0x2000325c                serial_line_event_message
- COMMON         0x2000325d        0x2 contiki-cc13xx.a(tcpip.o)
-                0x2000325d                tcpip_event
-                0x2000325e                tcpip_icmp6_event
-                0x2000325f                _ebss = .
+ *fill*         0x200025f2        0x2 
+ COMMON         0x200025f4       0x26 contiki-cc13xx.a(contiki-main.o)
+                0x200025f4                normal_byte
+                0x200025f6                channel_byte
+                0x200025f8                restart_count
+                0x200025fc                cmd_read_meter
+ *fill*         0x2000261a        0x2 
+ COMMON         0x2000261c      0x158 contiki-cc13xx.a(rpl-dag.o)
+                0x2000261c                default_instance
+                0x20002620                instance_table
+ COMMON         0x20002774       0x22 contiki-cc13xx.a(packetbuf.o)
+                0x20002774                packetbuf_addrs
+                0x20002778                packetbuf_attrs
+ *fill*         0x20002796        0x2 
+ COMMON         0x20002798        0x2 contiki-cc13xx.a(linkaddr.o)
+                0x20002798                linkaddr_node_addr
+ *fill*         0x2000279a        0x2 
+ COMMON         0x2000279c       0x20 contiki-cc13xx.a(link-stats.o)
+                0x2000279c                periodic_timer
+ COMMON         0x200027bc       0x9c contiki-cc13xx.a(hitmac.o)
+                0x200027bc                hitmac_is_started
+                0x200027c0                hitmac_is_root
+                0x200027c4                conn_process
+                0x200027c8                input_buf
+                0x20002854                receive_request_time
+ COMMON         0x20002858       0x24 contiki-cc13xx.a(hitmac-frame.o)
+                0x20002858                current_queue
+ COMMON         0x2000287c      0x174 contiki-cc13xx.a(uip-ds6.o)
+                0x2000287c                uip_ds6_timer_ra
+                0x20002884                uip_ds6_if
+                0x2000297c                uip_ds6_netif_addr_list_offset
+                0x2000297d                uip_ds6_addr_size
+                0x20002980                uip_ds6_prefix_list
+                0x200029e0                uip_ds6_timer_periodic
+ COMMON         0x200029f0      0x87c contiki-cc13xx.a(uip6.o)
+                0x200029f0                uip_len
+                0x200029f4                uip_sappdata
+                0x200029f8                uip_acc32
+                0x200029fc                uip_lladdr
+                0x20002a04                uip_aligned_buf
+                0x20002f04                uip_flags
+                0x20002f08                uip_next_hdr
+                0x20002f0c                uip_udp_conn
+                0x20002f10                uip_appdata
+                0x20002f14                uip_conn
+                0x20002f18                uip_conns
+                0x200030f8                uip_icmp6_conns
+                0x20003100                uip_listenports
+                0x20003128                uip_slen
+                0x2000312c                uip_udp_conns
+ COMMON         0x2000326c        0x1 contiki-cc13xx.a(serial-line.o)
+                0x2000326c                serial_line_event_message
+ COMMON         0x2000326d        0x2 contiki-cc13xx.a(tcpip.o)
+                0x2000326d                tcpip_event
+                0x2000326e                tcpip_icmp6_event
+                0x2000326f                _ebss = .
 
 .ccfg           0x0001ffa8       0x58
  *(SORT(.ccfg))
@@ -2870,13 +2856,13 @@ END GROUP
  .rel.iplt      0x00000000        0x0 obj_cc13xx/startup_gcc.o
 
 ._user_heap_stack
-                0x2000325f      0x101
-                0x20003260                . = ALIGN (0x4)
- *fill*         0x2000325f        0x1 
-                0x20003260                . = (. + _Min_Heap_Size)
-                0x20003360                . = (. + _Min_Stack_Size)
- *fill*         0x20003260      0x100 
-                0x20003360                . = ALIGN (0x4)
+                0x2000326f      0x101
+                0x20003270                . = ALIGN (0x4)
+ *fill*         0x2000326f        0x1 
+                0x20003270                . = (. + _Min_Heap_Size)
+                0x20003370                . = (. + _Min_Stack_Size)
+ *fill*         0x20003270      0x100 
+                0x20003370                . = ALIGN (0x4)
 
 .gpram
 OUTPUT(radio-receiver.elf elf32-littlearm)
@@ -2932,8 +2918,6 @@ OUTPUT(radio-receiver.elf elf32-littlearm)
  .comment       0x00000000       0x71 contiki-cc13xx.a(ddi.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(chipinfo.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(cpu.o)
- .comment       0x00000000       0x71 contiki-cc13xx.a(pwr_ctrl.o)
- .comment       0x00000000       0x71 contiki-cc13xx.a(sys_ctrl.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(osc.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(aon_rtc.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(rfc.o)
@@ -2951,7 +2935,6 @@ OUTPUT(radio-receiver.elf elf32-littlearm)
  .comment       0x00000000       0x71 contiki-cc13xx.a(flashdata.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(smartrf-setting)
  .comment       0x00000000       0x71 contiki-cc13xx.a(aux-ctrl.o)
- .comment       0x00000000       0x71 contiki-cc13xx.a(interface.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(ringbufindex.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(memb.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(uip-icmp6.o)
@@ -2965,7 +2948,6 @@ OUTPUT(radio-receiver.elf elf32-littlearm)
  .comment       0x00000000       0x71 contiki-cc13xx.a(rpl-timers.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(rpl-mrhof.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(flash.o)
- .comment       0x00000000       0x71 contiki-cc13xx.a(aon_batmon.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(vims.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(mac-sequence.o)
  .comment       0x00000000       0x71 contiki-cc13xx.a(frame802154.o)
@@ -3073,103 +3055,95 @@ OUTPUT(radio-receiver.elf elf32-littlearm)
  .ARM.attributes
                 0x00000990       0x33 contiki-cc13xx.a(cpu.o)
  .ARM.attributes
-                0x000009c3       0x33 contiki-cc13xx.a(pwr_ctrl.o)
+                0x000009c3       0x33 contiki-cc13xx.a(osc.o)
  .ARM.attributes
-                0x000009f6       0x33 contiki-cc13xx.a(sys_ctrl.o)
+                0x000009f6       0x33 contiki-cc13xx.a(aon_rtc.o)
  .ARM.attributes
-                0x00000a29       0x33 contiki-cc13xx.a(osc.o)
+                0x00000a29       0x33 contiki-cc13xx.a(rfc.o)
  .ARM.attributes
-                0x00000a5c       0x33 contiki-cc13xx.a(aon_rtc.o)
+                0x00000a5c       0x33 contiki-cc13xx.a(queuebuf.o)
  .ARM.attributes
-                0x00000a8f       0x33 contiki-cc13xx.a(rfc.o)
+                0x00000a8f       0x33 contiki-cc13xx.a(nbr-table.o)
  .ARM.attributes
-                0x00000ac2       0x33 contiki-cc13xx.a(queuebuf.o)
+                0x00000ac2       0x33 contiki-cc13xx.a(packetbuf.o)
  .ARM.attributes
-                0x00000af5       0x33 contiki-cc13xx.a(nbr-table.o)
+                0x00000af5       0x33 contiki-cc13xx.a(netstack.o)
  .ARM.attributes
-                0x00000b28       0x33 contiki-cc13xx.a(packetbuf.o)
+                0x00000b28       0x33 contiki-cc13xx.a(linkaddr.o)
  .ARM.attributes
-                0x00000b5b       0x33 contiki-cc13xx.a(netstack.o)
+                0x00000b5b       0x33 contiki-cc13xx.a(link-stats.o)
  .ARM.attributes
-                0x00000b8e       0x33 contiki-cc13xx.a(linkaddr.o)
+                0x00000b8e       0x33 contiki-cc13xx.a(framer-802154.o)
  .ARM.attributes
-                0x00000bc1       0x33 contiki-cc13xx.a(link-stats.o)
+                0x00000bc1       0x33 contiki-cc13xx.a(nullrdc.o)
  .ARM.attributes
-                0x00000bf4       0x33 contiki-cc13xx.a(framer-802154.o)
+                0x00000bf4       0x33 contiki-cc13xx.a(hitmac.o)
  .ARM.attributes
-                0x00000c27       0x33 contiki-cc13xx.a(nullrdc.o)
+                0x00000c27       0x33 contiki-cc13xx.a(hitmac-frame.o)
  .ARM.attributes
-                0x00000c5a       0x33 contiki-cc13xx.a(hitmac.o)
+                0x00000c5a       0x33 contiki-cc13xx.a(nullsec.o)
  .ARM.attributes
-                0x00000c8d       0x33 contiki-cc13xx.a(hitmac-frame.o)
+                0x00000c8d       0x33 contiki-cc13xx.a(flashdata.o)
  .ARM.attributes
-                0x00000cc0       0x33 contiki-cc13xx.a(nullsec.o)
+                0x00000cc0       0x33 contiki-cc13xx.a(smartrf-setting)
  .ARM.attributes
-                0x00000cf3       0x33 contiki-cc13xx.a(flashdata.o)
+                0x00000cf3       0x33 contiki-cc13xx.a(aux-ctrl.o)
  .ARM.attributes
-                0x00000d26       0x33 contiki-cc13xx.a(smartrf-setting)
+                0x00000d26       0x33 contiki-cc13xx.a(ringbufindex.o)
  .ARM.attributes
-                0x00000d59       0x33 contiki-cc13xx.a(aux-ctrl.o)
+                0x00000d59       0x33 contiki-cc13xx.a(memb.o)
  .ARM.attributes
-                0x00000d8c       0x33 contiki-cc13xx.a(interface.o)
+                0x00000d8c       0x33 contiki-cc13xx.a(uip-icmp6.o)
  .ARM.attributes
-                0x00000dbf       0x33 contiki-cc13xx.a(ringbufindex.o)
+                0x00000dbf       0x33 contiki-cc13xx.a(uip-ds6.o)
  .ARM.attributes
-                0x00000df2       0x33 contiki-cc13xx.a(memb.o)
+                0x00000df2       0x33 contiki-cc13xx.a(uip-ds6-route.o)
  .ARM.attributes
-                0x00000e25       0x33 contiki-cc13xx.a(uip-icmp6.o)
+                0x00000e25       0x33 contiki-cc13xx.a(uip6.o)
  .ARM.attributes
-                0x00000e58       0x33 contiki-cc13xx.a(uip-ds6.o)
+                0x00000e58       0x33 contiki-cc13xx.a(uip-ds6-nbr.o)
  .ARM.attributes
-                0x00000e8b       0x33 contiki-cc13xx.a(uip-ds6-route.o)
+                0x00000e8b       0x33 contiki-cc13xx.a(uip-nd6.o)
  .ARM.attributes
-                0x00000ebe       0x33 contiki-cc13xx.a(uip6.o)
+                0x00000ebe       0x33 contiki-cc13xx.a(uip-debug.o)
  .ARM.attributes
-                0x00000ef1       0x33 contiki-cc13xx.a(uip-ds6-nbr.o)
+                0x00000ef1       0x33 contiki-cc13xx.a(rpl-nbr-policy.)
  .ARM.attributes
-                0x00000f24       0x33 contiki-cc13xx.a(uip-nd6.o)
+                0x00000f24       0x33 contiki-cc13xx.a(rpl-timers.o)
  .ARM.attributes
-                0x00000f57       0x33 contiki-cc13xx.a(uip-debug.o)
+                0x00000f57       0x33 contiki-cc13xx.a(rpl-mrhof.o)
  .ARM.attributes
-                0x00000f8a       0x33 contiki-cc13xx.a(rpl-nbr-policy.)
+                0x00000f8a       0x33 contiki-cc13xx.a(flash.o)
  .ARM.attributes
-                0x00000fbd       0x33 contiki-cc13xx.a(rpl-timers.o)
+                0x00000fbd       0x33 contiki-cc13xx.a(vims.o)
  .ARM.attributes
-                0x00000ff0       0x33 contiki-cc13xx.a(rpl-mrhof.o)
+                0x00000ff0       0x33 contiki-cc13xx.a(mac-sequence.o)
  .ARM.attributes
-                0x00001023       0x33 contiki-cc13xx.a(flash.o)
+                0x00001023       0x33 contiki-cc13xx.a(frame802154.o)
  .ARM.attributes
-                0x00001056       0x33 contiki-cc13xx.a(aon_batmon.o)
+                0x00001056       0x33 contiki-cc13xx.a(mac.o)
  .ARM.attributes
-                0x00001089       0x33 contiki-cc13xx.a(vims.o)
+                0x00001089       0x33 contiki-cc13xx.a(stimer.o)
  .ARM.attributes
-                0x000010bc       0x33 contiki-cc13xx.a(mac-sequence.o)
+                0x000010bc       0x1d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
  .ARM.attributes
-                0x000010ef       0x33 contiki-cc13xx.a(frame802154.o)
+                0x000010d9       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
  .ARM.attributes
-                0x00001122       0x33 contiki-cc13xx.a(mac.o)
+                0x00001106       0x1d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
  .ARM.attributes
-                0x00001155       0x33 contiki-cc13xx.a(stimer.o)
+                0x00001123       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
  .ARM.attributes
-                0x00001188       0x1d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
+                0x00001150       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
  .ARM.attributes
-                0x000011a5       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(bpabi.o)
+                0x0000117d       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
  .ARM.attributes
-                0x000011d2       0x1d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_dvmd_tls.o)
+                0x000011aa       0x1b /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
  .ARM.attributes
-                0x000011ef       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_divdi3.o)
+                0x000011c5       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memmove.o)
  .ARM.attributes
-                0x0000121c       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_udivdi3.o)
+                0x000011f2       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
  .ARM.attributes
-                0x00001249       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
- .ARM.attributes
-                0x00001276       0x1b /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
- .ARM.attributes
-                0x00001291       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memmove.o)
- .ARM.attributes
-                0x000012be       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
- .ARM.attributes
-                0x000012eb       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+                0x0000121f       0x2d /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
 
 .debug_frame    0x00000000      0x1a0
  .debug_frame   0x00000000       0x28 /opt/gcc-arm-none/bin/../lib/gcc/arm-none-eabi/4.9.3/armv7-m/libgcc.a(_aeabi_uldivmod.o)
@@ -3524,7 +3498,6 @@ etimer_start_time                                 contiki-cc13xx.a(etimer.o)
 etimer_stop                                       contiki-cc13xx.a(etimer.o)
                                                   contiki-cc13xx.a(ctimer.o)
 external_watch_dog                                contiki-cc13xx.a(external-watchd)
-filter                                            contiki-cc13xx.a(interface.o)
 find_removable_dao                                contiki-cc13xx.a(rpl-nbr-policy.)
 find_removable_dio                                contiki-cc13xx.a(rpl-nbr-policy.)
 find_removable_dis                                contiki-cc13xx.a(rpl-nbr-policy.)
@@ -3567,15 +3540,18 @@ get_probing_delay                                 contiki-cc13xx.a(rpl-timers.o)
 get_probing_target                                contiki-cc13xx.a(rpl-timers.o)
 get_sync_difftick                                 contiki-cc13xx.a(hitmac.o)
 guess_etx_from_rssi                               contiki-cc13xx.a(link-stats.o)
+has_select_channel                                contiki-cc13xx.a(hitmac.o)
 hitmac_driver                                     contiki-cc13xx.a(hitmac.o)
                                                   contiki-cc13xx.a(nullrdc.o)
                                                   contiki-cc13xx.a(netstack.o)
+                                                  contiki-cc13xx.a(rf-core.o)
                                                   contiki-cc13xx.a(contiki-main.o)
 hitmac_is_root                                    contiki-cc13xx.a(hitmac.o)
 hitmac_is_started                                 contiki-cc13xx.a(hitmac.o)
 hitmac_node_parse_data                            contiki-cc13xx.a(hitmac.o)
 hitmac_nodeid                                     contiki-cc13xx.a(hitmac.o)
 hitmac_nodes_send_data                            contiki-cc13xx.a(hitmac.o)
+hitmac_off                                        contiki-cc13xx.a(hitmac.o)
 hitmac_packet_create_dataframe                    contiki-cc13xx.a(hitmac-frame.o)
                                                   contiki-cc13xx.a(hitmac.o)
 hitmac_packet_create_eb                           contiki-cc13xx.a(hitmac-frame.o)
@@ -3632,7 +3608,6 @@ leds_on                                           contiki-cc13xx.a(leds.o)
                                                   contiki-cc13xx.a(hitmac.o)
 leds_set                                          contiki-cc13xx.a(leds.o)
 leds_toggle                                       contiki-cc13xx.a(leds.o)
-                                                  contiki-cc13xx.a(interface.o)
                                                   contiki-cc13xx.a(hitmac.o)
 link_stats_from_lladdr                            contiki-cc13xx.a(link-stats.o)
                                                   contiki-cc13xx.a(rpl-dag.o)
@@ -3717,7 +3692,6 @@ logic_test                                        contiki-cc13xx.a(board.o)
                                                   contiki-cc13xx.a(hitmac.o)
 lost_sync_num                                     contiki-cc13xx.a(hitmac.o)
 lpm_drop                                          contiki-cc13xx.a(lpm.o)
-                                                  contiki-cc13xx.a(contiki-main.o)
 lpm_init                                          contiki-cc13xx.a(lpm.o)
                                                   contiki-cc13xx.a(contiki-main.o)
 lpm_pin_set_default_state                         contiki-cc13xx.a(lpm.o)
@@ -3860,6 +3834,7 @@ normal_byte                                       contiki-cc13xx.a(hitmac.o)
                                                   contiki-cc13xx.a(contiki-main.o)
 normalbyte_rfchannel_burn                         contiki-cc13xx.a(node-id.o)
 normalbyte_rfchannel_restore                      contiki-cc13xx.a(node-id.o)
+                                                  contiki-cc13xx.a(contiki-main.o)
 nullrdc_driver                                    contiki-cc13xx.a(nullrdc.o)
                                                   contiki-cc13xx.a(contiki-main.o)
 nullsec_driver                                    contiki-cc13xx.a(nullsec.o)
@@ -3878,8 +3853,6 @@ oscillators_switch_to_hf_rc                       contiki-cc13xx.a(oscillators.o
 oscillators_switch_to_hf_xosc                     contiki-cc13xx.a(oscillators.o)
                                                   contiki-cc13xx.a(rf-ble.o)
                                                   contiki-cc13xx.a(prop-mode.o)
-packet_input_test                                 contiki-cc13xx.a(interface.o)
-                                                  contiki-cc13xx.a(rf-core.o)
 packetbuf_addr                                    contiki-cc13xx.a(packetbuf.o)
                                                   contiki-cc13xx.a(mac-sequence.o)
                                                   contiki-cc13xx.a(uip-ds6-nbr.o)
@@ -3892,7 +3865,6 @@ packetbuf_addr                                    contiki-cc13xx.a(packetbuf.o)
 packetbuf_addrs                                   contiki-cc13xx.a(packetbuf.o)
 packetbuf_attr                                    contiki-cc13xx.a(packetbuf.o)
                                                   contiki-cc13xx.a(mac-sequence.o)
-                                                  contiki-cc13xx.a(interface.o)
                                                   contiki-cc13xx.a(hitmac.o)
                                                   contiki-cc13xx.a(framer-802154.o)
                                                   contiki-cc13xx.a(link-stats.o)
@@ -3920,7 +3892,6 @@ packetbuf_datalen                                 contiki-cc13xx.a(packetbuf.o)
                                                   contiki-cc13xx.a(framer-802154.o)
                                                   contiki-cc13xx.a(sicslowpan.o)
 packetbuf_dataptr                                 contiki-cc13xx.a(packetbuf.o)
-                                                  contiki-cc13xx.a(interface.o)
                                                   contiki-cc13xx.a(hitmac-frame.o)
                                                   contiki-cc13xx.a(hitmac.o)
                                                   contiki-cc13xx.a(nullrdc.o)
@@ -3958,11 +3929,9 @@ periodic_timer                                    contiki-cc13xx.a(link-stats.o)
 print_cmd_array                                   contiki-cc13xx.a(node-id.o)
 printf                                            contiki-cc13xx.a(dbg-printf.o)
                                                   contiki-cc13xx.a(uip-debug.o)
-                                                  contiki-cc13xx.a(interface.o)
                                                   contiki-cc13xx.a(flashdata.o)
                                                   contiki-cc13xx.a(hitmac.o)
                                                   contiki-cc13xx.a(rpl-dag.o)
-                                                  contiki-cc13xx.a(node-id.o)
                                                   contiki-cc13xx.a(contiki-main.o)
 process_alloc_event                               contiki-cc13xx.a(process.o)
                                                   contiki-cc13xx.a(tcpip.o)
@@ -4008,7 +3977,6 @@ process_start                                     contiki-cc13xx.a(process.o)
                                                   contiki-cc13xx.a(prop-mode.o)
                                                   contiki-cc13xx.a(contiki-main.o)
 prop_mode_driver                                  contiki-cc13xx.a(prop-mode.o)
-                                                  contiki-cc13xx.a(interface.o)
                                                   contiki-cc13xx.a(hitmac.o)
                                                   contiki-cc13xx.a(nullrdc.o)
                                                   contiki-cc13xx.a(netstack.o)
@@ -4021,7 +3989,6 @@ prop_mode_tx_power_431_527                        contiki-cc13xx.a(prop-mode-tx-
 prop_mode_tx_power_779_930                        contiki-cc13xx.a(prop-mode-tx-po)
 putchar                                           contiki-cc13xx.a(putchar.o)
                                                   contiki-cc13xx.a(uip-debug.o)
-                                                  contiki-cc13xx.a(node-id.o)
 puts                                              contiki-cc13xx.a(putchar.o)
                                                   contiki-cc13xx.a(flashdata.o)
                                                   contiki-cc13xx.a(hitmac.o)
@@ -4267,6 +4234,8 @@ rtimer_run_next                                   contiki-cc13xx.a(rtimer.o)
                                                   contiki-cc13xx.a(soc-rtc.o)
 rtimer_set                                        contiki-cc13xx.a(rtimer.o)
                                                   contiki-cc13xx.a(hitmac.o)
+select_channel_event                              contiki-cc13xx.a(hitmac.o)
+select_channel_process                            contiki-cc13xx.a(hitmac.o)
 serial_line_event_message                         contiki-cc13xx.a(serial-line.o)
 serial_line_init                                  contiki-cc13xx.a(serial-line.o)
                                                   contiki-cc13xx.a(contiki-main.o)

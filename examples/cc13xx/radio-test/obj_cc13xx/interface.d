@@ -35,7 +35,8 @@ obj_cc13xx/interface.o: ../../../cpu/cc26xx-cc13xx/dev/interface.c \
  ../../../core/./net/ip/uip.h ../../../core/./net/ip/uipopt.h \
  ../../../core/./net/ip/tcpip.h ../../../core/./net/mac/framer.h \
  ../../../core/./net/packetbuf.h ../../../core/./net/mac/tsch/tsch-conf.h \
- ../../../cpu/cc26xx-cc13xx/./dev/interface.h ../../../core/./dev/leds.h
+ ../../../cpu/cc26xx-cc13xx/./dev/interface.h ../../../core/./dev/leds.h \
+ ../../../platform/cc13xx/./IMP.h
 ../../../cpu/cc26xx-cc13xx/dev/interface.c :
  ../../../core/./contiki.h ../../../core/./contiki-version.h :
  ../../../platform/cc13xx/./contiki-conf.h :
@@ -74,3 +75,4 @@ obj_cc13xx/interface.o: ../../../cpu/cc26xx-cc13xx/dev/interface.c \
  ../../../core/./net/ip/tcpip.h ../../../core/./net/mac/framer.h :
  ../../../core/./net/packetbuf.h ../../../core/./net/mac/tsch/tsch-conf.h :
  ../../../cpu/cc26xx-cc13xx/./dev/interface.h ../../../core/./dev/leds.h :
+ ../../../platform/cc13xx/./IMP.h :

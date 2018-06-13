@@ -85,13 +85,13 @@ void get_system_monitor_msg(uint8_t array[],int length)
 
   // //采样电压 
   //hitmac need to compensate one tick
-  temp_votlage = get_voltage();//3600 get_voltage();
+  temp_votlage = 3600;//3600 get_voltage();
   array[INDEX_ADCVOLTAGE]       = (temp_votlage>>8)&0xff; 
   array[INDEX_ADCVOLTAGE+1]     = temp_votlage&0xff;
 
   //change to sync tick
   /*record hitmac sync diff tick numbers*/
-  temp_sync_diff = get_sync_difftick()/2;//get_sync_difftick()/2;
+  temp_sync_diff =get_sync_difftick()/2;//get_sync_difftick()/2;
   array[INDEX_BEACON_INTERVAL]  = (uint8_t)(temp_sync_diff>>24)&0xFF;        
   array[INDEX_BEACON_INTERVAL+1] = (uint8_t)(temp_sync_diff>>16)&0xFF;
   array[INDEX_BEACON_INTERVAL+2] = (uint8_t)(temp_sync_diff>>8)&0xFF;         

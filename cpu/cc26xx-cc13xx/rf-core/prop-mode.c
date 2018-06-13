@@ -146,7 +146,7 @@ void logic_test(uint32_t i);
 #ifdef PROP_MODE_CONF_RSSI_THRESHOLD
 #define PROP_MODE_RSSI_THRESHOLD PROP_MODE_CONF_RSSI_THRESHOLD
 #else
-#define PROP_MODE_RSSI_THRESHOLD 0xBA /* 0xBA<==>-70  0xB0<==>-80// 0xA6<==>-90 */
+#define PROP_MODE_RSSI_THRESHOLD 0xA6 /* 0xBA<==>-70  0xB0<==>-80// 0xA6<==>-90 */
 #endif
 
 static int8_t rssi_threshold = PROP_MODE_RSSI_THRESHOLD;

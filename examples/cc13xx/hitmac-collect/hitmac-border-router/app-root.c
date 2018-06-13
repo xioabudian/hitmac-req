@@ -3,7 +3,10 @@
 #include "net/packetbuf.h"
 #include "lib/random.h"
 #include "dev/leds.h"
+#include "dev/cc26xx-uart.h"
+#include "node-id.h"
 #include "net/mac/hitmac/hitmac.h"
+#include "net/mac/hitmac/hitmac-conf.h"
 #include "net/mac/hitmac/hitmac-frame.h"
 #include "net/mac/hitmac/app-router.h"
 /*--------------------include app header file----------------------------*/
@@ -24,7 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 /*--------------------app router configure--------------------------*/
-#define PERIOD 10
+#define PERIOD 7
 #define HITMAC_DOWNLOAD_TYPE 2
 /*--------------------tcpip configure---------------------------------*/
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -35,6 +38,23 @@
 /*-------------concentrator receive monitor message from root------------*/
 #define UDP_ROOT_SEND_MONITOR_PORT 5688
 #define UDP_ROOT_RECEIVE_MONITOR_PORT 3001
+/*----------------------select channel ------------------------------------*/
+#define APP_SELECT_CHANNEL_INTERVAL (CLOCK_SECOND*HITMAC_TIME_LENGTH) //15minutes:900 
+/*extern valiable;channel select */
+uint8_t has_select_channel = 0;
+process_event_t select_channel_event;
+/*define data struct to store usage of channel*/
+struct channel_info{
+	uint16_t dest_addr;
+	uint8_t node_num;
+};
+struct channel_info channel_array[HITMAC_MAX_CHANNEL_NUMBER+1];
+
+struct unoccupied_info{
+	uint8_t channel[HITMAC_MAX_CHANNEL_NUMBER];
+	uint8_t len;
+};
+struct unoccupied_info unoccupied_channel;
 /*---------------------------------------------------------------------------*/
 enum {
 	HITMAC_APP_DATA,
@@ -56,13 +76,22 @@ uint8_t APP_BUF[150];
 
 #define DEBUG DEBUG_FULL
 #include "net/ip/uip-debug.h"
+#define MYPRINTF(...) cc26xx_uart_write_byte(0300);printf(__VA_ARGS__);cc26xx_uart_write_byte(0300);
 
 PROCESS(app_root_process,"app root process");
 PROCESS(app_tcpip_process,"app tcpip process");
-AUTOSTART_PROCESSES(&app_tcpip_process);//,app_root_process,&app_tcpip_process
+PROCESS(select_channel_process,"select channel process");
+AUTOSTART_PROCESSES(&app_tcpip_process);//select_channel_process,app_root_process,&app_tcpip_process
 /*---------------------------------------------------------------------------*/
 void
 logic_test(uint32_t i);
+struct total{
+	uint16_t id;
+	uint16_t num;
+};
+struct total node_count[10];
+/*---------------------------------------------------------------------------*/
+
 /*---------------------------------------------------------------------------*/
 void 
 hitmac_set_conn_process(struct process *p){
@@ -93,9 +122,8 @@ static void root_send(uint16_t addr)
 	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER,&dest);
 	NETSTACK_MAC.send(NULL, NULL);
 	
-	PRINTF("%c",0300);
-	PRINTF("root app send packet:%2x,len:%d\n",dest.u16,len+1);
-	PRINTF("%c",0300);
+	MYPRINTF("root app send packet:%2x,len:%d\n",dest.u16,len+1);
+	
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -106,19 +134,57 @@ tcpip_handler_border(void)
 	leds_toggle(LEDS_RED);
 	/*broadcast*/
 	unsigned char buffered_data_length;
+	uint8_t channel;
+	radio_value_t val;
 	buffered_data_length = (unsigned char) ((char *)uip_appdata)[0];
 	memset(APP_BUF,0,sizeof(APP_BUF));
 	memcpy(APP_BUF, &uip_appdata[1], buffered_data_length);
-	printf("%c",0300);
-	printf("phrase: %u\n",get_mod_type());
-	printf("%c",0300);
+	
+	
+	MYPRINTF("phrase: %u\n",get_mod_type());
+	//set asn: 88 66 88 + asn
 	if(APP_BUF[0]==0x01&&APP_BUF[1]==0x80&&APP_BUF[2]==0x88&&APP_BUF[3]==0x66&&APP_BUF[4]==0x88){
 		struct tsch_asn_t loacl_asn;
 		loacl_asn.ls4b = APP_BUF[5]<<8|APP_BUF[6];
-		hitmac_set_asn(loacl_asn);
-		printf("%c",0300);
-		printf("set root asn %lu\n",loacl_asn.ls4b);
-		printf("%c",0300);
+		hitmac_set_asn(loacl_asn);		
+		MYPRINTF("set root asn %lu\n",loacl_asn.ls4b);
+		return;
+	}
+	//manually set channel:77 77 55 55
+	if(APP_BUF[0]==0x01&&APP_BUF[1]==0x80&&APP_BUF[2]==0x77&&APP_BUF[3]==0x77&&APP_BUF[4]==0x55&&APP_BUF[5]==0x55){
+		channel = APP_BUF[6];
+		if(channel<HITMAC_MAX_CHANNEL){
+			//store into flash
+			normalbyte_rfchannel_burn(0,channel);
+			NETSTACK_RADIO.off();
+			NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,channel);
+			NETSTACK_RADIO.on();
+			NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&val);
+			MYPRINTF("manual set channel %u\n",val);
+		}else{
+			MYPRINTF("channel number is greater than %d\n",HITMAC_MAX_CHANNEL);
+		}
+		return;
+
+	//automatic channel scan:55 55 77 77 77
+	}else if(APP_BUF[0]==0x01&&APP_BUF[1]==0x80&&APP_BUF[2]==0x55&&APP_BUF[3]==0x55
+		&&APP_BUF[4]==0x77&&APP_BUF[5]==0x77&&APP_BUF[6]==0x77){
+		// exit app_root_process
+		has_select_channel = 0;
+		process_exit(&app_root_process);
+		hitmac_off(0);
+		//start select_channel_process until app select channel and start app_root_process
+		process_start(&select_channel_process,NULL);
+		MYPRINTF("automatic channel scan\n");
+		return;
+	}
+	//ask channel:66 66 44 66 66
+	if(APP_BUF[0]==0x01&&APP_BUF[1]==0x80&&APP_BUF[2]==0x66&&APP_BUF[3]==0x66
+		&&APP_BUF[4]==0x44&&APP_BUF[5]==0x66&&APP_BUF[6]==0x66){
+		
+		NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&val);
+		MYPRINTF("get current channel %u\n",val);
+		return;
 	}
 
 	/*only download permit root sending packets*/
@@ -146,19 +212,16 @@ eventhandler(process_event_t ev, process_data_t data)
 {
 
 	int len = 0;
+	radio_value_t channel;
 	switch(ev) {
   		
   		case HITMAC_APP_DATA:
-	  		// printf("root receive from: %x%x,len:%d\n",input_buf.src_addr.u8[0],input_buf.src_addr.u8[1],input_buf.len);
-	  		// printf("data:");
-	  		// string = input_buf.buf;
-	  		// printf("%s\n", string);
-	  		leds_toggle(LEDS_RED);	
-
+	  		leds_toggle(LEDS_RED);
 	  		/*root upload app data to concentrator*/
 			uip_ipaddr_copy(&server_conn->ripaddr, &server_ipaddr);
 			/*set nodes_ipaddr*/
 			uip_ip6addr(&nodes_ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, input_buf.src_addr.u16);
+						
 			/*ipv6 addr 16 Bytes*/
 			memset(APP_BUF,0,sizeof(APP_BUF));
 			len = 0;
@@ -175,11 +238,44 @@ eventhandler(process_event_t ev, process_data_t data)
 			uip_create_unspecified(&server_conn->ripaddr);
 			/*clear input_buf*/
 			/*use slip send packet*/
-			// printf("%c",0300);
-			// printf("app:%d\n",input_buf.len);
-			// printf("%c",0300);
-			
-	  		input_buf.len = 0; 		
+			// MYPRINTF("app:%d\n",input_buf.len);
+			/*@test*/
+			int flag = 0;
+			for(int i=0;i<10;i++){
+				if(node_count[i].id==input_buf.src_addr.u16){
+	  				node_count[i].num++;
+	  				flag =1;
+	  				break;
+	  			}
+			}
+			if(flag==0){
+				for(int i=0;i<10;i++){
+		  			if(node_count[i].id==0){
+		  				node_count[i].id = input_buf.src_addr.u16;
+		  				break;
+		  			}
+	  			}
+			}
+	  		
+	  		for(int i=0;i<10;i++){
+	  			if(node_count[i].id == input_buf.src_addr.u16){
+	  				uint8_t a = node_count[i].id&0xFF;
+	  				uint8_t b = (node_count[i].id>>8)&0xFF;
+	  				MYPRINTF("id %x%x,count %d,",a,b,node_count[i].num);
+					cc26xx_uart_write_byte(0300);
+					for(int i =0;i<input_buf.len;i++){
+						printf("%c",input_buf.buf[i]);
+					}
+					printf("\n");
+					cc26xx_uart_write_byte(0300);
+					MYPRINTF("rssi: %d\n",input_buf.rssi);
+	  				break;
+	  			}
+	  		}
+
+	  		input_buf.len = 0; 
+
+
 	  		
 	    break;
 
@@ -197,6 +293,9 @@ eventhandler(process_event_t ev, process_data_t data)
 			len +=16;
 			//change to rssi
 			input_buf.buf[INDEX_RTMETRIC] = input_buf.rssi;
+			//change to channel number 
+			NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&channel);//get local channel
+			input_buf.buf[INDEX_TIME_DIFF] = channel;
 			//parent
 			input_buf.buf[INDEX_PARENT] = input_buf.dest_addr.u8[0];
   			input_buf.buf[INDEX_PARENT+1] = input_buf.dest_addr.u8[1];
@@ -210,9 +309,7 @@ eventhandler(process_event_t ev, process_data_t data)
 			uip_create_unspecified(&server_conn_monitor->ripaddr);
 			/*clear input_buf*/
 			/*use slip send packet*/
-			// printf("%c",0300);
-			// printf("monitor:%d\n",input_buf.len);
-			// printf("%c",0300);
+			MYPRINTF("monitor:%d\n",input_buf.len);
 			
 	  		input_buf.len = 0; 		
 	    break;
@@ -234,7 +331,9 @@ eventhandler(process_event_t ev, process_data_t data)
 	
 // 	input_buf.len = packetbuf_datalen();
 // 	memcpy(input_buf.buf,&msg, input_buf.len);
-// 	input_buf.src_addr.u16 = 0xFE23;
+// 	static int i =0;
+// 	i++;
+// 	input_buf.src_addr.u16 = i;//0xFE23;
 // 	input_buf.dest_addr.u16 = 0xFEA8;
 
 // 	eventhandler(HITMAC_NET_HITMONITOR, NULL);
@@ -285,7 +384,7 @@ set_prefix_64(uip_ipaddr_t *prefix_64)
   dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &ipaddr);
   if(dag != NULL) {
     rpl_set_prefix(dag, &prefix, 64);
-    PRINTF("created a new RPL dag\n");
+    MYPRINTF("created a new RPL dag\n");
   }
 }
 
@@ -331,6 +430,8 @@ PROCESS_THREAD(app_tcpip_process,ev,data)
 
 	process_start(&app_root_process,NULL);
 
+	
+
 	while(1){
 		PROCESS_YIELD();
 		if(ev == tcpip_event) {
@@ -343,22 +444,134 @@ PROCESS_THREAD(app_tcpip_process,ev,data)
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+PROCESS_THREAD(select_channel_process,ev,data)
+{
+	PROCESS_BEGIN();
+	static struct etimer ch_et;
+	static radio_value_t ch_num = RF_CORE_CONF_CHANNEL;
+	int ch;
+	radio_value_t channel;
+
+	etimer_set(&ch_et,APP_SELECT_CHANNEL_INTERVAL);
+	NETSTACK_RADIO.on();
+	select_channel_event = process_alloc_event();
+	memset(channel_array,0,sizeof(channel_array));
+	memset(unoccupied_channel.channel,0,sizeof(unoccupied_channel.channel));
+	unoccupied_channel.len =0;
+	
+	while(1){
+		PROCESS_YIELD();
+		if(etimer_expired(&ch_et))
+		{
+			NETSTACK_RADIO.off();
+			ch_num++;			
+			NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,ch_num%HITMAC_MAX_CHANNEL_NUMBER);
+			
+			NETSTACK_RADIO.on();
+
+			NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&channel);//get local channel
+			MYPRINTF("SET SCAN CHANNEL %d\n",channel);
+
+			if(ch_num>=(HITMAC_MAX_CHANNEL_NUMBER+RF_CORE_CONF_CHANNEL)){//scan process end
+				ch_num = RF_CORE_CONF_CHANNEL ;
+				has_select_channel =1;
+
+				for(ch=0;ch<HITMAC_MAX_CHANNEL_NUMBER;ch++){
+					if(channel_array[ch].node_num==0&&unoccupied_channel.len<HITMAC_MAX_CHANNEL_NUMBER){//the channel has not been occupied
+						unoccupied_channel.channel[unoccupied_channel.len] = ch;
+						unoccupied_channel.len++;
+						MYPRINTF("not occupied channel %d\n",ch);
+					}else{
+						MYPRINTF("occupied channel %d,nodes number %d\n",ch,channel_array[ch].node_num);
+					}
+				}
+
+				/*select channel from unoccupied channel list*/
+				NETSTACK_RADIO.off();
+				if(unoccupied_channel.len!=0){
+					ch = random_rand()%unoccupied_channel.len;
+					NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,unoccupied_channel.channel[ch]);
+				}else{
+					NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,random_rand()%HITMAC_MAX_CHANNEL_NUMBER);
+				}
+				NETSTACK_RADIO.on();
+				NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&channel);//get local channel
+				MYPRINTF("RANDOM SET ROOT CHANNEL %d\n",channel);
+
+				normalbyte_rfchannel_burn(0,channel);
+				NETSTACK_RADIO.off();
+				NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL,channel);
+				NETSTACK_RADIO.on();
+
+				hitmac_off(1);//hitmac process has been started before.
+				process_start(&app_root_process,NULL);
+				
+				MYPRINTF("scan end\n");
+				PROCESS_EXIT();
+			}
+
+			if(!has_select_channel){
+				etimer_set(&ch_et,APP_SELECT_CHANNEL_INTERVAL);
+			}
+			
+		}
+		if(ev == select_channel_event){
+			NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&channel);//get local channel
+			MYPRINTF("app listen current channel %d\n",channel);
+			
+
+			if(input_buf.type==FRAME802154_DATAFRAME&&
+				linkaddr_cmp(&input_buf.dest_addr, &linkaddr_null) == 0){
+				
+				channel_array[channel].node_num++;
+				channel_array[channel].dest_addr=packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u16;
+
+				MYPRINTF("packet attrutute:%d\n",input_buf.type);
+				MYPRINTF("sender addr:%x\n",input_buf.src_addr.u16);
+				MYPRINTF("receive addr:%x\n",input_buf.dest_addr.u16);
+				MYPRINTF("receive rssi:%d\n",input_buf.rssi);
+				MYPRINTF("data len:%d\n",input_buf.len);
+
+			}
+
+		    input_buf.len = 0;
+				
+		}
+
+
+	}
+
+	PROCESS_END();
+
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(app_root_process,ev,data)
 {
 	PROCESS_BEGIN();
 	
 	hitmac_is_root = 1;
-	
-	NETSTACK_CONF_MAC.off(1);
+	NETSTACK_RADIO.on();
 	NETSTACK_CONF_MAC.on();
 
 	hitmac_set_conn_process(&app_root_process);
-	printf("app root started\n");
-	
+	MYPRINTF("app root started\n");
+	radio_value_t val;
+	has_select_channel =1; 
 	/*@test upload*/
 	// uint8_t test_buf[20]="hello world\n";
 	// static struct etimer et;
 	// etimer_set(&et,CLOCK_SECOND*2);
+	// static uint8_t i=0;
+
+	NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL,&val);//get local channel
+	MYPRINTF("app root channel %d\n",val);
+
+	/*@test count*/
+	for(int i=0;i<10;i++){
+		node_count[i].id=0;
+		node_count[i].num=0;
+	}
+
 
 	while(1){
 		PROCESS_YIELD();
@@ -372,20 +585,20 @@ PROCESS_THREAD(app_root_process,ev,data)
 			
 		}
 
-		// /*@test upload*/
+		/*@test upload*/
 		// if(etimer_expired(&et)){
 		// 	/*@test upload*/
-		// 	packetbuf_clear();
-		// 	packetbuf_copyfrom(test_buf,20);
-		// 	packetbuf_set_datalen(20);
+		// 	// packetbuf_clear();
+		// 	// packetbuf_copyfrom(test_buf,20);
+		// 	// packetbuf_set_datalen(20);
 			
-		// 	input_buf.len = packetbuf_datalen();
-		// 	memcpy(input_buf.buf,&test_buf, input_buf.len);
-		// 	input_buf.src_addr.u16 = 0xFE23;
-		// 	input_buf.dest_addr.u16 = 0xFEA8;
+		// 	// input_buf.len = packetbuf_datalen();
+		// 	// memcpy(input_buf.buf,&test_buf, input_buf.len);
+		// 	// input_buf.src_addr.u16 = 0xFE23;
+		// 	// input_buf.dest_addr.u16 = 0xFEA8;
 
-		// 	eventhandler(HITMAC_NET_HITMONITOR, data);
-		// 	// nodes_appdata_send();
+		// 	// eventhandler(HITMAC_NET_HITMONITOR, data);
+		// 	nodes_appdata_send();
 		// 	etimer_set(&et,CLOCK_SECOND*5);
 		// }
 		/*download test*/
@@ -394,9 +607,15 @@ PROCESS_THREAD(app_root_process,ev,data)
 		// 	if(get_mod_type()== HITMAC_DOWNLOAD_TYPE){
 		// 		root_send(0xffff);
 		// 	}
-		// 	etimer_set(&et,CLOCK_SECOND*2);
+		// 	etimer_set(&et,CLOCK_SECOND*PERIOD);
 		// }
-
+		/*@test mac on or off test*/
+		// if(etimer_expired(&et)){
+		// 	hitmac_off(i%2);
+		// 	i++;
+		// 	leds_toggle(LEDS_RED);
+		// 	etimer_set(&et,CLOCK_SECOND*20);
+		// }
 		
 	}
 	PROCESS_END();

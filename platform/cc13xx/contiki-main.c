@@ -57,15 +57,22 @@ set_rf_params(void)
   /* Populate linkaddr_node_addr. Maintain endianness */
   memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
   
-
+  
   NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
   NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, RF_CORE_CHANNEL);
+  //set channel
+  normalbyte_rfchannel_restore();
+  if(channel_byte<HITMAC_MAX_CHANNEL){
+    NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel_byte);
+  }else{
+    NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, RF_CORE_CHANNEL);
+  }
+
   NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
 
   NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &val);
 
-  printf("channel: %d\n", RF_CORE_CHANNEL);
+  printf("channel: %u\n", val);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -98,7 +105,6 @@ main(void)
   restart_count++;
   restart_count_byte_burn(restart_count);
   printf("restart count %d\n", restart_count);
-  
 #endif /* BURN_NODEID */
 
   /*************************************************/
